@@ -1,0 +1,4 @@
+build_debug/
+build_release/
+ccls_precomp/
+compile_commands.json
