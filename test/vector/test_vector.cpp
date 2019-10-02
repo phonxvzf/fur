@@ -169,50 +169,24 @@ void test_normalized() {
   assert(COMPARE_EQ(vector4f(1, 2, 3, 4).normalized().size(), 1.0f));
 }
 
+void test_module(void fn(void), const std::string& module_name) {
+  std::cout << "> Testing " << module_name << "... " << std::flush;
+  fn();
+  std::cout << "PASSED" << std::endl;
+}
+
 int main(int argc, char** argv) {
-  std::cout << "> Testing constructors... " << std::flush;
-  test_constructors();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing addition... " << std::flush;
-  test_add();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing difference... " << std::flush;
-  test_minus();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing element-wise multiplication... " << std::flush;
-  test_elm_mult();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing element-wise division... " << std::flush;
-  test_elm_div();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing scalar multiplication... " << std::flush;
-  test_scalar_mult();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing scalar division... " << std::flush; 
-  test_scalar_div();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing dot... " << std::flush;
-  test_dot();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing size... " << std::flush;
-  test_size();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing is_zero... " << std::flush;
-  test_is_zero();
-  std::cout << "PASSED" << std::endl;
-
-  std::cout << "> Testing normalized... " << std::flush;
-  test_normalized();
-  std::cout << "PASSED" << std::endl;
+  test_module(test_constructors, "constructors");
+  test_module(test_add, "addition");
+  test_module(test_minus, "difference");
+  test_module(test_elm_mult, "element-wise multiplication");
+  test_module(test_elm_div, "element-wise division");
+  test_module(test_scalar_mult, "scalar multiplication");
+  test_module(test_scalar_div, "scalar division");
+  test_module(test_dot, "dot product");
+  test_module(test_size, "size");
+  test_module(test_is_zero, "is_zero");
+  test_module(test_normalized, "normalized");
 
   std::cout << "> Congratulations! All tests passed!" << std::endl;
   return 0;

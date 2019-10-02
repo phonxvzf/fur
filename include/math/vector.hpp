@@ -9,12 +9,9 @@
 #include "float.hpp"
 
 namespace math {
-  template <typename T>
-    class vector2;
-  template <typename T>
-    class vector3;
-  template <typename T>
-    class vector4;
+  template <typename T> class vector2;
+  template <typename T> class vector3;
+  template <typename T> class vector4;
 
   typedef vector2<Float>  vector2f;
   typedef vector2<int>    vector2i;
@@ -230,6 +227,14 @@ namespace math {
 
         T dot(const vector3& rhs) const {
           return x * rhs.x + y * rhs.y + z * rhs.z;
+        }
+
+        T cross(const vector3& rhs) const {
+          return vector3(
+              y * rhs.z - rhs.y * z,
+              x * rhs.z - rhs.x * z,
+              x * rhs.y - rhs.x * y
+              );
         }
 
         Float size() const {
