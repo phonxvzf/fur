@@ -15,12 +15,18 @@ namespace math {
 
   typedef vector2<Float>  vector2f;
   typedef vector2<int>    vector2i;
+  typedef vector2<Float>  point2f;
+  typedef vector2<int>    point2i;
 
   typedef vector3<Float>  vector3f;
   typedef vector3<int>    vector3i;
+  typedef vector3<Float>  point3f;
+  typedef vector3<int>    point3i;
 
   typedef vector4<Float>  vector4f;
   typedef vector4<int>    vector4i;
+  typedef vector4<Float>  point4f;
+  typedef vector4<int>    point4i;
 
   template <typename T>
     vector2<T> operator*(T s, const vector2<T> vec) {
@@ -131,6 +137,10 @@ namespace math {
           return std::sqrt(x * x + y * y);
         }
 
+        Float size_sq() const {
+          return x * x + y * y;
+        }
+
         bool is_zero() const {
           return COMPARE_EQ(x, 0.0f) && COMPARE_EQ(y, 0.0f);
         }
@@ -163,6 +173,12 @@ namespace math {
         template <typename U>
           vector3(const vector3<U>& vu) :
             x(static_cast<T>(vu.x)), y(static_cast<T>(vu.y)), z(static_cast<T>(vu.z)) {}
+
+        template <typename U>
+          vector3(const vector2<U>& v2, T z) :
+            x(static_cast<T>(v2.x)),
+            y(static_cast<T>(v2.y)),
+            z(static_cast<T>(z)) {}
 
         vector3& operator=(const vector3& cpy) {
           return { cpy.x, cpy.y, cpy.z };
@@ -241,6 +257,10 @@ namespace math {
           return std::sqrt(x * x + y * y + z * z);
         }
 
+        Float size_sq() const {
+          return x * x + y * y + z * z;
+        }
+
         bool is_zero() const {
           return COMPARE_EQ(x, 0.0f) && COMPARE_EQ(y, 0.0f) && COMPARE_EQ(z, 0.0f);
         }
@@ -277,11 +297,25 @@ namespace math {
         vector4(const vector3<T>& vec3) : x(vec3.x), y(vec3.y), z(vec3.z), w(0) {}
 
         template <typename U>
-        vector4(const vector4<U>& vu) :
+          vector4(const vector4<U>& vu) :
             x(static_cast<T>(vu.x)),
             y(static_cast<T>(vu.y)),
             z(static_cast<T>(vu.z)),
             w(static_cast<T>(vu.w)) {}
+
+        template <typename U>
+          vector4(const vector2<U>& v2, T z, T w) :
+            x(static_cast<T>(v2.x)),
+            y(static_cast<T>(v2.y)),
+            z(static_cast<T>(z)),
+            w(static_cast<T>(w)) {}
+
+        template <typename U>
+          vector4(const vector3<U>& v3, T w) :
+            x(static_cast<T>(v3.x)),
+            y(static_cast<T>(v3.y)),
+            z(static_cast<T>(v3.z)),
+            w(static_cast<T>(w)) {}
 
         vector4& operator=(const vector4& cpy) {
           return { cpy.x, cpy.y, cpy.z, cpy.w };
@@ -354,6 +388,10 @@ namespace math {
 
         Float size() const {
           return std::sqrt(x * x + y * y + z * z + w * w);
+        }
+
+        Float size_sq() const {
+          return x * x + y * y + z * z + w * w;
         }
 
         bool is_zero() const {

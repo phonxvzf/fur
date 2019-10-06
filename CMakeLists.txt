@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(tracer)
-set(BINARY tracer)
+project(ftracer)
+set(BINARY ftracer)
 set(BINARY_VECTOR_TEST test_vector)
 
 file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp")

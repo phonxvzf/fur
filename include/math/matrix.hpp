@@ -30,7 +30,7 @@ namespace math {
           }
         }
 
-        matrix2(T x) {
+        matrix2(T x = 1) {
           value[0][0] = x;
           value[1][1] = x;
         }
@@ -77,11 +77,15 @@ namespace math {
         }
 
         template <typename U>
-          vector2<U> operator*(const vector2<U>& v) {
+          vector2<U> operator*(const vector2<U>& v) const {
             vector2<U> c1(value[0][0], value[1][0]);
             vector2<U> c2(value[0][1], value[1][1]);
             return c1 * v.x + c2 * v.y;
           }
+
+        T* operator[](int i) {
+          return value[i];
+        }
     }; /* class matrix2 */
 
   template <typename T>
@@ -97,7 +101,7 @@ namespace math {
           }
         }
 
-        matrix3(T x) {
+        matrix3(T x = 1) {
           value[0][0] = x;
           value[1][1] = x;
           value[2][2] = x;
@@ -155,12 +159,16 @@ namespace math {
         }
 
         template <typename U>
-          vector3<U> operator*(const vector3<U>& v) {
+          vector3<U> operator*(const vector3<U>& v) const {
             vector3<U> c1(value[0][0], value[1][0], value[2][0]);
             vector3<U> c2(value[0][1], value[1][1], value[2][1]);
             vector3<U> c3(value[0][2], value[1][2], value[2][2]);
             return c1 * v.x + c2 * v.y + c3 * v.z;
           }
+
+        T* operator[](int i) {
+          return value[i];
+        }
     }; /* class matrix3 */
 
   template <typename T>
@@ -176,7 +184,7 @@ namespace math {
           }
         }
 
-        matrix4(T x) {
+        matrix4(T x = 1) {
           value[0][0] = x;
           value[1][1] = x;
           value[2][2] = x;
@@ -259,13 +267,17 @@ namespace math {
         }
 
         template <typename U>
-          vector4<U> operator*(const vector4<U>& v) {
+          vector4<U> operator*(const vector4<U>& v) const {
             vector4<U> c1(value[0][0], value[1][0], value[2][0], value[3][0]);
             vector4<U> c2(value[0][1], value[1][1], value[2][1], value[3][1]);
             vector4<U> c3(value[0][2], value[1][2], value[2][2], value[3][2]);
             vector4<U> c4(value[0][2], value[1][2], value[2][2], value[3][3]);
             return c1 * v.x + c2 * v.y + c3 * v.z + c4 * v.w;
           }
+
+        T* operator[](int i) {
+          return value[i];
+        }
     }; /* class matrix3 */
 } /* namespace math */
 
