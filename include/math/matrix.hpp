@@ -72,18 +72,40 @@ namespace math {
           return value[0][0] * value[1][1] - value[1][0] * value[0][1];
         }
 
+        vector2<T> row(int i) const {
+          assert(i < 2);
+          return { value[i][0], value[i][1] };
+        }
+
+        vector2<T> col(int j) const {
+          assert(j < 2);
+          return { value[0][j], value[1][j] };
+        }
+
         matrix2 t() const {
           return matrix2({ value[0][0], value[0][1] }, { value[1][0], value[1][1] });
         }
 
         template <typename U>
-          vector2<U> operator*(const vector2<U>& v) const {
+          vector2<U> dot(const vector2<U>& v) const {
             vector2<U> c1(value[0][0], value[1][0]);
             vector2<U> c2(value[0][1], value[1][1]);
             return c1 * v.x + c2 * v.y;
           }
 
+        matrix2 operator*(const matrix2& m) const {
+          const vector2<T> c0(col(0)), c1(col(1));
+          return matrix2(
+              c0 * m[0][0] + c1 * m[1][0],
+              c0 * m[0][1] + c1 * m[1][1]
+              );
+        }
+
         T* operator[](int i) {
+          return value[i];
+        }
+
+        const T* operator[](int i) const {
           return value[i];
         }
     }; /* class matrix2 */
@@ -158,15 +180,38 @@ namespace math {
               );
         }
 
+        vector3<T> row(int i) const {
+          assert(i < 3);
+          return { value[i][0], value[i][1], value[i][2] };
+        }
+
+        vector3<T> col(int j) const {
+          assert(j < 3);
+          return { value[0][j], value[1][j], value[2][j] };
+        }
+
         template <typename U>
-          vector3<U> operator*(const vector3<U>& v) const {
+          vector3<U> dot(const vector3<U>& v) const {
             vector3<U> c1(value[0][0], value[1][0], value[2][0]);
             vector3<U> c2(value[0][1], value[1][1], value[2][1]);
             vector3<U> c3(value[0][2], value[1][2], value[2][2]);
             return c1 * v.x + c2 * v.y + c3 * v.z;
           }
 
+        matrix3 operator*(const matrix3& m) const {
+          const vector3<T> c0(col(0)), c1(col(1)), c2(col(2));
+          return matrix3(
+              c0 * m[0][0] + c1 * m[1][0] + c2 * m[2][0],
+              c0 * m[0][1] + c1 * m[1][1] + c2 * m[2][1],
+              c0 * m[0][2] + c1 * m[1][2] + c2 * m[2][2]
+              );
+        }
+
         T* operator[](int i) {
+          return value[i];
+        }
+
+        const T* operator[](int i) const {
           return value[i];
         }
     }; /* class matrix3 */
@@ -266,8 +311,18 @@ namespace math {
               );
         }
 
+        vector4<T> row(int i) const {
+          assert(i < 4);
+          return { value[i][0], value[i][1], value[i][2], value[i][3] };
+        }
+
+        vector4<T> col(int j) const {
+          assert(j < 4);
+          return { value[0][j], value[1][j], value[2][j], value[3][j] };
+        }
+
         template <typename U>
-          vector4<U> operator*(const vector4<U>& v) const {
+          vector4<U> dot(const vector4<U>& v) const {
             vector4<U> c1(value[0][0], value[1][0], value[2][0], value[3][0]);
             vector4<U> c2(value[0][1], value[1][1], value[2][1], value[3][1]);
             vector4<U> c3(value[0][2], value[1][2], value[2][2], value[3][2]);
@@ -275,10 +330,200 @@ namespace math {
             return c1 * v.x + c2 * v.y + c3 * v.z + c4 * v.w;
           }
 
+        matrix4f inverse() const {
+          Float d = det();
+          assert(!COMPARE_EQ(d, 0));
+          matrix4f inv;
+          const Float A2323 = value[2][2] * value[3][3] - value[2][3] * value[3][2];
+          const Float A1323 = value[2][1] * value[3][3] - value[2][3] * value[3][1];
+          const Float A1223 = value[2][1] * value[3][2] - value[2][2] * value[3][1];
+          const Float A0323 = value[2][0] * value[3][3] - value[2][3] * value[3][0];
+          const Float A0223 = value[2][0] * value[3][2] - value[2][2] * value[3][0];
+          const Float A0123 = value[2][0] * value[3][1] - value[2][1] * value[3][0];
+          const Float A2313 = value[1][2] * value[3][3] - value[1][3] * value[3][2];
+          const Float A1313 = value[1][1] * value[3][3] - value[1][3] * value[3][1];
+          const Float A1213 = value[1][1] * value[3][2] - value[1][2] * value[3][1];
+          const Float A2312 = value[1][2] * value[2][3] - value[1][3] * value[2][2];
+          const Float A1312 = value[1][1] * value[2][3] - value[1][3] * value[2][1];
+          const Float A1212 = value[1][1] * value[2][2] - value[1][2] * value[2][1];
+          const Float A0313 = value[1][0] * value[3][3] - value[1][3] * value[3][0];
+          const Float A0213 = value[1][0] * value[3][2] - value[1][2] * value[3][0];
+          const Float A0312 = value[1][0] * value[2][3] - value[1][3] * value[2][0];
+          const Float A0212 = value[1][0] * value[2][2] - value[1][2] * value[2][0];
+          const Float A0113 = value[1][0] * value[3][1] - value[1][1] * value[3][0];
+          const Float A0112 = value[1][0] * value[2][1] - value[1][1] * value[2][0];
+          inv[0][0] = d *   (value[1][1] * A2323 - value[1][2] * A1323 + value[1][3] * A1223);
+          inv[0][1] = d * - (value[0][1] * A2323 - value[0][2] * A1323 + value[0][3] * A1223);
+          inv[0][2] = d *   (value[0][1] * A2313 - value[0][2] * A1313 + value[0][3] * A1213);
+          inv[0][3] = d * - (value[0][1] * A2312 - value[0][2] * A1312 + value[0][3] * A1212);
+          inv[1][0] = d * - (value[1][0] * A2323 - value[1][2] * A0323 + value[1][3] * A0223);
+          inv[1][1] = d *   (value[0][0] * A2323 - value[0][2] * A0323 + value[0][3] * A0223);
+          inv[1][2] = d * - (value[0][0] * A2313 - value[0][2] * A0313 + value[0][3] * A0213);
+          inv[1][3] = d *   (value[0][0] * A2312 - value[0][2] * A0312 + value[0][3] * A0212);
+          inv[2][0] = d *   (value[1][0] * A1323 - value[1][1] * A0323 + value[1][3] * A0123);
+          inv[2][1] = d * - (value[0][0] * A1323 - value[0][1] * A0323 + value[0][3] * A0123);
+          inv[2][2] = d *   (value[0][0] * A1313 - value[0][1] * A0313 + value[0][3] * A0113);
+          inv[2][3] = d * - (value[0][0] * A1312 - value[0][1] * A0312 + value[0][3] * A0112);
+          inv[3][0] = d * - (value[1][0] * A1223 - value[1][1] * A0223 + value[1][2] * A0123);
+          inv[3][1] = d *   (value[0][0] * A1223 - value[0][1] * A0223 + value[0][2] * A0123);
+          inv[3][2] = d * - (value[0][0] * A1213 - value[0][1] * A0213 + value[0][2] * A0113);
+          inv[3][3] = d *   (value[0][0] * A1212 - value[0][1] * A0212 + value[0][2] * A0112);
+          return inv;
+        }
+
+        matrix4 operator*(const matrix4& m) const {
+          const vector4<T> c0(col(0)), c1(col(1)), c2(col(2)), c3(col(3));
+          return matrix4(
+              c0 * m[0][0] + c1 * m[1][0] + c2 * m[2][0] + c3 * m[3][0],
+              c0 * m[0][1] + c1 * m[1][1] + c2 * m[2][1] + c3 * m[3][1],
+              c0 * m[0][2] + c1 * m[1][2] + c2 * m[2][2] + c3 * m[3][2],
+              c0 * m[0][3] + c1 * m[1][3] + c2 * m[2][3] + c3 * m[3][3]
+              );
+        }
+
         T* operator[](int i) {
           return value[i];
         }
+
+        const T* operator[](int i) const {
+          return value[i];
+        }
     }; /* class matrix3 */
+
+  template <typename T>
+    matrix2<T> operator*(const matrix2<T>& m, T s) {
+      matrix2<T> r;
+      for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    matrix2<T> operator*(const matrix2<T>& m, Float s) {
+      matrix2<Float> r;
+      for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    inline matrix2<T> operator*(T s, const matrix2<T>& m) {
+      return m * s;
+    }
+
+  template <typename T>
+    inline matrix2<T> operator*(Float s, const matrix2<T>& m) {
+      return m * s;
+    }
+
+  template <typename T>
+    matrix2<T> operator/(const matrix2<T>& m, Float s) {
+      matrix2<Float> r;
+      assert(!COMPARE_EQ(s, 0));
+      s = 1 / s;
+      for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    matrix3<T> operator*(const matrix3<T>& m, T s) {
+      matrix3<T> r;
+      for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    matrix3<T> operator*(const matrix3<T>& m, Float s) {
+      matrix3<Float> r;
+      for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    inline matrix3<T> operator*(T s, const matrix3<T>& m) {
+      return m * s;
+    }
+
+  template <typename T>
+    inline matrix3<T> operator*(Float s, const matrix3<T>& m) {
+      return m * s;
+    }
+
+  template <typename T>
+    matrix3<T> operator/(const matrix3<T>& m, Float s) {
+      matrix3<Float> r;
+      assert(!COMPARE_EQ(s, 0));
+      s = 1 / s;
+      for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    matrix4<T> operator*(const matrix4<T>& m, T s) {
+      matrix4<T> r;
+      for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    matrix4<T> operator*(const matrix4<T>& m, Float s) {
+      matrix4<Float> r;
+      for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
+
+  template <typename T>
+    inline matrix4<T> operator*(T s, const matrix4<T>& m) {
+      return m * s;
+    }
+
+  template <typename T>
+    inline matrix4<T> operator*(Float s, const matrix4<T>& m) {
+      return m * s;
+    }
+
+  template <typename T>
+    matrix4<T> operator/(const matrix4<T>& m, Float s) {
+      matrix4<Float> r;
+      assert(!COMPARE_EQ(s, 0));
+      s = 1 / s;
+      for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+          r[i][j] = m[i][j] * s;
+        }
+      }
+      return r;
+    }
 } /* namespace math */
 
 #endif /* MATH_MATRIX_HPP */

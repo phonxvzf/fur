@@ -7,23 +7,18 @@ namespace tracer {
 
   using namespace math;
 
-  template <typename T> class ray;
+  class ray {
+    public:
+      const vector3f origin;
+      const vector3f dir;
 
-  typedef ray<Float> rayf;
+      ray(const vector3f& origin, const vector3f& dir) : origin(origin), dir(dir) {}
+      ray(const ray& cpy) : origin(cpy.origin), dir(cpy.origin) {}
 
-  template <typename T>
-    class ray {
-      public:
-        const vector3<T> origin;
-        const vector3<T> dir;
-
-        ray(const vector3<T>& origin, const vector3<T>& dir) : origin(origin), dir(dir) {}
-        ray(const ray& cpy) : origin(cpy.origin), dir(cpy.origin) {}
-
-        vector3<T> operator()(T t) {
-          return origin + dir * t;
-        }
-    };
+      vector3f operator()(Float t) {
+        return origin + dir * t;
+      }
+  };
 }
 
 #endif /* TRACER_RAY_HPP */

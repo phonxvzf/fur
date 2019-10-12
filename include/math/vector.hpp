@@ -28,33 +28,33 @@ namespace math {
   typedef vector4<Float>  point4f;
   typedef vector4<int>    point4i;
 
-  template <typename T>
-    vector2<T> operator*(T s, const vector2<T> vec) {
+  template <typename T, typename U>
+    vector2<T> operator*(U s, const vector2<T> vec) {
       return { vec.x * s, vec.y * s };
     }
 
-  template <typename T>
-    vector2<T> operator*(const vector2<T> vec, T s) {
+  template <typename T, typename U>
+    vector2<T> operator*(const vector2<T> vec, U s) {
       return { vec.x * s, vec.y * s };
     }
 
-  template <typename T>
-    vector3<T> operator*(T s, const vector3<T> vec) {
+  template <typename T, typename U>
+    vector3<T> operator*(U s, const vector3<T> vec) {
       return { vec.x * s, vec.y * s, vec.z * s };
     }
 
-  template <typename T>
-    vector3<T> operator*(const vector3<T> vec, T s) {
+  template <typename T, typename U>
+    vector3<T> operator*(const vector3<T> vec, U s) {
       return { vec.x * s, vec.y * s, vec.z * s};
     }
 
-  template <typename T>
-    vector4<T> operator*(T s, const vector4<T> vec) {
+  template <typename T, typename U>
+    vector4<T> operator*(U s, const vector4<T> vec) {
       return { vec.x * s, vec.y * s, vec.z * s, vec.w * s };
     }
 
-  template <typename T>
-    vector4<T> operator*(const vector4<T> vec, T s) {
+  template <typename T, typename U>
+    vector4<T> operator*(const vector4<T> vec, U s) {
       return { vec.x * s, vec.y * s, vec.z * s, vec.w * s};
     }
 
@@ -73,7 +73,8 @@ namespace math {
             x(static_cast<T>(vu.x)), y(static_cast<T>(vu.y)) {}
 
         vector2& operator=(const vector2& cpy) {
-          return { cpy.x, cpy.y };
+          x = cpy.x; y = cpy.y;
+          return *this;
         }
 
         vector2 operator+(const vector2& rhs) const {
@@ -181,7 +182,8 @@ namespace math {
             z(static_cast<T>(z)) {}
 
         vector3& operator=(const vector3& cpy) {
-          return { cpy.x, cpy.y, cpy.z };
+          x = cpy.x; y = cpy.y; z = cpy.z;
+          return *this;
         }
 
         vector3 operator+(const vector3& rhs) const {
@@ -245,7 +247,7 @@ namespace math {
           return x * rhs.x + y * rhs.y + z * rhs.z;
         }
 
-        T cross(const vector3& rhs) const {
+        vector3 cross(const vector3& rhs) const {
           return vector3(
               y * rhs.z - rhs.y * z,
               x * rhs.z - rhs.x * z,
@@ -318,7 +320,8 @@ namespace math {
             w(static_cast<T>(w)) {}
 
         vector4& operator=(const vector4& cpy) {
-          return { cpy.x, cpy.y, cpy.z, cpy.w };
+          x = cpy.x; y = cpy.y; z = cpy.z; w = cpy.w;
+          return *this;
         }
 
         vector4 operator+(const vector4& rhs) const {
