@@ -4,11 +4,13 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 project(ftracer)
 set(BINARY ftracer)
 set(BINARY_VECTOR_TEST test_vector)
+list(APPEND CMAKE_MODULE_PATH "modules/")
 
 file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp")
 file(GLOB VECTOR_TEST_SOURCES "test/vector/*.cpp")
 
 find_package(Boost COMPONENTS system filesystem thread REQUIRED)
+find_package(OpenEXR REQUIRED)
 
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -std=c++14 -pipe")
@@ -23,5 +25,7 @@ endif()
 add_executable(${BINARY} ${SOURCES})
 add_executable(${BINARY_VECTOR_TEST} ${VECTOR_TEST_SOURCES})
 
-target_include_directories(${BINARY} PRIVATE include)
+target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIR})
 target_include_directories(${BINARY_VECTOR_TEST} PRIVATE include)
+
+target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES})
