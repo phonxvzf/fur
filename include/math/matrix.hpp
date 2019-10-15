@@ -108,6 +108,14 @@ namespace math {
         const T* operator[](int i) const {
           return value[i];
         }
+
+        std::string to_string() const {
+          return "[" + row(0).to_string() + "\n " + row(1).to_string() + "]";
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, matrix2<T> m) {
+          return os << m.to_string();
+        }
     }; /* class matrix2 */
 
   template <typename T>
@@ -213,6 +221,16 @@ namespace math {
 
         const T* operator[](int i) const {
           return value[i];
+        }
+
+        std::string to_string() const {
+          return "[" + row(0).to_string() + "\n "
+            + row(1).to_string() + "\n "
+            + row(2).to_string() + "]";
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, matrix3<T> m) {
+          return os << m.to_string();
         }
     }; /* class matrix3 */
 
@@ -323,11 +341,7 @@ namespace math {
 
         template <typename U>
           vector4<U> dot(const vector4<U>& v) const {
-            vector4<U> c1(value[0][0], value[1][0], value[2][0], value[3][0]);
-            vector4<U> c2(value[0][1], value[1][1], value[2][1], value[3][1]);
-            vector4<U> c3(value[0][2], value[1][2], value[2][2], value[3][2]);
-            vector4<U> c4(value[0][2], value[1][2], value[2][2], value[3][3]);
-            return c1 * v.x + c2 * v.y + c3 * v.z + c4 * v.w;
+            return col(0) * v.x + col(1) * v.y + col(2) * v.z + col(3) * v.w;
           }
 
         matrix4f inverse() const {
@@ -387,6 +401,17 @@ namespace math {
 
         const T* operator[](int i) const {
           return value[i];
+        }
+
+        std::string to_string() const {
+          return "[" + row(0).to_string() + "\n "
+            + row(1).to_string() + "\n "
+            + row(2).to_string() + "\n "
+            + row(3).to_string() + "]";
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, matrix4<T> m) {
+          return os << m.to_string();
         }
     }; /* class matrix3 */
 

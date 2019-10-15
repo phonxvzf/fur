@@ -18,6 +18,10 @@ namespace tracer {
       vector3f operator()(Float t) {
         return origin + dir * t;
       }
+
+      ray normalized() const {
+        return ray(origin, dir.normalized());
+      }
   };
 }
 

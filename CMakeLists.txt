@@ -6,7 +6,7 @@ set(BINARY ftracer)
 set(BINARY_VECTOR_TEST test_vector)
 list(APPEND CMAKE_MODULE_PATH "modules/")
 
-file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp" "src/*/*/*.cpp")
 file(GLOB VECTOR_TEST_SOURCES "test/vector/*.cpp")
 
 find_package(Boost COMPONENTS system filesystem thread REQUIRED)

@@ -2,7 +2,7 @@
 #define TRACER_SPECTRUM_HPP
 
 #include <vector>
-#include "math/float.hpp"
+#include "math/matrix.hpp"
 
 namespace tracer {
 
@@ -57,6 +57,8 @@ namespace tracer {
       sampled_spectrum(Float v);
       sampled_spectrum(std::vector<spectral_sample> samples);
 
+      math::vector3f xyz() const;
+
       static Float average_spectral_samples(
           const std::vector<spectral_sample>& samples,
           const Float lambda0,
@@ -68,14 +70,30 @@ namespace tracer {
           );
   };
 
+  inline math::vector3f xyz_to_rgb(const math::vector3f& xyz) {
+    return math::matrix3f(
+        { 3.240479f, -1.537150f, -0.498535f },
+        { -0.969256f, 1.875991f, 0.041556f  },
+        { 0.055648f, -0.204043f, 1.057311f  }
+        ).dot(xyz);
+  }
+
+  inline math::vector3f rgb_to_xyz(const math::vector3f& rgb) {
+    return math::matrix3f(
+        { 0.4124533 , 0.35757984, 0.18042262 },
+        { 0.21267127, 0.71515972, 0.07216883 },
+        { 0.01933384, 0.11919363, 0.95022693 }
+        ).dot(rgb);
+  }
+
   extern const std::vector<Float> CIE_LAMBDAS;
   extern const std::vector<spectral_sample> CIE_X;
   extern const std::vector<spectral_sample> CIE_Y;
   extern const std::vector<spectral_sample> CIE_Z;
 
-  extern const sampled_spectrum X_SPECTRUM;
-  extern const sampled_spectrum Y_SPECTRUM;
-  extern const sampled_spectrum Z_SPECTRUM;
+  extern const sampled_spectrum SMC_X;
+  extern const sampled_spectrum SMC_Y;
+  extern const sampled_spectrum SMC_Z;
 
 } /* namespace tracer */
 

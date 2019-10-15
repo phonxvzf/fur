@@ -153,7 +153,7 @@ namespace math {
         }
 
         std::string to_string() const {
-          return "[ " + std::to_string(x) + " " + std::to_string(y) + " ]";
+          return "[\t" + std::to_string(x) + "\t" + std::to_string(y) + "\t]";
         }
 
         friend std::ostream& operator<<(std::ostream& os, const vector2& vec) {
@@ -274,13 +274,13 @@ namespace math {
         }
 
         std::string to_string() const {
-          return "[ "
+          return "[\t"
             + std::to_string(x)
-            + " "
+            + "\t"
             + std::to_string(y)
-            + " "
+            + "\t"
             + std::to_string(z)
-            + " ]";
+            + "\t]";
         }
 
         friend std::ostream& operator<<(std::ostream& os, const vector3& vec) {
@@ -411,15 +411,15 @@ namespace math {
         }
 
         std::string to_string() const {
-          return "[ "
+          return "[\t"
             + std::to_string(x)
-            + " "
+            + "\t"
             + std::to_string(y)
-            + " "
+            + "\t"
             + std::to_string(z)
-            + " "
+            + "\t"
             + std::to_string(w)
-            + " ]";
+            + "\t]";
         }
 
         friend std::ostream& operator<<(std::ostream& os, const vector4& vec) {

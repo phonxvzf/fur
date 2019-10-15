@@ -164,6 +164,17 @@ namespace tracer {
       spd[i] = average_spectral_samples(samples, lambda0, lambda1);
     }
   }
+      
+  math::vector3f sampled_spectrum::xyz() const {
+    math::vector3f spectrum(0.0);
+    for (int i = 0; i < N_SPECTRAL_SAMPLES; ++i) {
+      spectrum.x += spd[i] * SMC_X.spd[i];
+      spectrum.y += spd[i] * SMC_Y.spd[i];
+      spectrum.z += spd[i] * SMC_Z.spd[i];
+    }
+    spectrum *= Float(LAMBDA_END - LAMBDA_START) / N_SPECTRAL_SAMPLES;
+    return spectrum;
+  }
 
   Float sampled_spectrum::average_spectral_samples(
       const std::vector<spectral_sample>& samples,
@@ -615,7 +626,9 @@ namespace tracer {
       })
   );
 
-  const sampled_spectrum X_SPECTRUM(CIE_X);
-  const sampled_spectrum Y_SPECTRUM(CIE_Y);
-  const sampled_spectrum Z_SPECTRUM(CIE_Z);
+  // Spectral Matching Curves
+  // or Spectral Response Curves
+  const sampled_spectrum SMC_X(CIE_X);
+  const sampled_spectrum SMC_Y(CIE_Y);
+  const sampled_spectrum SMC_Z(CIE_Z);
 } /* namespace tracer */

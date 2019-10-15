@@ -1,5 +1,6 @@
 #include "tracer/camera.hpp"
 #include "math/transform.hpp"
+#include <iostream>
 
 namespace tracer {
   namespace camera {
