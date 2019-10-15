@@ -23,7 +23,7 @@ namespace tracer {
   };
 
   class destimator : public shape {
-    private:
+    protected:
       virtual vector3f calculate_normal(
           const point3f& p,
           Float delta,

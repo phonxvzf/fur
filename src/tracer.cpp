@@ -7,14 +7,18 @@
 #include "tracer/spectrum.hpp"
 #include "tracer/shapes/de_sphere.hpp"
 
+#define WIDTH 500
+#define HEIGHT 500
+
 int main(int argc, char** argv) {
   using namespace tracer;
   using namespace math;
 
-  const vector2i img_res(500, 500);
+  const vector2i img_res(WIDTH, HEIGHT);
 
+  // FIXME: orthographic projection should not skew image
   camera::ortho cam(
-      tf::look_at(vector3f(0), vector3f(0, 0, -10), vector3f(0, 1, 0)),
+      tf::look_at(vector3f(0), vector3f(0, 0, 10), vector3f(0, 1, 0)),
       img_res,
       -1,
       1
@@ -31,7 +35,7 @@ int main(int argc, char** argv) {
   // FIXME
   //std::unique_ptr<Imf::Rgba> ird_xyz(new Imf::Rgba[300 * 300]);
   //Imf::Rgba *ird_xyz = (Imf::Rgba*) malloc(sizeof(Imf::Rgba) * img_res.x * img_res.y);
-  Imf::Rgba ird_xyz[500 * 500];
+  Imf::Rgba ird_xyz[WIDTH * HEIGHT];
 
   const intersect_opts options;
   intersect_result result;
@@ -43,9 +47,11 @@ int main(int argc, char** argv) {
       bool intersect = sphere.intersect(r, options, &result);
       int i = img_res.x * y + x;
       if (intersect) {
-        ird_xyz[i].r = 1;
-        ird_xyz[i].g = 1;
-        ird_xyz[i].b = 1;
+        //vector3f rgb((vector3f(1.0f) + result.normal.normalized()) / 2.0f);
+        vector3f rgb(result.normal.normalized());
+        ird_xyz[i].r = rgb.x;
+        ird_xyz[i].g = rgb.y;
+        ird_xyz[i].b = rgb.z;
         ird_xyz[i].a = 1;
       } else {
         ird_xyz[i].r = 0;

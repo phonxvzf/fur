@@ -18,15 +18,13 @@ namespace math {
     }
 
     matrix4f ndc_to_raster(const vector2i& img_res) {
-      return translate(vector3f(0, img_res.y, 0))
-        * scale(vector3f(0.5 * img_res.x, -0.5 * img_res.y, 1))
-        * translate({ 1, 1, 0 });
+      return scale(vector3f(0.5 * img_res.x, 0.5 * img_res.y, 1)) * translate({ 1, 1, 0 });
     }
 
     matrix4f look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up) {
       const vector3f dir = (at - cam_pos).normalized();
       const vector3f right = world_up.normalized().cross(dir);
-      const vector3f up = right.cross(dir);
+      const vector3f up = dir.cross(right);
       return matrix4f(right, up, dir, vector4f(cam_pos, 1.0));
     }
 
