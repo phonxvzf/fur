@@ -18,7 +18,7 @@ namespace tracer {
     }
 
     Float de_sphere::distance_function(const point3f& p) const {
-      return p.dot(p) - radius * radius;
+      return std::sqrt(p.dot(p)) - radius;
     }
   }
 }

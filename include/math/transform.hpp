@@ -8,6 +8,7 @@ namespace math {
   namespace tf {
 
     vector3f apply(const matrix4f& tf_mat, const vector3f& pt);
+    vector3f apply_normal(const matrix4f& tf_mat, const vector3f& normal);
     tracer::ray apply(const matrix4f& tf_mat, const tracer::ray& r);
 
     inline matrix4f translate(const vector3f& ds) {

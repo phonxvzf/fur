@@ -8,9 +8,24 @@ namespace math {
       const vector4f result = tf_mat.dot(vector4f(pt, 1.0));
       return vector3f(result) / result.w;
     }
+    
+    vector3f apply_normal(const matrix4f& tf_mat, const vector3f& normal) {
+      const vector4f result = tf_mat.inverse().t().dot(vector4f(normal, 1.0));
+      return vector3f(result) / result.w;
+    }
 
     tracer::ray apply(const matrix4f& tf_mat, const tracer::ray& r) {
-      return tracer::ray(tf::apply(tf_mat, r.origin), tf::apply(tf_mat, r.dir));
+      return tracer::ray(
+          tf::apply(tf_mat, r.origin),
+          tf::apply(matrix4f(
+              tf_mat.col(0),
+              tf_mat.col(1),
+              tf_mat.col(2),
+              { 0, 0, 0, 1 }
+              ),
+            r.dir
+            )
+          );
     }
 
     matrix4f rotate(const vector3f& axis_n, Float rad) {

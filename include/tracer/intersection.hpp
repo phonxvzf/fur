@@ -11,6 +11,8 @@ namespace tracer {
     Float hit_epsilon     = 1e-4;
     Float normal_delta    = 1e-4;
     int trace_max_iters   = 1000;
+
+    intersect_opts() : hit_epsilon(1e-4), normal_delta(1e-4), trace_max_iters(1000) {}
   };
 
   struct intersect_result {

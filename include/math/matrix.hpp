@@ -31,8 +31,12 @@ namespace math {
         }
 
         matrix2(T x = 1) {
-          value[0][0] = x;
-          value[1][1] = x;
+          for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 2; ++j) {
+              if (i == j) value[i][j] = x;
+              else value[i][j] = 0;
+            }
+          }
         }
 
         matrix2(const matrix2& cpy) {
@@ -132,9 +136,12 @@ namespace math {
         }
 
         matrix3(T x = 1) {
-          value[0][0] = x;
-          value[1][1] = x;
-          value[2][2] = x;
+          for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+              if (i == j) value[i][j] = x;
+              else value[i][j] = 0;
+            }
+          }
         }
 
         matrix3(const matrix3& cpy) {
@@ -248,10 +255,12 @@ namespace math {
         }
 
         matrix4(T x = 1) {
-          value[0][0] = x;
-          value[1][1] = x;
-          value[2][2] = x;
-          value[3][3] = x;
+          for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+              if (i == j) value[i][j] = x;
+              else value[i][j] = 0;
+            }
+          }
         }
 
         matrix4(const matrix4& cpy) {

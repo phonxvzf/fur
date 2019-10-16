@@ -48,7 +48,10 @@ namespace tracer {
         if (result != nullptr) {
           result->t_hit = t;
           result->hit_point = tf::apply(tf_shape_to_world, phit);
-          result->normal = calculate_normal(phit, options.normal_delta, vector3f(0.0));
+          result->normal = tf::apply_normal(
+              tf_shape_to_world,
+              calculate_normal(phit, options.normal_delta, vector3f(0.0))
+              );
         }
         return true;
       }
