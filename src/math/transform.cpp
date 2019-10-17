@@ -33,7 +33,8 @@ namespace math {
     }
 
     matrix4f ndc_to_raster(const vector2i& img_res, const vector2f& ndc_res) {
-      return scale({ img_res.x / ndc_res.x, img_res.y / ndc_res.y, 1 })
+      return scale(vector3f(img_res.x, img_res.y, 1))
+        * scale({ 1 / ndc_res.x, 1 / ndc_res.y, 1 })
         * translate(vector3f(0.5f * ndc_res, 0));
     }
 

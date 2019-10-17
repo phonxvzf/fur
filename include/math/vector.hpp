@@ -249,9 +249,9 @@ namespace math {
 
         vector3 cross(const vector3& rhs) const {
           return vector3(
-              y * rhs.z - rhs.y * z,
-              x * rhs.z - rhs.x * z,
-              x * rhs.y - rhs.x * y
+              y * rhs.z - z * rhs.y,
+              rhs.x * z - x * rhs.z,
+              x * rhs.y - y * rhs.x
               );
         }
 
