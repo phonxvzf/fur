@@ -32,8 +32,9 @@ namespace math {
       return quat(std::cos(rad / 2), std::sin(rad / 2) * axis_n).to_matrix();
     }
 
-    matrix4f ndc_to_raster(const vector2i& img_res) {
-      return scale(vector3f(0.5 * img_res.x, 0.5 * img_res.y, 1)) * translate({ 1, 1, 0 });
+    matrix4f ndc_to_raster(const vector2i& img_res, const vector2f& ndc_res) {
+      return scale({ img_res.x / ndc_res.x, img_res.y / ndc_res.y, 1 })
+        * translate(vector3f(0.5f * ndc_res, 0));
     }
 
     matrix4f look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up) {
@@ -48,6 +49,7 @@ namespace math {
     }
 
     matrix4f persp(Float z_near, Float z_far, Float fovy) {
+      assert(z_far > 0 && z_near > 0);
       const Float len = z_far - z_near;
       const matrix4f proj(
           { 1, 0, 0, 0 },

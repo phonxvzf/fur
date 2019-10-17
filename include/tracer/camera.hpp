@@ -21,6 +21,7 @@ namespace tracer {
         matrix4f tf_ndc_to_raster, tf_raster_to_ndc;
         matrix4f tf_raster_to_cam;
         const vector2i img_res;
+        const vector2i ndc_res;
 
       public:
         vector3f position;
@@ -28,7 +29,8 @@ namespace tracer {
         projective(
             const matrix4f& cam_to_world,
             const matrix4f& cam_to_ndc,
-            const vector2i& img_res
+            const vector2i& img_res,
+            const vector2f& ndc_res
             );
 
         virtual ray generate_ray(const point2f& img_point) const = 0;
@@ -39,7 +41,13 @@ namespace tracer {
         const Float near;
         const Float far;
 
-        ortho(const matrix4f& cam_to_world, const vector2i& img_res, Float near, Float far);
+        ortho(
+            const matrix4f& cam_to_world,
+            const vector2i& img_res,
+            const vector2f& ndc_res,
+            Float near,
+            Float far
+            );
 
         ray generate_ray(const point2f& img_point) const;
     };
@@ -49,15 +57,14 @@ namespace tracer {
         const Float near;
         const Float far;
         const Float fovy;
-        const Float aspect_ratio;
 
         persp(
             const matrix4f& cam_to_world,
             const vector2i& img_res,
+            const vector2f& ndc_res,
             Float near,
             Float far,
-            Float fovy,
-            Float aspect_ratio
+            Float fovy
             );
 
         ray generate_ray(const point2f& img_point) const;

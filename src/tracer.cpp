@@ -3,31 +3,49 @@
 #include <OpenEXR/ImfRgbaFile.h>
 
 #include "math/transform.hpp"
+#include "math/util.hpp"
 #include "tracer/camera.hpp"
 #include "tracer/spectrum.hpp"
 #include "tracer/shapes/de_sphere.hpp"
+#include "tracer/shapes/de_inf_spheres.hpp"
 
 int main(int argc, char** argv) {
   using namespace tracer;
   using namespace math;
 
-  const vector2i img_res(500, 500);
+  const vector2i img_res(1024);
+  const vector2f ndc_res(2.0, 2.0);
 
-  camera::ortho cam(
-      tf::look_at(vector3f(0), vector3f(1, 0, 1), vector3f(0, 1, 0)),
+  camera::persp cam(
+      tf::look_at(vector3f(0), vector3f(0, 0, 10), vector3f(0, 1, 0)),
       img_res,
-      0,
-      2
+      ndc_res,
+      0.1,
+      100,
+      math::radians(45)
       );
 
-  shapes::de_sphere sphere(matrix4f(1.0), 1.0);
+  /*
+  camera::ortho cam(
+      tf::look_at(vector3f(0), vector3f(0, 0, 10), vector3f(0, 1, 0)),
+        img_res,
+        ndc_res,
+        0,
+        2
+      );
+      */
+
+  //shapes::de_sphere sphere(matrix4f(1.0f), 1.0f);
+  shapes::de_inf_spheres sphere(matrix4f(1.0f), 1.0f, 10.0f);
+
+  // TODO: shadows
 
   std::unique_ptr<Imf::Rgba> ird_xyz(new Imf::Rgba[img_res.x * img_res.y]);
 
   const intersect_opts options;
   intersect_result result;
 
-  const point3f light_pos(10, 0, 10);
+  const point3f light_pos(0, 0, 10);
   const vector3f light_rgb(1.0, 0.0, 0.0);
   const vector3f surface_rgb(1.0, 1.0, 1.0);
 

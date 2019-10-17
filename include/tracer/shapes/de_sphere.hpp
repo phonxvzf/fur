@@ -13,6 +13,7 @@ namespace tracer {
             const vector3f& default_normal
             ) const;
         Float distance_function(const point3f& p) const;
+
         const Float radius;
 
       public:

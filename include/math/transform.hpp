@@ -30,7 +30,7 @@ namespace math {
     }
 
     matrix4f rotate(const vector3f& axis_n, Float rad);
-    matrix4f ndc_to_raster(const vector2i& img_res);
+    matrix4f ndc_to_raster(const vector2i& img_res, const vector2f& ndc_res);
     matrix4f look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up);
     matrix4f ortho(Float z_near, Float z_far);
     matrix4f persp(Float z_near, Float z_far, Float fovy);
