@@ -22,7 +22,8 @@ namespace math {
     }
 
     normal3f transform::operator()(const normal3f& n) const {
-      return apply_normal(mat, n);
+      const vector4f result = mat_inv.t().dot(vector4f(n, 1.0));
+      return vector3f(result) / result.w;
     }
 
     tracer::ray transform::operator()(const tracer::ray& r) const {
