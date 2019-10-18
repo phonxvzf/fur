@@ -16,9 +16,9 @@ namespace tracer {
   };
 
   struct intersect_result {
-    Float t_hit;
-    point3f hit_point;
-    vector3f normal;
+    Float     t_hit;
+    point3f   hit_point;
+    normal3f  normal;
   };
 }
 

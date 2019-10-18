@@ -1,34 +1,33 @@
 #ifndef TRACER_CAMERA_HPP
 #define TRACER_CAMERA_HPP
 
-#include "math/matrix.hpp"
-#include "ray.hpp"
+#include "math/transform.hpp"
 
 namespace tracer {
   namespace camera {
 
     class camera { 
       protected:
-        const matrix4f tf_cam_to_world;
+        const tf::transform tf_cam_to_world;
 
       public:
-        camera(const matrix4f& cam_to_world) : tf_cam_to_world(cam_to_world) {}
+        camera(const tf::transform& cam_to_world) : tf_cam_to_world(cam_to_world) {}
     };
 
     class projective : public camera {
       protected:
-        matrix4f tf_cam_to_ndc;
-        matrix4f tf_ndc_to_raster, tf_raster_to_ndc;
-        matrix4f tf_raster_to_cam;
         const vector2i img_res;
         const vector2i ndc_res;
+        const tf::transform tf_cam_to_ndc;
+        const tf::transform tf_ndc_to_raster, tf_raster_to_ndc;
+        const tf::transform tf_raster_to_cam;
 
       public:
         vector3f position;
 
         projective(
-            const matrix4f& cam_to_world,
-            const matrix4f& cam_to_ndc,
+            const tf::transform& cam_to_world,
+            const tf::transform& cam_to_ndc,
             const vector2i& img_res,
             const vector2f& ndc_res
             );
@@ -42,7 +41,7 @@ namespace tracer {
         const Float far;
 
         ortho(
-            const matrix4f& cam_to_world,
+            const tf::transform& cam_to_world,
             const vector2i& img_res,
             const vector2f& ndc_res,
             Float near,
@@ -59,12 +58,13 @@ namespace tracer {
         const Float fovy;
 
         persp(
-            const matrix4f& cam_to_world,
+            const tf::transform& cam_to_world,
             const vector2i& img_res,
             const vector2f& ndc_res,
             Float near,
             Float far,
-            Float fovy
+            Float fovy,
+            Float aspect_ratio
             );
 
         ray generate_ray(const point2f& img_point) const;

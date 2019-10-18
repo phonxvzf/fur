@@ -10,7 +10,7 @@
   typedef float Float;
 #endif
 
-#define FLOAT_TOLERANT (1e-6f)
+#define FLOAT_TOLERANT (1e-6)
 
 namespace math {
   inline bool COMPARE_EQ(Float x, Float y) {

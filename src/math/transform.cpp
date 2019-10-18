@@ -4,6 +4,31 @@
 namespace math {
   namespace tf {
 
+    transform::transform() : mat(matrix4f(1.0)), mat_inv(matrix4f(1.0)) {}
+    transform::transform(const matrix4f& mat) : mat(mat), mat_inv(mat.inverse()) {}
+    transform::transform(const matrix4f& mat, const matrix4f& mat_inv)
+      : mat(mat), mat_inv(mat_inv) {}
+
+    transform transform::inverse() const {
+      return transform(mat_inv, mat);
+    }
+
+    transform transform::operator*(const transform& t) const {
+      return transform(mat * t.mat, t.mat_inv * mat_inv);
+    }
+        
+    point3f transform::operator()(const point3f& p) const {
+      return apply(mat, p);
+    }
+
+    normal3f transform::operator()(const normal3f& n) const {
+      return apply_normal(mat, n);
+    }
+
+    tracer::ray transform::operator()(const tracer::ray& r) const {
+      return apply(mat, r);
+    }
+
     vector3f apply(const matrix4f& tf_mat, const vector3f& pt) {
       const vector4f result = tf_mat.dot(vector4f(pt, 1.0));
       return vector3f(result) / result.w;
@@ -28,38 +53,37 @@ namespace math {
           );
     }
 
-    matrix4f rotate(const vector3f& axis_n, Float rad) {
+    transform rotate(const vector3f& axis_n, Float rad) {
       return quat(std::cos(rad / 2), std::sin(rad / 2) * axis_n).to_matrix();
     }
 
-    matrix4f ndc_to_raster(const vector2i& img_res, const vector2f& ndc_res) {
-      return scale(vector3f(img_res.x, img_res.y, 1))
-        * scale({ 1 / ndc_res.x, 1 / ndc_res.y, 1 })
+    transform ndc_to_raster(const vector2i& img_res, const vector2f& ndc_res) {
+      return translate(vector3f(0, img_res.y, 0))
+        * scale({ img_res.x / ndc_res.x, -img_res.y / ndc_res.y, 1 })
         * translate(vector3f(0.5f * ndc_res, 0));
     }
 
-    matrix4f look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up) {
+    transform look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up) {
       const vector3f dir = (at - cam_pos).normalized();
       const vector3f right = world_up.normalized().cross(dir);
       const vector3f up = dir.cross(right);
       return matrix4f(right, up, dir, vector4f(cam_pos, 1.0));
     }
 
-    matrix4f ortho(Float z_near, Float z_far) {
-      return scale({ 1.0, 1.0, 1 / (z_far - z_near) }) * translate({ 0.0, 0.0, -z_near });
+    transform ortho(Float z_near, Float z_far) {
+      return scale({ 1, 1, 1 / (z_far - z_near) }) * translate({ 0.0, 0.0, -z_near });
     }
 
-    matrix4f persp(Float z_near, Float z_far, Float fovy) {
+    transform persp(Float z_near, Float z_far, Float fovy, Float aspect_ratio) {
       assert(z_far > 0 && z_near > 0);
       const Float len = z_far - z_near;
-      const matrix4f proj(
-          { 1, 0, 0, 0 },
-          { 0, 1, 0, 0 },
+      const Float cot = 1 / std::tan(fovy / 2);
+      return matrix4f(
+          { cot / aspect_ratio, 0, 0, 0 },
+          { 0, cot, 0, 0 },
           { 0, 0, z_far / len, 1 },
           { 0, 0, -z_far * z_near / len, 0 }
           );
-      const Float inv_tan = 1 / std::tan(fovy / 2);
-      return scale({ inv_tan, inv_tan, 1 }) * proj;
     }
   }
 }

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <cmath>
-#include <ostream>
+#include <iostream>
 #include <cassert>
 
 #include "float.hpp"
@@ -13,20 +13,62 @@ namespace math {
   template <typename T> class vector3;
   template <typename T> class vector4;
 
+  template <typename T> class point2 : public vector2<T> {
+    public:
+      point2(const vector2<T>& v) : vector2<T>(v) {}
+      point2(T x = 0, T y = 0) : vector2<T>(x, y) {}
+  };
+
+  template <typename T> class point3 : public vector3<T> {
+    public:
+      point3(const vector3<T>& v) : vector3<T>(v) {}
+      point3(T x = 0, T y = 0, T z = 0) : vector3<T>(x, y, z) {}
+  };
+
+  template <typename T> class point4 : public vector4<T> {
+    public:
+      point4(const vector4<T>& v) : vector4<T>(v) {}
+      point4(T x = 0, T y = 0, T z = 0, T w = 0) : vector4<T>(x, y, z, w) {}
+  };
+
+  template <typename T> class normal2 : public vector2<T> {
+    public:
+      normal2(const vector2<T>& v) : vector2<T>(v) {}
+      normal2(T x = 0, T y = 0) : vector2<T>(x, y) {}
+  };
+
+  template <typename T> class normal3 : public vector3<T> {
+    public:
+      normal3(const vector3<T>& v) : vector3<T>(v) {}
+      normal3(T x = 0, T y = 0, T z = 0) : vector3<T>(x, y, z) {}
+  };
+
+  template <typename T> class normal4 : public vector4<T> {
+    public:
+      normal4(const vector4<T>& v) : vector4<T>(v) {}
+      normal4(T x = 0, T y = 0, T z = 0, T w = 0) : vector4<T>(x, y, z, w) {}
+  };
+
   typedef vector2<Float>  vector2f;
   typedef vector2<int>    vector2i;
-  typedef vector2<Float>  point2f;
-  typedef vector2<int>    point2i;
+  typedef point2<Float>   point2f;
+  typedef point2<int>     point2i;
+  typedef normal2<Float>  normal2f;
+  typedef normal2<int>    normal2i;
 
   typedef vector3<Float>  vector3f;
   typedef vector3<int>    vector3i;
-  typedef vector3<Float>  point3f;
-  typedef vector3<int>    point3i;
+  typedef point3<Float>   point3f;
+  typedef point3<int>     point3i;
+  typedef normal3<Float>  normal3f;
+  typedef normal3<int>    normal3i;
 
   typedef vector4<Float>  vector4f;
   typedef vector4<int>    vector4i;
-  typedef vector4<Float>  point4f;
-  typedef vector4<int>    point4i;
+  typedef point4<Float>   point4f;
+  typedef point4<int>     point4i;
+  typedef normal4<Float>  normal4f;
+  typedef normal4<int>    normal4i;
 
   template <typename T, typename U>
     vector2<T> operator*(U s, const vector2<T> vec) {
@@ -128,6 +170,17 @@ namespace math {
           x *= inv;
           y *= inv;
           return *this;
+        }
+
+        T operator[](int i) const {
+          assert(i >= 0 && i < 2);
+          switch (i) {
+            case 0:
+              return x;
+            case 1:
+              return y;
+          }
+          return 0;
         }
 
         T dot(const vector2& rhs) const {
@@ -241,6 +294,19 @@ namespace math {
           y *= inv;
           z *= inv;
           return *this;
+        }
+
+        T operator[](int i) const {
+          assert(i >= 0 && i < 3);
+          switch (i) {
+            case 0:
+              return x;
+            case 1:
+              return y;
+            case 2:
+              return z;
+          }
+          return 0;
         }
 
         T dot(const vector3& rhs) const {
@@ -383,6 +449,21 @@ namespace math {
           z *= inv;
           w *= inv;
           return *this;
+        }
+
+        T operator[](int i) const {
+          assert(i >= 0 && i < 4);
+          switch (i) {
+            case 0:
+              return x;
+            case 1:
+              return y;
+            case 2:
+              return z;
+            case 3:
+              return w;
+          }
+          return 0;
         }
 
         T dot(const vector4& rhs) const {

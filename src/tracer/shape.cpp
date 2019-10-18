@@ -3,18 +3,19 @@
 
 namespace tracer {
 
-  shape::shape(const matrix4f& shape_to_world)
+  shape::shape(const tf::transform& shape_to_world)
     : tf_shape_to_world(shape_to_world), tf_world_to_shape(shape_to_world.inverse()) {}
   shape::shape(const shape& cpy)
     : tf_shape_to_world(cpy.tf_shape_to_world), tf_world_to_shape(cpy.tf_world_to_shape) {}
       
-  bool shape::intersect(const ray& r, const intersect_opts& options, intersect_result* result) {
+  bool shape::intersect(const ray& r, const intersect_opts& options, intersect_result* result) const
+  {
     return false;
   }
 
-  destimator::destimator(const matrix4f& shape_to_world) : shape(shape_to_world) {}
+  destimator::destimator(const tf::transform& shape_to_world) : shape(shape_to_world) {}
 
-  vector3f destimator::calculate_normal(
+  normal3f destimator::calculate_normal(
           const point3f& p,
           Float delta,
           const vector3f& default_normal
@@ -36,9 +37,9 @@ namespace tracer {
       const ray& r,
       const intersect_opts& options,
       intersect_result* result
-      )
+      ) const
   {
-    ray sray(tf::apply(tf_world_to_shape, r).normalized());
+    ray sray(tf_world_to_shape(r).normalized());
 
     Float t = 0;
     for (int i = 0; i < options.trace_max_iters; ++i) {
@@ -47,15 +48,15 @@ namespace tracer {
       if (dist < options.hit_epsilon) {
         if (result != nullptr) {
           result->t_hit = t;
-          result->hit_point = tf::apply(tf_shape_to_world, phit);
-          result->normal = tf::apply_normal(
-              tf_shape_to_world,
+          result->hit_point = tf_shape_to_world(phit);
+          result->normal = tf_shape_to_world(
               calculate_normal(phit, options.normal_delta, vector3f(0.0))
               );
         }
         return true;
       }
       t += dist;
+      if (t > sray.t_max) break;
     }
 
     return false;

@@ -2,6 +2,7 @@
 #define MATH_MATRIX_HPP
 
 #include "vector.hpp"
+#include <iostream>
 
 namespace math {
   template <typename T> class matrix2;
@@ -354,44 +355,42 @@ namespace math {
           }
 
         matrix4f inverse() const {
-          Float d = det();
-          assert(!COMPARE_EQ(d, 0));
-          matrix4f inv;
-          const Float A2323 = value[2][2] * value[3][3] - value[2][3] * value[3][2];
-          const Float A1323 = value[2][1] * value[3][3] - value[2][3] * value[3][1];
-          const Float A1223 = value[2][1] * value[3][2] - value[2][2] * value[3][1];
-          const Float A0323 = value[2][0] * value[3][3] - value[2][3] * value[3][0];
-          const Float A0223 = value[2][0] * value[3][2] - value[2][2] * value[3][0];
-          const Float A0123 = value[2][0] * value[3][1] - value[2][1] * value[3][0];
-          const Float A2313 = value[1][2] * value[3][3] - value[1][3] * value[3][2];
-          const Float A1313 = value[1][1] * value[3][3] - value[1][3] * value[3][1];
-          const Float A1213 = value[1][1] * value[3][2] - value[1][2] * value[3][1];
-          const Float A2312 = value[1][2] * value[2][3] - value[1][3] * value[2][2];
-          const Float A1312 = value[1][1] * value[2][3] - value[1][3] * value[2][1];
-          const Float A1212 = value[1][1] * value[2][2] - value[1][2] * value[2][1];
-          const Float A0313 = value[1][0] * value[3][3] - value[1][3] * value[3][0];
-          const Float A0213 = value[1][0] * value[3][2] - value[1][2] * value[3][0];
-          const Float A0312 = value[1][0] * value[2][3] - value[1][3] * value[2][0];
-          const Float A0212 = value[1][0] * value[2][2] - value[1][2] * value[2][0];
-          const Float A0113 = value[1][0] * value[3][1] - value[1][1] * value[3][0];
-          const Float A0112 = value[1][0] * value[2][1] - value[1][1] * value[2][0];
-          inv[0][0] = d *   (value[1][1] * A2323 - value[1][2] * A1323 + value[1][3] * A1223);
-          inv[0][1] = d * - (value[0][1] * A2323 - value[0][2] * A1323 + value[0][3] * A1223);
-          inv[0][2] = d *   (value[0][1] * A2313 - value[0][2] * A1313 + value[0][3] * A1213);
-          inv[0][3] = d * - (value[0][1] * A2312 - value[0][2] * A1312 + value[0][3] * A1212);
-          inv[1][0] = d * - (value[1][0] * A2323 - value[1][2] * A0323 + value[1][3] * A0223);
-          inv[1][1] = d *   (value[0][0] * A2323 - value[0][2] * A0323 + value[0][3] * A0223);
-          inv[1][2] = d * - (value[0][0] * A2313 - value[0][2] * A0313 + value[0][3] * A0213);
-          inv[1][3] = d *   (value[0][0] * A2312 - value[0][2] * A0312 + value[0][3] * A0212);
-          inv[2][0] = d *   (value[1][0] * A1323 - value[1][1] * A0323 + value[1][3] * A0123);
-          inv[2][1] = d * - (value[0][0] * A1323 - value[0][1] * A0323 + value[0][3] * A0123);
-          inv[2][2] = d *   (value[0][0] * A1313 - value[0][1] * A0313 + value[0][3] * A0113);
-          inv[2][3] = d * - (value[0][0] * A1312 - value[0][1] * A0312 + value[0][3] * A0112);
-          inv[3][0] = d * - (value[1][0] * A1223 - value[1][1] * A0223 + value[1][2] * A0123);
-          inv[3][1] = d *   (value[0][0] * A1223 - value[0][1] * A0223 + value[0][2] * A0123);
-          inv[3][2] = d * - (value[0][0] * A1213 - value[0][1] * A0213 + value[0][2] * A0113);
-          inv[3][3] = d *   (value[0][0] * A1212 - value[0][1] * A0212 + value[0][2] * A0112);
-          return inv;
+          assert(!COMPARE_EQ(det(), 0));
+
+          // Reduce the matrix to RREF using Gauss-Jordan algorithm
+          vector4f rows[4] = { row(0), row(1), row(2), row(3) };
+          vector4f irows[4] = { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 1 } };
+          for (int i = 0, j = 0; i < 4 && j < 4;) {
+            if (COMPARE_EQ(rows[i][j], 0)) {
+              for (int si = i + 1; si < 4; ++si) {
+                if (!COMPARE_EQ(rows[si][j], 0)) {
+                  // make pivot non-zero
+                  std::swap(rows[i], rows[si]);
+                  std::swap(irows[i], irows[si]);
+                  break;
+                }
+              }
+            }
+            if (!COMPARE_EQ(rows[i][j], 0)) {
+              // make pivot 1
+              const Float d = rows[i][j];
+              rows[i] /= d;
+              irows[i] /= d;
+              // make column entries that is not the pivot zeros
+              for (int si = 0; si < 4; ++si) {
+                if (si != i) {
+                  const Float mult = rows[si][j];
+                  rows[si] -= mult * rows[i];
+                  irows[si] -= mult * irows[i];
+                }
+              }
+              ++i; ++j;
+            } else {
+              ++j;
+            }
+          }
+
+          return matrix4f(irows[0], irows[1], irows[2], irows[3]).t();
         }
 
         matrix4 operator*(const matrix4& m) const {

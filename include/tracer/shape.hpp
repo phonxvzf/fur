@@ -8,23 +8,23 @@
 namespace tracer {
   class shape {
     protected:
-      const matrix4f tf_shape_to_world;
-      const matrix4f tf_world_to_shape;
+      const tf::transform tf_shape_to_world;
+      const tf::transform tf_world_to_shape;
 
     public:
-      shape(const matrix4f& shape_to_world);
+      shape(const tf::transform& shape_to_world);
       shape(const shape& cpy);
       
       virtual bool intersect(
           const ray& r,
           const intersect_opts& options,
           intersect_result* result
-          );
+          ) const;
   };
 
   class destimator : public shape {
     protected:
-      virtual vector3f calculate_normal(
+      virtual normal3f calculate_normal(
           const point3f& p,
           Float delta,
           const vector3f& default_normal
@@ -32,9 +32,9 @@ namespace tracer {
       virtual Float distance_function(const point3f& p) const = 0;
 
     public:
-      destimator(const matrix4f& shape_to_world);
+      destimator(const tf::transform& shape_to_world);
 
-      bool intersect(const ray& r, const intersect_opts& options, intersect_result* result);
+      bool intersect(const ray& r, const intersect_opts& options, intersect_result* result) const;
   };
 }
 
