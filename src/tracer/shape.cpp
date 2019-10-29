@@ -21,9 +21,10 @@ namespace tracer {
           const vector3f& default_normal
           ) const
   {
-    static const vector3f vx(delta, 0.0, 0.0);
-    static const vector3f vy(0.0, delta, 0.0);
-    static const vector3f vz(0.0, 0.0, delta);
+    // compute the gradient using center finite differences
+    const vector3f vx(delta, 0.0, 0.0);
+    const vector3f vy(0.0, delta, 0.0);
+    const vector3f vz(0.0, 0.0, delta);
     const Float two_delta = 2 * delta;
     const Float df_by_dx = (distance_function(p + vx) - distance_function(p - vx)) / two_delta;
     const Float df_by_dy = (distance_function(p + vy) - distance_function(p - vy)) / two_delta;
@@ -40,9 +41,9 @@ namespace tracer {
       ) const
   {
     ray sray(tf_world_to_shape(r).normalized());
-
     Float t = 0;
     for (int i = 0; i < options.trace_max_iters; ++i) {
+      if (t >= sray.t_max) break;
       const point3f phit = sray(t);
       const Float dist = distance_function(phit);
       if (dist < options.hit_epsilon) {
@@ -56,7 +57,6 @@ namespace tracer {
         return true;
       }
       t += dist;
-      if (t > sray.t_max) break;
     }
 
     return false;

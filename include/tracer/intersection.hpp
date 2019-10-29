@@ -8,7 +8,7 @@ namespace tracer {
   using namespace math;
 
   struct intersect_opts {
-    Float hit_epsilon     = 1e-4;
+    Float hit_epsilon     = 1e-5;
     Float normal_delta    = 1e-4;
     int trace_max_iters   = 1000;
 

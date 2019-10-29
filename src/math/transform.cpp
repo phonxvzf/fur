@@ -8,6 +8,15 @@ namespace math {
     transform::transform(const matrix4f& mat) : mat(mat), mat_inv(mat.inverse()) {}
     transform::transform(const matrix4f& mat, const matrix4f& mat_inv)
       : mat(mat), mat_inv(mat_inv) {}
+        
+    bool transform::hand_swapped() const {
+      const Float det = matrix3f(
+          mat.col(0),
+          mat.col(1),
+          mat.col(2)
+          ).det();
+      return det < 0;
+    }
 
     transform transform::inverse() const {
       return transform(mat_inv, mat);
@@ -26,8 +35,20 @@ namespace math {
       return vector3f(result) / result.w;
     }
 
-    tracer::ray transform::operator()(const tracer::ray& r) const {
+    ray transform::operator()(const ray& r) const {
       return apply(mat, r);
+    }
+ 
+    bounds3f transform::operator()(const bounds3f& b) const {
+      bounds3f new_bounds({ b.p_max.x, b.p_max.y, b.p_max.z });
+      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_min.y, b.p_min.z));
+      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_min.y, b.p_max.z));
+      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_max.y, b.p_min.z));
+      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_max.y, b.p_max.z));
+      new_bounds = new_bounds.merge(point3f(b.p_max.x, b.p_min.y, b.p_min.z));
+      new_bounds = new_bounds.merge(point3f(b.p_max.x, b.p_min.y, b.p_max.z));
+      new_bounds = new_bounds.merge(point3f(b.p_max.x, b.p_max.y, b.p_min.z));
+      return new_bounds;
     }
 
     vector3f apply(const matrix4f& tf_mat, const vector3f& pt) {
@@ -40,17 +61,21 @@ namespace math {
       return vector3f(result) / result.w;
     }
 
-    tracer::ray apply(const matrix4f& tf_mat, const tracer::ray& r) {
-      return tracer::ray(
+    ray apply(const matrix4f& tf_mat, const ray& r) {
+      const vector3f r_dir = tf::apply(
+          matrix4f(
+            tf_mat.col(0),
+            tf_mat.col(1),
+            tf_mat.col(2),
+            { 0, 0, 0, 1 }
+            ),
+          r.dir
+          );
+      const Float t_max_scale = vector3f(tf_mat[0][0], tf_mat[1][1], tf_mat[2][2]).size();
+      return ray(
           tf::apply(tf_mat, r.origin),
-          tf::apply(matrix4f(
-              tf_mat.col(0),
-              tf_mat.col(1),
-              tf_mat.col(2),
-              { 0, 0, 0, 1 }
-              ),
-            r.dir
-            )
+          r_dir,
+          r.t_max * t_max_scale
           );
     }
 

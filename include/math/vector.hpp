@@ -172,15 +172,14 @@ namespace math {
           return *this;
         }
 
-        T operator[](int i) const {
+        T& operator[](int i) {
           assert(i >= 0 && i < 2);
           switch (i) {
             case 0:
               return x;
-            case 1:
+            default:
               return y;
           }
-          return 0;
         }
 
         T dot(const vector2& rhs) const {
@@ -296,17 +295,16 @@ namespace math {
           return *this;
         }
 
-        T operator[](int i) const {
+        T& operator[](int i) {
           assert(i >= 0 && i < 3);
           switch (i) {
             case 0:
               return x;
             case 1:
               return y;
-            case 2:
+            default:
               return z;
           }
-          return 0;
         }
 
         T dot(const vector3& rhs) const {
@@ -451,7 +449,7 @@ namespace math {
           return *this;
         }
 
-        T operator[](int i) const {
+        T& operator[](int i) {
           assert(i >= 0 && i < 4);
           switch (i) {
             case 0:
@@ -460,10 +458,9 @@ namespace math {
               return y;
             case 2:
               return z;
-            case 3:
+            default:
               return w;
           }
-          return 0;
         }
 
         T dot(const vector4& rhs) const {

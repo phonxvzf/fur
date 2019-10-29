@@ -3,9 +3,12 @@
 
 #include "math/quaternion.hpp"
 #include "tracer/ray.hpp"
+#include "tracer/bounds.hpp"
 
 namespace math {
   namespace tf {
+
+    using namespace tracer;
 
     class transform {
       public:
@@ -16,18 +19,21 @@ namespace math {
         transform(const matrix4f& mat);
         transform(const matrix4f& mat, const matrix4f& mat_inv);
 
+        bool hand_swapped() const;
+
         transform inverse() const;
 
         transform operator*(const transform& t) const;
 
         point3f operator()(const point3f& p) const;
         normal3f operator()(const normal3f& n) const;
-        tracer::ray operator()(const tracer::ray& r) const;
+        ray operator()(const ray& r) const;
+        bounds3f operator()(const bounds3f& b) const;
     };
 
     vector3f apply(const matrix4f& tf_mat, const vector3f& pt);
     vector3f apply_normal(const matrix4f& tf_mat, const vector3f& normal);
-    tracer::ray apply(const matrix4f& tf_mat, const tracer::ray& r);
+    ray apply(const matrix4f& tf_mat, const ray& r);
 
     inline transform translate(const vector3f& ds) {
       return matrix4f(
