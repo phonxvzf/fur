@@ -2,7 +2,11 @@
 
 namespace tracer {
   namespace shapes {
-    de_inf_spheres::de_inf_spheres(const matrix4f& shape_to_world, Float radius, Float cell_size)
+    de_inf_spheres::de_inf_spheres(
+        const tf::transform& shape_to_world,
+        Float radius,
+        Float cell_size
+        )
       : destimator(shape_to_world), radius(radius), cell_size(cell_size) {}
 
     de_inf_spheres::de_inf_spheres(const de_inf_spheres& cpy)

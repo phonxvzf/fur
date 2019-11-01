@@ -87,7 +87,7 @@ namespace math {
 
   template <typename T, typename U>
     vector3<T> operator*(const vector3<T> vec, U s) {
-      return { vec.x * s, vec.y * s, vec.z * s};
+      return { vec.x * s, vec.y * s, vec.z * s };
     }
 
   template <typename T, typename U>
@@ -182,6 +182,16 @@ namespace math {
           }
         }
 
+        T operator[](int i) const {
+          assert(i >= 0 && i < 2);
+          switch (i) {
+            case 0:
+              return x;
+            default:
+              return y;
+          }
+        }
+
         T dot(const vector2& rhs) const {
           return x * rhs.x + y * rhs.y;
         }
@@ -196,6 +206,10 @@ namespace math {
 
         bool is_zero() const {
           return COMPARE_EQ(x, 0.0f) && COMPARE_EQ(y, 0.0f);
+        }
+
+        vector2 clamped(T min_val, T max_val) const {
+          return vector2(math::clamp(x, min_val, max_val), math::clamp(y, min_val, max_val));
         }
 
         vector2 normalized() const {
@@ -307,6 +321,18 @@ namespace math {
           }
         }
 
+        T operator[](int i) const {
+          assert(i >= 0 && i < 3);
+          switch (i) {
+            case 0:
+              return x;
+            case 1:
+              return y;
+            default:
+              return z;
+          }
+        }
+
         T dot(const vector3& rhs) const {
           return x * rhs.x + y * rhs.y + z * rhs.z;
         }
@@ -329,6 +355,14 @@ namespace math {
 
         bool is_zero() const {
           return COMPARE_EQ(x, 0.0f) && COMPARE_EQ(y, 0.0f) && COMPARE_EQ(z, 0.0f);
+        }
+
+        vector3 clamped(T min_val, T max_val) const {
+          return vector3(
+              math::clamp(x, min_val, max_val),
+              math::clamp(y, min_val, max_val),
+              math::clamp(z, min_val, max_val)
+              );
         }
 
         vector3 normalized() const {
@@ -463,6 +497,20 @@ namespace math {
           }
         }
 
+        T operator[](int i) const {
+          assert(i >= 0 && i < 3);
+          switch (i) {
+            case 0:
+              return x;
+            case 1:
+              return y;
+            case 2:
+              return z;
+            default:
+              return w;
+          }
+        }
+
         T dot(const vector4& rhs) const {
           return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
         }
@@ -480,6 +528,15 @@ namespace math {
             && COMPARE_EQ(y, 0.0f)
             && COMPARE_EQ(z, 0.0f)
             && COMPARE_EQ(w, 0.0f);
+        }
+
+        vector4 clamped(T min_val, T max_val) const {
+          return vector4(
+              math::clamp(x, min_val, max_val),
+              math::clamp(y, min_val, max_val),
+              math::clamp(z, min_val, max_val),
+              math::clamp(w, min_val, max_val)
+              );
         }
 
         vector4 normalized() const {

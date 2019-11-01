@@ -10,7 +10,7 @@ namespace tracer {
         Float distance_function(const point3f& p) const;
 
       public:
-        de_mandelbulb(const matrix4f& shape_to_world);
+        de_mandelbulb(const tf::transform& shape_to_world);
         de_mandelbulb(const de_mandelbulb& cpy);
     };
   }

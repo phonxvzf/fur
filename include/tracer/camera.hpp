@@ -12,6 +12,8 @@ namespace tracer {
 
       public:
         camera(const tf::transform& cam_to_world) : tf_cam_to_world(cam_to_world) {}
+
+        virtual ray generate_ray(const point2f& img_point) const = 0;
     };
 
     class projective : public camera {
@@ -31,8 +33,6 @@ namespace tracer {
             const vector2i& img_res,
             const vector2f& ndc_res
             );
-
-        virtual ray generate_ray(const point2f& img_point) const = 0;
     };
 
     class ortho : public projective {
@@ -56,6 +56,7 @@ namespace tracer {
         const Float near;
         const Float far;
         const Float fovy;
+        const Float aspect_ratio;
 
         persp(
             const tf::transform& cam_to_world,

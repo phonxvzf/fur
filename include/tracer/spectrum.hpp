@@ -5,181 +5,80 @@
 #include "math/matrix.hpp"
 
 namespace tracer {
+  
+  using namespace math;
 
-  template <size_t N>
-    class nspectrum {
-      protected:
-        Float spd[N]; // can be actual SPD or primary chromaticity
-        static const size_t n_samples = N;
+  class nspectrum {
+    protected:
+      std::vector<Float> spd; // can be real SPD or primary chromaticity (e.g. RGB, XYZ)
+      const size_t n_samples;
 
-      public:
-        nspectrum() {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] = 0;
-          }
-        }
+    public:
+      nspectrum(size_t N, Float v = 0) : n_samples(N) {
+        spd.resize(N, v);
+      }
 
-        nspectrum(Float v) {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] = v;
-          }
-        }
+      nspectrum(const nspectrum& sp) : spd(sp.spd), n_samples(sp.n_samples) {}
 
-        nspectrum(const nspectrum& sp) {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] = sp.spd[i];
-          }
-        }
-        
-        size_t get_n_samples() const { return n_samples; }
+      nspectrum& operator=(const nspectrum& sp);
 
-        bool is_black() const {
-          for (size_t i = 0; i < n_samples; ++i) {
-            if (!COMPARE_EQ(spd[i], 0)) return false;
-          }
-          return true;
-        }
+      size_t get_n_samples() const { return n_samples; }
 
-        nspectrum sqrt() const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = std::sqrt(spd[i]);
-          }
-          return result;
-        }
+      bool is_black() const;
+      nspectrum sqrt() const;
+      nspectrum pow(Float x) const;
+      nspectrum exp() const;
+      nspectrum clamp(Float min, Float max) const;
 
-        nspectrum pow(Float x) const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = std::pow(spd[i], x);
-          }
-          return result;
-        }
+      nspectrum operator+(const nspectrum& sp) const;
+      nspectrum operator-(const nspectrum& sp) const;
+      nspectrum operator*(const nspectrum& sp) const;
+      nspectrum operator/(const nspectrum& sp) const;
 
-        nspectrum exp() const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = std::exp(spd[i]);
-          }
-          return result;
-        }
+      nspectrum operator*(Float s) const;
+      nspectrum operator/(Float s) const;
 
-        nspectrum clamp(Float min, Float max) const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = math::clamp(spd[i], min, max);
-          }
-          return result;
-        }
+      nspectrum& operator+=(const nspectrum& sp);
+      nspectrum& operator-=(const nspectrum& sp);
+      nspectrum& operator*=(const nspectrum& sp);
+      nspectrum& operator/=(const nspectrum& sp);
 
-        nspectrum& operator=(const nspectrum& sp) {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] = sp.spd[i];
-          }
-          return *this;
-        }
+      Float& operator[](int i) { return spd[i]; }
+      Float operator[](int i) const { return spd[i]; }
+  };
 
-        nspectrum operator+(const nspectrum& sp) const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = spd[i] + sp.spd[i];
-          }
-          return result;
-        }
+  inline nspectrum operator*(Float s, const nspectrum& sp) {
+    return sp * s;
+  }
 
-        nspectrum operator-(const nspectrum& sp) const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = spd[i] - sp.spd[i];
-          }
-          return result;
-        }
+  inline nspectrum lerp(Float t, const nspectrum& sp_a, const nspectrum& sp_b) {
+    return (1 - t) * sp_a + t * sp_b;
+  }
 
-        nspectrum operator*(const nspectrum& sp) const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            result.spd[i] = spd[i] * sp.spd[i];
-          }
-          return result;
-        }
-
-        nspectrum operator/(const nspectrum& sp) const {
-          nspectrum result;
-          for (size_t i = 0; i < N; ++i) {
-            assert(!COMPARE_EQ(sp.spd[i], 0));
-            result.spd[i] = spd[i] / sp.spd[i];
-          }
-          return result;
-        }
-
-        nspectrum& operator+=(const nspectrum& sp) {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] += sp.spd[i];
-          }
-          return *this;
-        }
-
-        nspectrum& operator-=(const nspectrum& sp) {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] -= sp.spd[i];
-          }
-          return *this;
-        }
-
-        nspectrum& operator*=(const nspectrum& sp) {
-          for (size_t i = 0; i < N; ++i) {
-            spd[i] *= sp.spd[i];
-          }
-          return *this;
-        }
-
-        nspectrum& operator/=(const nspectrum& sp) {
-          for (size_t i = 0; i < N; ++i) {
-            assert(!COMPARE_EQ(sp.spd[i], 0));
-            spd[i] /= sp.spd[i];
-          }
-          return *this;
-        }
-
-        Float& operator[](int i) { return spd[i]; }
-        Float operator[](int i) const { return spd[i]; }
-    };
-
-  template <size_t N>
-    inline nspectrum<N> lerp(Float t, const nspectrum<N>& sp_a, const nspectrum<N>& sp_b) {
-      return (1 - t) * sp_a + t * sp_b;
-    }
-
-  template <size_t N>
-    inline nspectrum<N> operator*(Float s, const nspectrum<N>& sp) {
-      return sp * nspectrum<N>(s);
-    }
-
-  template <size_t N>
-    inline nspectrum<N> operator*(const nspectrum<N>& sp, Float s) {
-      return sp * nspectrum<N>(s);
-    }
-
-  template <size_t N>
-    inline nspectrum<N> operator/(const nspectrum<N>& sp, Float s) {
-      return sp / nspectrum<N>(s);
-    }
 
   typedef struct { Float lambda; Float value; } spectral_sample;
-  
-  class rgb_spectrum : public nspectrum<3> {
+
+  class rgb_spectrum : public nspectrum {
     public:
-      rgb_spectrum(Float x) : nspectrum<3>(x) {}
-      rgb_spectrum(Float r, Float g, Float b) { spd[0] = r; spd[1] = g; spd[2] = b; }
-      rgb_spectrum(const nspectrum<3>& sp) : nspectrum<3>(sp) {}
-      rgb_spectrum(const rgb_spectrum& rgb) : nspectrum<3>(rgb) {}
+      rgb_spectrum(Float x = 0) : nspectrum(3, x) {}
+      rgb_spectrum(Float r, Float g, Float b) : nspectrum(3) {
+        spd[0] = r;
+        spd[1] = g;
+        spd[2] = b;
+      }
+      rgb_spectrum(const nspectrum& sp) : nspectrum(sp) {}
+      rgb_spectrum(const rgb_spectrum& rgb) : nspectrum(rgb) {}
 
       Float r() const { return spd[0]; }
       Float g() const { return spd[1]; }
       Float b() const { return spd[2]; }
+
+      friend std::ostream& operator<<(std::ostream& os, const rgb_spectrum& rgb) {
+        return os << "rgb(" << rgb.spd[0] << ", " << rgb.spd[1] << ", " << rgb.spd[2] << ")";
+      }
   };
 
-  class sampled_spectrum : public nspectrum<60> {
+  class sampled_spectrum : public nspectrum {
     public:
       static const int LAMBDA_START = 400;
       static const int LAMBDA_END = 700;

@@ -45,13 +45,11 @@ namespace tracer {
         Float aspect_ratio
         )
       : projective(cam_to_world, tf::persp(near, far, fovy, aspect_ratio), img_res, ndc_res),
-      near(near), far(far), fovy(fovy) {}
+      near(near), far(far), fovy(fovy), aspect_ratio(aspect_ratio) {}
 
     ray persp::generate_ray(const point2f& img_point) const {
-      const point3f origin(0);
-      const vector3f dir(tf_raster_to_cam(point3f(img_point)));
-      Float t_max = (far - near) / std::cos(fovy / 2);
-      return tf_cam_to_world(ray(origin, dir.normalized(), t_max));
+      const point3f origin(tf_raster_to_cam(point3f(img_point)));
+      return tf_cam_to_world(ray(origin, origin, (far - near) / std::cos(fovy / 2)));
     }
   }
 }

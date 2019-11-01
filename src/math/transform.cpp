@@ -8,7 +8,7 @@ namespace math {
     transform::transform(const matrix4f& mat) : mat(mat), mat_inv(mat.inverse()) {}
     transform::transform(const matrix4f& mat, const matrix4f& mat_inv)
       : mat(mat), mat_inv(mat_inv) {}
-        
+
     bool transform::hand_swapped() const {
       const Float det = matrix3f(
           mat.col(0),
@@ -26,13 +26,17 @@ namespace math {
       return transform(mat * t.mat, t.mat_inv * mat_inv);
     }
         
+    vector3f transform::operator()(const vector3f& v) const {
+      return apply(mat, v);
+    }
+        
     point3f transform::operator()(const point3f& p) const {
       return apply(mat, p);
     }
 
     normal3f transform::operator()(const normal3f& n) const {
       const vector4f result = mat_inv.t().dot(vector4f(n, 1.0));
-      return vector3f(result) / result.w;
+      return vector3f(result);
     }
 
     ray transform::operator()(const ray& r) const {
@@ -40,6 +44,7 @@ namespace math {
     }
  
     bounds3f transform::operator()(const bounds3f& b) const {
+      // TODO
       bounds3f new_bounds({ b.p_max.x, b.p_max.y, b.p_max.z });
       new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_min.y, b.p_min.z));
       new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_min.y, b.p_max.z));
@@ -51,7 +56,12 @@ namespace math {
       return new_bounds;
     }
 
-    vector3f apply(const matrix4f& tf_mat, const vector3f& pt) {
+    vector3f apply(const matrix4f& tf_mat, const vector3f& vec) {
+      const vector4f result = tf_mat.dot(vector4f(vec, 1.0));
+      return vector3f(result);
+    }
+
+    point3f apply(const matrix4f& tf_mat, const point3f& pt) {
       const vector4f result = tf_mat.dot(vector4f(pt, 1.0));
       return vector3f(result) / result.w;
     }
@@ -111,5 +121,8 @@ namespace math {
           { 0, 0, -z_far * z_near / len, 0 }
           );
     }
-  }
-}
+
+    transform identity(matrix4f(1.0f));
+
+  } /* namespace tf */
+} /* namespace math */

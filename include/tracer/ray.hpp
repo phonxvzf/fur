@@ -11,16 +11,24 @@ namespace tracer {
 
   class ray {
     public:
-      const vector3f origin;
-      const vector3f dir;
-      const Float t_max = std::numeric_limits<Float>::max();
+      vector3f origin;
+      vector3f dir;
+      Float t_max = std::numeric_limits<Float>::max();
 
+      ray() {}
       ray(const vector3f& origin, const vector3f& dir) : origin(origin), dir(dir) {}
       ray(const vector3f& origin, const vector3f& dir, Float t_max)
         : origin(origin), dir(dir), t_max(t_max) {}
       ray(const ray& cpy) : origin(cpy.origin), dir(cpy.origin), t_max(cpy.t_max) {}
 
-      vector3f operator()(Float t) {
+      ray& operator=(const ray& cpy) {
+        origin = cpy.origin;
+        dir = cpy.dir;
+        t_max = cpy.t_max;
+        return *this;
+      }
+
+      vector3f operator()(Float t) const {
         return origin + dir * t;
       }
 

@@ -30,7 +30,7 @@ namespace tracer {
     const Float df_by_dy = (distance_function(p + vy) - distance_function(p - vy)) / two_delta;
     const Float df_by_dz = (distance_function(p + vz) - distance_function(p - vz)) / two_delta;
     const vector3f normal(df_by_dx, df_by_dy, df_by_dz);
-    return normal.is_zero() ? default_normal : normal.normalized();
+    return normal.is_zero() ? default_normal : normal;
   }
 
 
@@ -40,10 +40,10 @@ namespace tracer {
       intersect_result* result
       ) const
   {
-    ray sray(tf_world_to_shape(r).normalized());
+    const ray sray(tf_world_to_shape(r).normalized());
+    if (result) result->debug = sray;
     Float t = 0;
     for (int i = 0; i < options.trace_max_iters; ++i) {
-      if (t >= sray.t_max) break;
       const point3f phit = sray(t);
       const Float dist = distance_function(phit);
       if (dist < options.hit_epsilon) {
@@ -52,11 +52,16 @@ namespace tracer {
           result->hit_point = tf_shape_to_world(phit);
           result->normal = tf_shape_to_world(
               calculate_normal(phit, options.normal_delta, vector3f(0.0))
-              );
+              ).normalized();
+          result->object = this;
         }
         return true;
       }
       t += dist;
+
+      if (t >= sray.t_max) {
+        break;
+      }
     }
 
     return false;

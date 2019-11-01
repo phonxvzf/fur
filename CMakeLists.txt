@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 project(ftracer)
@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "modules/")
 file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp" "src/*/*/*.cpp")
 file(GLOB VECTOR_TEST_SOURCES "test/vector/*.cpp")
 
-find_package(Boost COMPONENTS system filesystem thread REQUIRED)
+find_package(yaml-cpp REQUIRED)
 find_package(OpenEXR REQUIRED)
 
 if (UNIX)
@@ -25,7 +25,7 @@ endif()
 add_executable(${BINARY} ${SOURCES})
 add_executable(${BINARY_VECTOR_TEST} ${VECTOR_TEST_SOURCES})
 
-target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIR})
+target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS})
 target_include_directories(${BINARY_VECTOR_TEST} PRIVATE include)
 
-target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES})
+target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES} ${YAML_CPP_LIBRARIES})

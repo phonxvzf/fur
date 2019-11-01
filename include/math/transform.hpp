@@ -25,15 +25,19 @@ namespace math {
 
         transform operator*(const transform& t) const;
 
-        point3f operator()(const point3f& p) const;
-        normal3f operator()(const normal3f& n) const;
-        ray operator()(const ray& r) const;
-        bounds3f operator()(const bounds3f& b) const;
+        vector3f  operator()(const vector3f& v) const;
+        point3f   operator()(const point3f& p) const;
+        normal3f  operator()(const normal3f& n) const;
+        ray       operator()(const ray& r) const;
+        bounds3f  operator()(const bounds3f& b) const;
     };
 
     vector3f apply(const matrix4f& tf_mat, const vector3f& pt);
+    point3f apply(const matrix4f& tf_mat, const point3f& pt);
     vector3f apply_normal(const matrix4f& tf_mat, const vector3f& normal);
     ray apply(const matrix4f& tf_mat, const ray& r);
+
+    extern transform identity;
 
     inline transform translate(const vector3f& ds) {
       return matrix4f(

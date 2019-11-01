@@ -2,7 +2,7 @@
 
 namespace tracer {
   namespace shapes {
-    de_mandelbulb::de_mandelbulb(const matrix4f& shape_to_world)
+    de_mandelbulb::de_mandelbulb(const tf::transform& shape_to_world)
       : destimator(shape_to_world) {}
 
     de_mandelbulb::de_mandelbulb(const de_mandelbulb& cpy)
@@ -35,29 +35,6 @@ namespace tracer {
         z += pt;
       }
       return 0.5 * log(r) * r / dr;
-
-      // mandelbox
-      /*
-      point3f z = pt;
-      for (int iter = 0; iter < 1000; ++iter) {
-        for (int i = 0; i < 3; ++i) {
-          Float x = z[i];
-          if (x > 1) {
-            z[i] = 2 - z[i];
-          } else if (x < -1) {
-            z[i] = -2 - z[i];
-          }
-        }
-        Float sz_sq = z.size_sq();
-        if (sz_sq < 0.25) {
-          z *= 4;
-        } else if (sz_sq < 1) {
-          z /= sz_sq;
-        }
-        z = 2 * z;
-      }
-      return sqrt(z.dot(z));
-      */
     }
   }
 }

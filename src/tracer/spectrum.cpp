@@ -3,9 +3,135 @@
 
 namespace tracer {
 
-  sampled_spectrum::sampled_spectrum(Float v) : nspectrum<60>(v) {}
+  bool nspectrum::is_black() const {
+    for (size_t i = 0; i < n_samples; ++i) {
+      if (!COMPARE_EQ(spd[i], 0)) return false;
+    }
+    return true;
+  }
 
-  sampled_spectrum::sampled_spectrum(std::vector<spectral_sample> samples) : nspectrum<60>() {
+  nspectrum nspectrum::sqrt() const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = std::sqrt(spd[i]);
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::pow(Float x) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = std::pow(spd[i], x);
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::exp() const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = std::exp(spd[i]);
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::clamp(Float min, Float max) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = math::clamp(spd[i], min, max);
+    }
+    return result;
+  }
+
+  nspectrum& nspectrum::operator=(const nspectrum& sp) {
+    for (size_t i = 0; i < n_samples; ++i) {
+      spd[i] = sp.spd[i];
+    }
+    return *this;
+  }
+
+  nspectrum nspectrum::operator+(const nspectrum& sp) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = spd[i] + sp.spd[i];
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::operator-(const nspectrum& sp) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = spd[i] - sp.spd[i];
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::operator*(const nspectrum& sp) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = spd[i] * sp.spd[i];
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::operator/(const nspectrum& sp) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      assert(!COMPARE_EQ(sp.spd[i], 0));
+      result.spd[i] = spd[i] / sp.spd[i];
+    }
+    return result;
+  }
+      
+  nspectrum nspectrum::operator*(Float s) const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] *= s;
+    }
+    return result;
+  }
+
+  nspectrum nspectrum::operator/(Float s) const {
+    nspectrum result(*this);
+    assert(!COMPARE_EQ(s, 0));
+    Float inv = 1 / s;
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] *= inv;
+    }
+    return result;
+  }
+
+  nspectrum& nspectrum::operator+=(const nspectrum& sp) {
+    for (size_t i = 0; i < n_samples; ++i) {
+      spd[i] += sp.spd[i];
+    }
+    return *this;
+  }
+
+  nspectrum& nspectrum::operator-=(const nspectrum& sp) {
+    for (size_t i = 0; i < n_samples; ++i) {
+      spd[i] -= sp.spd[i];
+    }
+    return *this;
+  }
+
+  nspectrum& nspectrum::operator*=(const nspectrum& sp) {
+    for (size_t i = 0; i < n_samples; ++i) {
+      spd[i] *= sp.spd[i];
+    }
+    return *this;
+  }
+
+  nspectrum& nspectrum::operator/=(const nspectrum& sp) {
+    for (size_t i = 0; i < n_samples; ++i) {
+      assert(!COMPARE_EQ(sp.spd[i], 0));
+      spd[i] /= sp.spd[i];
+    }
+    return *this;
+  }
+
+  sampled_spectrum::sampled_spectrum(Float v) : nspectrum(60, v) {}
+
+  sampled_spectrum::sampled_spectrum(std::vector<spectral_sample> samples) : nspectrum(60) {
     std::sort(
         samples.begin(),
         samples.end(),
