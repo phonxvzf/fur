@@ -67,19 +67,73 @@ int main(int argc, char** argv) {
   setlocale(LC_CTYPE, ""); // assume that LC supports unicode
   std::wcout << L"\r" << std::flush;
 
-  int arg_n_threads = 0;
-  if (argc >= 3) {
-    if (std::string(argv[1]) == "-j") {
-      arg_n_threads = std::atoi(argv[2]);
-    }
-  }
+  std::string output_file_name("output.exr");
 
-  //const vector2i img_res(3840, 2160); // 4k ftw
-  //const vector2i img_res(3840 * 2, 2160 * 2);
-  const vector2i img_res(1920, 1080);
-  //const vector2i img_res(300, 300);
+  int arg_n_threads = 0;
+  vector2i img_res(-1, -1);
   const vector2f ndc_res(1, 1);
   const vector3f eye_pos(0, -2, 4);
+  bool verbose = true;
+
+  if (argc > 1) {
+    int n_sub_args = 0;
+    for (int i = 1; i < argc; ++i) {
+      if (!std::strcmp(argv[i], "-j")) {
+        n_sub_args += 1;
+        if (i + 1 < argc) {
+          arg_n_threads = std::atoi(argv[i+1]);
+          if (arg_n_threads < 1) {
+            std::wcerr << "error: number of render workers should be greater than 0" << std::endl;
+            return 1;
+          }
+        } else {
+          std::wcerr << "error: please specify number of render workers" << std::endl;
+          return 1;
+        }
+      } else if (!std::strcmp(argv[i], "-o")) {
+        n_sub_args += 1;
+        if (i + 1 < argc) {
+          output_file_name = argv[i+1];
+        } else {
+          std::wcerr << "error: please specify output file name" << std::endl;
+          return 1;
+        }
+      } else if (!std::strcmp(argv[i], "--resolution")) {
+        n_sub_args += 1;
+        if (i + 1 < argc) {
+          std::sscanf(argv[i+1], "%dx%d", &img_res.x, &img_res.y);
+          if (img_res.x <= 0 || img_res.y <= 0) {
+            std::wcerr << "error: please specity output resolution in COLSxROWS format"
+              << std::endl;
+            return 1;
+          }
+        } else {
+          std::wcerr << "error: please specity output resolution in COLSxROWS format" << std::endl;
+          return 1;
+        }
+      } else if (!std::strcmp(argv[i], "--quiet")) {
+        verbose = 0;
+        std::cout.setstate(std::ios::failbit);
+        std::wcout.setstate(std::ios::failbit);
+      } else if (!std::strcmp(argv[i], "-h") || !std::strcmp(argv[i], "--help")) {
+        std::wcerr <<
+          "usage: ftracer [ -h | -j workers | -o output | --help"
+          " | --resolution COLSxROWS | --quiet ]"
+          << std::endl;
+        return 0;
+      } else {
+        std::wcerr << "error: unknown option " << "`" << argv[i] << "'" << std::endl;
+        return 1;
+      } /* if strcmp */
+      i += n_sub_args;
+      n_sub_args = 0;
+    } /* for i */
+  } /* if argc */
+
+  // set default parameters
+  if (img_res.x <= 0 || img_res.y <= 0) {
+    img_res = { 256, 256 };
+  }
 
   //shapes::de_sphere sphere(tf::transform(), 0.5f);
   //shapes::de_mandelbulb sphere(tf::rotate({ 1.0f, 0.0f, 0.0f }, math::radians(90)).mat);
@@ -131,7 +185,9 @@ int main(int argc, char** argv) {
   std::wcout << L"* Rendering scene with " << main_scene->shapes.size() << L" shapes and "
     << main_scene->light_sources.size() << " light sources..." << std::endl;
 
-  auto ird_rgb = main_scene->render(params, img_res, n_threads, &profile, &update_progress);
+  auto ird_rgb = main_scene->render(
+      params, img_res, n_threads, &profile, verbose ? &update_progress : nullptr
+      );
   auto ird_rgb_exr = std::unique_ptr<Imf::Rgba>(new Imf::Rgba[img_res.x * img_res.y]);
 
   std::wcout << std::endl;
@@ -145,7 +201,7 @@ int main(int argc, char** argv) {
     ird_rgb_exr.get()[i].b = ird_rgb->at(i).b();
   }
 
-  Imf::RgbaOutputFile exr("output.exr", img_res.x, img_res.y, Imf::WRITE_RGB);
+  Imf::RgbaOutputFile exr(output_file_name.c_str(), img_res.x, img_res.y, Imf::WRITE_RGB);
   exr.setFrameBuffer(ird_rgb_exr.get(), 1, img_res.x);
   exr.writePixels(img_res.y);
 
