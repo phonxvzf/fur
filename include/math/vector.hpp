@@ -4,8 +4,8 @@
 #include <string>
 #include <cmath>
 #include <iostream>
-#include <cassert>
 
+#include "error.hpp"
 #include "float.hpp"
 
 namespace math {
@@ -132,13 +132,13 @@ namespace math {
         }
 
         vector2 operator/(T s) const {
-          assert(!COMPARE_EQ(s, 0.0f));
+          ASSERT(!COMPARE_EQ(s, 0.0f));
           Float inv = 1.0f / s;
           return vector2f(*this) * inv;
         }
 
         vector2 operator/(const vector2& rhs) const {
-          assert(!rhs.is_zero());
+          ASSERT(!rhs.is_zero());
           return { x / rhs.x, y / rhs.y };
         }
 
@@ -165,7 +165,7 @@ namespace math {
         }
 
         vector2& operator/=(T s) {
-          assert(!COMPARE_EQ(s, 0.0f));
+          ASSERT(!COMPARE_EQ(s, 0.0f));
           Float inv = 1.0f / s;
           x *= inv;
           y *= inv;
@@ -173,7 +173,7 @@ namespace math {
         }
 
         T& operator[](int i) {
-          assert(i >= 0 && i < 2);
+          ASSERT(i >= 0 && i < 2);
           switch (i) {
             case 0:
               return x;
@@ -183,7 +183,7 @@ namespace math {
         }
 
         T operator[](int i) const {
-          assert(i >= 0 && i < 2);
+          ASSERT(i >= 0 && i < 2);
           switch (i) {
             case 0:
               return x;
@@ -214,7 +214,7 @@ namespace math {
 
         vector2 normalized() const {
           Float sz = this->size();
-          assert(!COMPARE_EQ(sz, 0.0f));
+          ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
         }
 
@@ -265,13 +265,13 @@ namespace math {
         }
 
         vector3 operator/(T s) const {
-          assert(!COMPARE_EQ(s, 0.0f));
+          ASSERT(!COMPARE_EQ(s, 0.0f));
           Float inv = 1.0f / s;
           return vector3f(*this) * inv;
         }
 
         vector3 operator/(const vector3& rhs) const {
-          assert(!rhs.is_zero());
+          ASSERT(!rhs.is_zero());
           return { x / rhs.x, y / rhs.y, z / rhs.z };
         }
 
@@ -301,7 +301,7 @@ namespace math {
         }
 
         vector3& operator/=(T s) {
-          assert(!COMPARE_EQ(s, 0.0f));
+          ASSERT(!COMPARE_EQ(s, 0.0f));
           Float inv = 1.0f / s;
           x *= inv;
           y *= inv;
@@ -310,7 +310,7 @@ namespace math {
         }
 
         T& operator[](int i) {
-          assert(i >= 0 && i < 3);
+          ASSERT(i >= 0 && i < 3);
           switch (i) {
             case 0:
               return x;
@@ -322,7 +322,7 @@ namespace math {
         }
 
         T operator[](int i) const {
-          assert(i >= 0 && i < 3);
+          ASSERT(i >= 0 && i < 3);
           switch (i) {
             case 0:
               return x;
@@ -367,7 +367,7 @@ namespace math {
 
         vector3 normalized() const {
           Float sz = this->size();
-          assert(!COMPARE_EQ(sz, 0.0f));
+          ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
         }
 
@@ -435,13 +435,13 @@ namespace math {
         }
 
         vector4 operator/(T s) const {
-          assert(!COMPARE_EQ(s, 0.0f));
+          ASSERT(!COMPARE_EQ(s, 0.0f));
           Float inv = 1.0f / s;
           return vector4f(*this) * inv;
         }
 
         vector4 operator/(const vector4& rhs) const {
-          assert(!rhs.is_zero());
+          ASSERT(!rhs.is_zero());
           return { x / rhs.x, y / rhs.y, z / rhs.z, w / rhs.w };
         }
 
@@ -474,7 +474,7 @@ namespace math {
         }
 
         vector4& operator/=(T s) {
-          assert(!COMPARE_EQ(s, 0.0f));
+          ASSERT(!COMPARE_EQ(s, 0.0f));
           Float inv = 1.0f / s;
           x *= inv;
           y *= inv;
@@ -484,7 +484,7 @@ namespace math {
         }
 
         T& operator[](int i) {
-          assert(i >= 0 && i < 4);
+          ASSERT(i >= 0 && i < 4);
           switch (i) {
             case 0:
               return x;
@@ -498,7 +498,7 @@ namespace math {
         }
 
         T operator[](int i) const {
-          assert(i >= 0 && i < 3);
+          ASSERT(i >= 0 && i < 3);
           switch (i) {
             case 0:
               return x;
@@ -541,7 +541,7 @@ namespace math {
 
         vector4 normalized() const {
           Float sz = this->size();
-          assert(!COMPARE_EQ(sz, 0.0f));
+          ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
         }
 

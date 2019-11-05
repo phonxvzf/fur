@@ -7,7 +7,7 @@ namespace tracer {
   namespace shapes {
     class de_mandelbulb : public destimator {
       private:
-        Float distance_function(const point3f& p) const;
+        Float distance_function(const point3f& p) const override;
 
       public:
         de_mandelbulb(const tf::transform& shape_to_world);

@@ -10,9 +10,10 @@ namespace tracer {
         normal3f calculate_normal(
             const point3f& p,
             Float delta,
-            const vector3f& default_normal
-            ) const;
-        Float distance_function(const point3f& p) const;
+            const normal3f& default_normal
+            ) const override;
+
+        Float distance_function(const point3f& p) const override;
 
         const Float radius;
 

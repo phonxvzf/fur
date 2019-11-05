@@ -8,6 +8,12 @@ namespace math {
     transform::transform(const matrix4f& mat) : mat(mat), mat_inv(mat.inverse()) {}
     transform::transform(const matrix4f& mat, const matrix4f& mat_inv)
       : mat(mat), mat_inv(mat_inv) {}
+        
+    transform& transform::operator=(const transform& t) {
+      mat = t.mat;
+      mat_inv = t.mat_inv;
+      return *this;
+    }
 
     bool transform::hand_swapped() const {
       const Float det = matrix3f(
@@ -25,7 +31,7 @@ namespace math {
     transform transform::operator*(const transform& t) const {
       return transform(mat * t.mat, t.mat_inv * mat_inv);
     }
-        
+
     vector3f transform::operator()(const vector3f& v) const {
       return apply(mat, v);
     }
@@ -35,8 +41,8 @@ namespace math {
     }
 
     normal3f transform::operator()(const normal3f& n) const {
-      const vector4f result = mat_inv.t().dot(vector4f(n, 1.0));
-      return vector3f(result);
+      const vector4f result = mat_inv.t().dot(vector4f(n, 0));
+      return normal3f(result);
     }
 
     ray transform::operator()(const ray& r) const {
@@ -57,34 +63,25 @@ namespace math {
     }
 
     vector3f apply(const matrix4f& tf_mat, const vector3f& vec) {
-      const vector4f result = tf_mat.dot(vector4f(vec, 1.0));
+      const vector4f result = tf_mat.dot(vector4f(vec, 0));
       return vector3f(result);
     }
 
     point3f apply(const matrix4f& tf_mat, const point3f& pt) {
-      const vector4f result = tf_mat.dot(vector4f(pt, 1.0));
+      const vector4f result = tf_mat.dot(vector4f(pt, 1));
       return vector3f(result) / result.w;
     }
     
-    vector3f apply_normal(const matrix4f& tf_mat, const vector3f& normal) {
-      const vector4f result = tf_mat.inverse().t().dot(vector4f(normal, 1.0));
-      return vector3f(result) / result.w;
+    normal3f apply_normal(const matrix4f& tf_mat, const vector3f& normal) {
+      const vector4f result = tf_mat.inverse().t().dot(vector4f(normal, 0));
+      return normal3f(result);
     }
 
     ray apply(const matrix4f& tf_mat, const ray& r) {
-      const vector3f r_dir = tf::apply(
-          matrix4f(
-            tf_mat.col(0),
-            tf_mat.col(1),
-            tf_mat.col(2),
-            { 0, 0, 0, 1 }
-            ),
-          r.dir
-          );
       const Float t_max_scale = vector3f(tf_mat[0][0], tf_mat[1][1], tf_mat[2][2]).size();
       return ray(
           tf::apply(tf_mat, r.origin),
-          r_dir,
+          tf::apply(tf_mat, r.dir),
           r.t_max * t_max_scale
           );
     }
@@ -111,7 +108,7 @@ namespace math {
     }
 
     transform persp(Float z_near, Float z_far, Float fovy, Float aspect_ratio) {
-      assert(z_far > 0 && z_near > 0);
+      ASSERT(z_far > 0 && z_near > 0);
       const Float len = z_far - z_near;
       const Float cot = 1 / std::tan(fovy / 2);
       return matrix4f(

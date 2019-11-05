@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "math/transform.hpp"
+#include "tracer/materials/phong.hpp"
 #include "tracer/ray.hpp"
 
 namespace tracer {
@@ -39,6 +40,8 @@ namespace tracer {
           const intersect_opts& options,
           intersect_result* result
           ) const;
+
+      materials::phong surface;
   };
 
   class destimator : public shape {
@@ -46,14 +49,16 @@ namespace tracer {
       virtual normal3f calculate_normal(
           const point3f& p,
           Float delta,
-          const vector3f& default_normal
+          const normal3f& default_normal
           ) const;
+
       virtual Float distance_function(const point3f& p) const = 0;
 
     public:
       destimator(const tf::transform& shape_to_world);
 
-      bool intersect(const ray& r, const intersect_opts& options, intersect_result* result) const;
+      bool intersect(const ray& r, const intersect_opts& options, intersect_result* result)
+        const override;
   };
 }
 

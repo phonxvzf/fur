@@ -24,7 +24,7 @@ namespace math {
   }
 
   quat quat::operator/(Float s) const {
-    assert(!COMPARE_EQ(s, 0));
+    ASSERT(!COMPARE_EQ(s, 0));
     s = 1 / s;
     return quat(a * s, v * s);
   }
@@ -39,7 +39,7 @@ namespace math {
 
   quat quat::normalized() const {
     Float sz = size();
-    assert(!COMPARE_EQ(sz, 0));
+    ASSERT(!COMPARE_EQ(sz, 0));
     return *this / sz;
   }
 
@@ -53,7 +53,7 @@ namespace math {
 
   quat quat::inverse() const {
     Float sz = size_sq();
-    assert(!COMPARE_EQ(sz, 0));
+    ASSERT(!COMPARE_EQ(sz, 0));
     return conjugate() / sz;
   }
 

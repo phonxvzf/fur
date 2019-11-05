@@ -78,12 +78,12 @@ namespace math {
         }
 
         vector2<T> row(int i) const {
-          assert(i < 2);
+          ASSERT(i < 2);
           return { value[i][0], value[i][1] };
         }
 
         vector2<T> col(int j) const {
-          assert(j < 2);
+          ASSERT(j < 2);
           return { value[0][j], value[1][j] };
         }
 
@@ -197,12 +197,12 @@ namespace math {
         }
 
         vector3<T> row(int i) const {
-          assert(i < 3);
+          ASSERT(i < 3);
           return { value[i][0], value[i][1], value[i][2] };
         }
 
         vector3<T> col(int j) const {
-          assert(j < 3);
+          ASSERT(j < 3);
           return { value[0][j], value[1][j], value[2][j] };
         }
 
@@ -340,12 +340,12 @@ namespace math {
         }
 
         vector4<T> row(int i) const {
-          assert(i < 4);
+          ASSERT(i < 4);
           return { value[i][0], value[i][1], value[i][2], value[i][3] };
         }
 
         vector4<T> col(int j) const {
-          assert(j < 4);
+          ASSERT(j < 4);
           return { value[0][j], value[1][j], value[2][j], value[3][j] };
         }
 
@@ -355,7 +355,7 @@ namespace math {
           }
 
         matrix4f inverse() const {
-          assert(!COMPARE_EQ(det(), 0));
+          ASSERT(!COMPARE_EQ(det(), 0));
 
           // Reduce the matrix to RREF using Gauss-Jordan algorithm
           vector4f rows[4] = { row(0), row(1), row(2), row(3) };
@@ -458,7 +458,7 @@ namespace math {
   template <typename T>
     matrix2<T> operator/(const matrix2<T>& m, Float s) {
       matrix2<Float> r;
-      assert(!COMPARE_EQ(s, 0));
+      ASSERT(!COMPARE_EQ(s, 0));
       s = 1 / s;
       for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -503,7 +503,7 @@ namespace math {
   template <typename T>
     matrix3<T> operator/(const matrix3<T>& m, Float s) {
       matrix3<Float> r;
-      assert(!COMPARE_EQ(s, 0));
+      ASSERT(!COMPARE_EQ(s, 0));
       s = 1 / s;
       for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
@@ -548,7 +548,7 @@ namespace math {
   template <typename T>
     matrix4<T> operator/(const matrix4<T>& m, Float s) {
       matrix4<Float> r;
-      assert(!COMPARE_EQ(s, 0));
+      ASSERT(!COMPARE_EQ(s, 0));
       s = 1 / s;
       for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {

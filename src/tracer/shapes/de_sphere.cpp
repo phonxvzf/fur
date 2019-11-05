@@ -11,7 +11,7 @@ namespace tracer {
     normal3f de_sphere::calculate_normal(
         const point3f& p,
         Float delta,
-        const vector3f& default_normal
+        const normal3f& default_normal
         ) const
     {
       return p;

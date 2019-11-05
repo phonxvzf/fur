@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <thread>
 
 #include "tracer/scene.hpp"
@@ -20,8 +21,8 @@ namespace tracer {
     vector3f eye_dir((eye - surface_point).normalized());
     const vector3f light_dir((light.position - surface_point).normalized());
     const vector3f half((light_dir + eye_dir).normalized());
-    rgb += Kd * std::max(0.0f, normal.dot(light_dir)) * light.color; // diffuse
-    rgb += Ks * std::pow(std::max(0.0f, half.dot(normal)), Es) * light.color; // specular
+    rgb += Kd * std::max(Float(0), normal.dot(light_dir)) * light.color; // diffuse
+    rgb += Ks * std::pow(std::max(Float(0), half.dot(normal)), Es) * light.color; // specular
 
     // assume uniform light
     return rgb * surface_rgb;
@@ -62,7 +63,7 @@ namespace tracer {
         const ray r = camera->generate_ray(point2f(x + 0.5f, y + 0.5f));
         const int i = img_res.x * y + x;
 
-        const shape::intersect_result view_result = intersect_shapes(r, shape::intersect_opts());
+        const shape::intersect_result view_result = intersect_shapes(r, params.intersect_options);
 
         if (view_result.object != nullptr) {
           // viewing ray hits surface
@@ -86,18 +87,18 @@ namespace tracer {
                   );
               const shape::intersect_result shadow_result = intersect_shapes(
                   shadow_r,
-                  shape::intersect_opts()
+                  params.intersect_options
                   );
               if (shadow_result.object == nullptr) {
                 rgb += blinn_phong(
                     emitter,
                     view_result.hit_point,
-                    params.surface_rgb,
+                    view_result.object->surface.surface_rgb,
                     view_result.normal,
                     params.eye_position,
-                    params.Kd,
-                    params.Ks,
-                    params.Es
+                    view_result.object->surface.Kd,
+                    view_result.object->surface.Ks,
+                    view_result.object->surface.Es
                     );
               } else {
                 std::lock_guard<std::mutex> lock(shadow_counter_mutex);
@@ -135,27 +136,25 @@ namespace tracer {
 
   std::shared_ptr<std::vector<rgb_spectrum>> scene::render(
       const render_params& params,
-      const vector2i& img_res,
-      size_t n_workers,
       render_profile* profile,
       void (*update_callback)(Float)
       )
   {
     // TODO: efficient thread pooling, minimize core idle time
-    ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(img_res.x * img_res.y);
+    ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(params.img_res.x * params.img_res.y);
 
     last_update = std::chrono::system_clock::now();
 
     std::vector<std::thread> workers;
-    const Float tile_height = img_res.y / n_workers;
-    for (size_t i = 0; i < n_workers; ++i) {
+    const Float tile_height = params.img_res.y / params.n_workers;
+    for (size_t i = 0; i < params.n_workers; ++i) {
       const vector2i start(0, i * tile_height);
-      vector2i end(img_res.x, start.y + tile_height);
-      if ((i + 1 == n_workers) && (end.y < img_res.y)) {
-        end.y = img_res.y;
+      vector2i end(params.img_res.x, start.y + tile_height);
+      if ((i + 1 == params.n_workers) && (end.y < params.img_res.y)) {
+        end.y = params.img_res.y;
       }
       workers.push_back(std::thread(
-            &scene::render_routine, this, params, img_res, start, end, update_callback)
+            &scene::render_routine, this, params, params.img_res, start, end, update_callback)
           );
     }
 

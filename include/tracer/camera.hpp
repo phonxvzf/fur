@@ -48,7 +48,7 @@ namespace tracer {
             Float far
             );
 
-        ray generate_ray(const point2f& img_point) const;
+        ray generate_ray(const point2f& img_point) const override;
     };
 
     class persp : public projective {
@@ -68,7 +68,7 @@ namespace tracer {
             Float aspect_ratio
             );
 
-        ray generate_ray(const point2f& img_point) const;
+        ray generate_ray(const point2f& img_point) const override;
     };
   } /* namespace camera */
 } /* namespace tracer */

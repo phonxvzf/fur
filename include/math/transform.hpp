@@ -12,12 +12,14 @@ namespace math {
 
     class transform {
       public:
-        const matrix4f mat;
-        const matrix4f mat_inv;
+        matrix4f mat;
+        matrix4f mat_inv;
 
         transform();
         transform(const matrix4f& mat);
         transform(const matrix4f& mat, const matrix4f& mat_inv);
+
+        transform& operator=(const transform& t);
 
         bool hand_swapped() const;
 
@@ -34,7 +36,7 @@ namespace math {
 
     vector3f apply(const matrix4f& tf_mat, const vector3f& pt);
     point3f apply(const matrix4f& tf_mat, const point3f& pt);
-    vector3f apply_normal(const matrix4f& tf_mat, const vector3f& normal);
+    normal3f apply_normal(const matrix4f& tf_mat, const vector3f& normal);
     ray apply(const matrix4f& tf_mat, const ray& r);
 
     extern transform identity;

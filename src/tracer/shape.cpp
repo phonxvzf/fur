@@ -18,21 +18,20 @@ namespace tracer {
   normal3f destimator::calculate_normal(
           const point3f& p,
           Float delta,
-          const vector3f& default_normal
+          const normal3f& default_normal
           ) const
   {
     // compute the gradient using center finite differences
     const vector3f vx(delta, 0.0, 0.0);
     const vector3f vy(0.0, delta, 0.0);
     const vector3f vz(0.0, 0.0, delta);
-    const Float two_delta = 2 * delta;
-    const Float df_by_dx = (distance_function(p + vx) - distance_function(p - vx)) / two_delta;
-    const Float df_by_dy = (distance_function(p + vy) - distance_function(p - vy)) / two_delta;
-    const Float df_by_dz = (distance_function(p + vz) - distance_function(p - vz)) / two_delta;
-    const vector3f normal(df_by_dx, df_by_dy, df_by_dz);
+    const Float inv_td = 1 / (2 * delta);
+    const Float df_by_dx = (distance_function(p + vx) - distance_function(p - vx)) * inv_td;
+    const Float df_by_dy = (distance_function(p + vy) - distance_function(p - vy)) * inv_td;
+    const Float df_by_dz = (distance_function(p + vz) - distance_function(p - vz)) * inv_td;
+    const normal3f normal(df_by_dx, df_by_dy, df_by_dz);
     return normal.is_zero() ? default_normal : normal;
   }
-
 
   bool destimator::intersect(
       const ray& r,
@@ -51,14 +50,14 @@ namespace tracer {
           result->t_hit = t;
           result->hit_point = tf_shape_to_world(phit);
           result->normal = tf_shape_to_world(
-              calculate_normal(phit, options.normal_delta, vector3f(0.0))
+              calculate_normal(phit, options.normal_delta, normal3f(0, 1, 0))
               ).normalized();
           result->object = this;
         }
         return true;
       }
-      t += dist;
 
+      t += dist;
       if (t >= sray.t_max) {
         break;
       }

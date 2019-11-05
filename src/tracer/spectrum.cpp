@@ -1,4 +1,3 @@
-#include <cassert>
 #include "tracer/spectrum.hpp"
 
 namespace tracer {
@@ -76,7 +75,7 @@ namespace tracer {
   nspectrum nspectrum::operator/(const nspectrum& sp) const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      assert(!COMPARE_EQ(sp.spd[i], 0));
+      ASSERT(!COMPARE_EQ(sp.spd[i], 0));
       result.spd[i] = spd[i] / sp.spd[i];
     }
     return result;
@@ -92,7 +91,7 @@ namespace tracer {
 
   nspectrum nspectrum::operator/(Float s) const {
     nspectrum result(*this);
-    assert(!COMPARE_EQ(s, 0));
+    ASSERT(!COMPARE_EQ(s, 0));
     Float inv = 1 / s;
     for (size_t i = 0; i < n_samples; ++i) {
       result.spd[i] *= inv;
@@ -123,7 +122,7 @@ namespace tracer {
 
   nspectrum& nspectrum::operator/=(const nspectrum& sp) {
     for (size_t i = 0; i < n_samples; ++i) {
-      assert(!COMPARE_EQ(sp.spd[i], 0));
+      ASSERT(!COMPARE_EQ(sp.spd[i], 0));
       spd[i] /= sp.spd[i];
     }
     return *this;

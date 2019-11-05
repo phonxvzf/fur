@@ -13,7 +13,7 @@ namespace tracer {
       point_light(const tf::transform& tf_local_to_world, const rgb_spectrum& color)
         : light_source(tf_local_to_world), color(color) {}
 
-      std::vector<emitter> sample_lights() const;
+      std::vector<emitter> sample_lights() const override;
   };
 
 }

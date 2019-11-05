@@ -13,7 +13,7 @@ find_package(yaml-cpp REQUIRED)
 find_package(OpenEXR REQUIRED)
 
 if (UNIX)
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -std=c++14 -pipe")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -std=c++14 -pipe")
   set(CMAKE_CXX_FLAGS_RELEASE "-std=c++14 -pipe -O3 -DNDEBUG -march=native -flto")
 elseif (MSVC)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MT /I${BOOST_ROOT} /std:c++14")
@@ -23,9 +23,7 @@ else()
 endif()
 
 add_executable(${BINARY} ${SOURCES})
-add_executable(${BINARY_VECTOR_TEST} ${VECTOR_TEST_SOURCES})
 
 target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS})
-target_include_directories(${BINARY_VECTOR_TEST} PRIVATE include)
 
 target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES} ${YAML_CPP_LIBRARIES})

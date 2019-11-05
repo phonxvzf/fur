@@ -7,7 +7,7 @@ namespace tracer {
   namespace shapes {
     class de_inf_spheres : public destimator {
       private:
-        Float distance_function(const point3f& p) const;
+        Float distance_function(const point3f& p) const override;
         Float sphere_position(Float x) const;
 
         const Float radius;

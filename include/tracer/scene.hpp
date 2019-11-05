@@ -13,12 +13,11 @@
 namespace tracer {
 
   struct render_params {
+    vector2i img_res = { 256, 256 };
+    size_t n_workers = 1;
     Float shadow_bias = 5e-4;
-    rgb_spectrum surface_rgb = rgb_spectrum(1.0f);
     point3f eye_position = point3f(0.0f);
-    Float Kd = 0.5f;
-    Float Ks = 0.5f;
-    Float Es = 32;
+    shape::intersect_opts intersect_options = shape::intersect_opts();
   };
 
   struct render_profile {
@@ -68,8 +67,6 @@ namespace tracer {
 
       std::shared_ptr<std::vector<rgb_spectrum>> render(
           const render_params& params,
-          const vector2i& img_res,
-          size_t n_workers = 1,
           render_profile* profile = nullptr,
           void (*update_callback)(Float) = nullptr
           );
