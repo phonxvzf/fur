@@ -11,6 +11,7 @@
 
 #include "math/transform.hpp"
 #include "math/util.hpp"
+#include "math/random.hpp"
 #include "tracer/camera.hpp"
 #include "tracer/spectrum.hpp"
 #include "tracer/shapes/de_sphere.hpp"

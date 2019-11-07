@@ -19,7 +19,7 @@ namespace tracer {
             const normal3f& default_normal
             ) const
     {
-      return normal;
+      return normal.is_zero() ? default_normal : normal;
     }
 
     Float de_quad::distance_function(const point3f& p) const {

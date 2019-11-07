@@ -118,8 +118,16 @@ namespace math {
           return "[" + row(0).to_string() + "\n " + row(1).to_string() + "]";
         }
 
+        std::wstring to_wstring() const {
+          return L"[" + row(0).to_wstring() + "\n " + row(1).to_wstring() + L"]";
+        }
+
         friend std::ostream& operator<<(std::ostream& os, matrix2<T> m) {
           return os << m.to_string();
+        }
+
+        friend std::wostream& operator<<(std::wostream& os, matrix2<T> m) {
+          return os << m.to_wstring();
         }
     }; /* class matrix2 */
 
@@ -237,8 +245,18 @@ namespace math {
             + row(2).to_string() + "]";
         }
 
+        std::wstring to_wstring() const {
+          return L"[" + row(0).to_wstring() + "\n "
+            + row(1).to_wstring() + "\n "
+            + row(2).to_wstring() + L"]";
+        }
+
         friend std::ostream& operator<<(std::ostream& os, matrix3<T> m) {
           return os << m.to_string();
+        }
+
+        friend std::wostream& operator<<(std::wostream& os, matrix3<T> m) {
+          return os << m.to_wstring();
         }
     }; /* class matrix3 */
 
@@ -418,8 +436,19 @@ namespace math {
             + row(3).to_string() + "]";
         }
 
+        std::wstring to_wstring() const {
+          return L"[" + row(0).to_wstring() + "\n "
+            + row(1).to_wstring() + "\n "
+            + row(2).to_wstring() + "\n "
+            + row(3).to_wstring() + L"]";
+        }
+
         friend std::ostream& operator<<(std::ostream& os, matrix4<T> m) {
           return os << m.to_string();
+        }
+
+        friend std::wostream& operator<<(std::wostream& os, matrix4<T> m) {
+          return os << m.to_wstring();
         }
     }; /* class matrix3 */
 

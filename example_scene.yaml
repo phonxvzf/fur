@@ -1,11 +1,13 @@
 render:
-  resolution: 640x480
-  shadow_bias: 5e-4
+  resolution: 1920x1080
+  shadow_bias: 1e-3
+  spp: 16
+  seed: 12345
 
 intersect:
   hit_epsilon: 1e-4
   normal_delta: 1e-4
-  max_iters: 1000
+  max_iters: 500
 
 scene:
   camera:
@@ -60,7 +62,7 @@ scene:
           Es: 16
   lights:
     - type: "point"
-      color: "0.8 0.2 0.2"
+      color: "1 0 0"
       transform:
         - translate: "1 10 4"
     - type: "point"

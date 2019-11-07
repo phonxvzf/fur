@@ -217,13 +217,21 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
     const YAML::Node& attr,
     const std::string& name)
 {
-  // TODO
   math::tf::transform tf = parse_transform(attr["transform"]);
   tracer::materials::phong phong = parse_material(attr["material"]);
+
   if (name == "de_sphere") {
-
+    tracer::shape* shape = new tracer::shapes::de_sphere(tf, parse_float(attr, "radius"));
+    shape->surface = phong;
+    return std::shared_ptr<tracer::shape>(shape);
   } else if (name == "de_inf_spheres") {
-
+    tracer::shape* shape = new tracer::shapes::de_inf_spheres(
+        tf,
+        parse_float(attr, "radius"),
+        parse_float(attr, "cell")
+        );
+    shape->surface = phong;
+    return std::shared_ptr<tracer::shape>(shape);
   } else if (name == "de_mandelbulb") {
     tracer::shape* shape = new tracer::shapes::de_mandelbulb(tf);
     shape->surface = phong;
@@ -306,13 +314,21 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       math::vector2i img_res(0, 0);
       std::string value = render_config["resolution"].as<std::string>();
       std::sscanf(value.c_str(), "%dx%d", &img_res.x, &img_res.y);
-      if (img_res.x <= 0 || img_res.y <= 0) {
-        throw parsing_error(render_config["resolution"].Mark().line, "invalid image resolution");
+      if (img_res.x < 64 || img_res.y < 64) {
+        throw parsing_error(
+            render_config["resolution"].Mark().line,
+            "image resolution must be larger than or equal to 64x64");
       }
       params->img_res = img_res;
     }
     if (render_config["shadow_bias"].IsDefined()) {
       params->shadow_bias = parse_float(render_config, "shadow_bias");
+    }
+    if (render_config["spp"].IsDefined()) {
+      params->spp = parse_int(render_config, "spp");
+    }
+    if (render_config["seed"].IsDefined()) {
+      params->seed = parse_int(render_config, "seed");
     }
   }
 

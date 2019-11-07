@@ -222,8 +222,16 @@ namespace math {
           return "[\t" + std::to_string(x) + "\t" + std::to_string(y) + "\t]";
         }
 
+        std::wstring to_wstring() const {
+          return L"[\t" + std::to_wstring(x) + L"\t" + std::to_wstring(y) + L"\t]";
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const vector2& vec) {
           return os << vec.to_string();
+        }
+
+        friend std::wostream& operator<<(std::wostream& os, const vector2& vec) {
+          return os << vec.to_wstring();
         }
     }; /* class vector2 */
 
@@ -381,8 +389,22 @@ namespace math {
             + "\t]";
         }
 
+        std::wstring to_wstring() const {
+          return L"[\t"
+            + std::to_wstring(x)
+            + L"\t"
+            + std::to_wstring(y)
+            + L"\t"
+            + std::to_wstring(z)
+            + L"\t]";
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const vector3& vec) {
           return os << vec.to_string();
+        }
+
+        friend std::wostream& operator<<(std::wostream& os, const vector3& vec) {
+          return os << vec.to_wstring();
         }
     }; /* class vector3 */
 
@@ -557,8 +579,24 @@ namespace math {
             + "\t]";
         }
 
+        std::wstring to_wstring() const {
+          return L"[\t"
+            + std::to_wstring(x)
+            + L"\t"
+            + std::to_wstring(y)
+            + L"\t"
+            + std::to_wstring(z)
+            + L"\t"
+            + std::to_wstring(w)
+            + L"\t]";
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const vector4& vec) {
           return os << vec.to_string();
+        }
+
+        friend std::wostream& operator<<(std::wostream& os, const vector4& vec) {
+          return os << vec.to_wstring();
         }
     };
 } /* namespace math */

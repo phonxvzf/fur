@@ -1,7 +1,10 @@
 #include <unistd.h>
+#include <boost/bind.hpp>
+#include <boost/asio/post.hpp>
 #include <thread>
 
 #include "tracer/scene.hpp"
+#include "math/random.hpp"
 
 namespace tracer {
 
@@ -50,70 +53,72 @@ namespace tracer {
 
   void scene::render_routine(
       const render_params& params,
-      const vector2i& img_res,
       const vector2i& start,
       const vector2i& end,
       void (*update_callback)(Float)
       )
   {
+    random::rng rng(params.seed);
     for (int y = start.y; y < end.y; ++y) {
       for (int x = start.x; x < end.x; ++x) {
+        for (size_t n_samples = 0; n_samples < params.spp; ++n_samples) {
 
-        // only sample 1 ray for now (at the center of each pixel)
-        const ray r = camera->generate_ray(point2f(x + 0.5f, y + 0.5f));
-        const int i = img_res.x * y + x;
-
-        const shape::intersect_result view_result = intersect_shapes(r, params.intersect_options);
-
-        if (view_result.object != nullptr) {
-          // viewing ray hits surface
           rgb_spectrum rgb(0.0f);
 
-          // cast shadow rays
-          shape::intersect_result shadow_result;
-          for (const std::shared_ptr<light_source>& light : light_sources) {
+          const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf());
+          const int i = params.img_res.x * y + x;
 
-            std::vector<light_source::emitter> light_emitters(light->sample_lights());
+          const shape::intersect_result view_result
+            = intersect_shapes(r, params.intersect_options);
 
-            for (const light_source::emitter& emitter : light_emitters) {
-              const point3f shadow_r_origin(
-                  view_result.hit_point + params.shadow_bias * view_result.normal
-                  );
-              const vector3f shadow_r_dir(emitter.position - shadow_r_origin);
-              const ray shadow_r(
-                  shadow_r_origin,
-                  shadow_r_dir,
-                  shadow_r_dir.size()
-                  );
-              const shape::intersect_result shadow_result = intersect_shapes(
-                  shadow_r,
-                  params.intersect_options
-                  );
-              if (shadow_result.object == nullptr) {
-                rgb += blinn_phong(
-                    emitter,
-                    view_result.hit_point,
-                    view_result.object->surface.surface_rgb,
-                    view_result.normal,
-                    params.eye_position,
-                    view_result.object->surface.Kd,
-                    view_result.object->surface.Ks,
-                    view_result.object->surface.Es
+          if (view_result.object != nullptr) {
+            // viewing ray hits surface
+            // cast shadow rays
+            shape::intersect_result shadow_result;
+            for (const std::shared_ptr<light_source>& light : light_sources) {
+
+              std::vector<light_source::emitter> light_emitters(light->sample_lights());
+
+              for (const light_source::emitter& emitter : light_emitters) {
+                const point3f shadow_r_origin(
+                    view_result.hit_point + params.shadow_bias * view_result.normal
                     );
-              } else {
-                std::lock_guard<std::mutex> lock(shadow_counter_mutex);
-                ++shadow_counter;
+                const vector3f shadow_r_dir(emitter.position - shadow_r_origin);
+                const ray shadow_r(
+                    shadow_r_origin,
+                    shadow_r_dir,
+                    shadow_r_dir.size()
+                    );
+                const shape::intersect_result shadow_result = intersect_shapes(
+                    shadow_r,
+                    params.intersect_options
+                    );
+                if (shadow_result.object == nullptr) {
+                  rgb += blinn_phong(
+                      emitter,
+                      view_result.hit_point,
+                      view_result.object->surface.surface_rgb,
+                      view_result.normal,
+                      params.eye_position,
+                      view_result.object->surface.Kd,
+                      view_result.object->surface.Ks,
+                      view_result.object->surface.Es
+                      );
+                } else {
+                  std::lock_guard<std::mutex> lock(shadow_counter_mutex);
+                  ++shadow_counter;
+                }
               }
             }
-          }
+            {
+              std::lock_guard<std::mutex> lock(view_counter_mutex);
+              ++view_counter;
+            }
+          } /* if view_result */
 
-          ird_rgb->at(i) += rgb.clamp(0.0f, 1.0f);
+          ird_rgb->at(i) += (rgb / Float(params.spp)).clamp(0.0f, 1.0f);
 
-          {
-            std::lock_guard<std::mutex> lock(view_counter_mutex);
-            ++view_counter;
-          }
-        } /* if */
+        } /* for n_samples */
 
         // profile if requested
         {
@@ -123,7 +128,7 @@ namespace tracer {
           if (update_callback != nullptr) {
             using namespace std::chrono;
             if ((duration_cast<milliseconds>(system_clock::now() - last_update).count()
-                >= UPDATE_PERIOD) || !rendering())
+                  >= UPDATE_PERIOD) || !rendering())
             {
               update_callback(render_progress());
               last_update = system_clock::now();
@@ -132,6 +137,14 @@ namespace tracer {
         }
       } /* for x */
     } /* for y */
+
+    std::lock_guard<std::mutex> lock(worker_semaphore_mutex);
+    --worker_semaphore;
+    worker_cond_var.notify_one();
+  }
+      
+  bool scene::workers_finished() {
+    return !worker_semaphore;
   }
 
   std::shared_ptr<std::vector<rgb_spectrum>> scene::render(
@@ -140,28 +153,50 @@ namespace tracer {
       void (*update_callback)(Float)
       )
   {
-    // TODO: efficient thread pooling, minimize core idle time
+    worker_semaphore = params.n_workers;
     ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(params.img_res.x * params.img_res.y);
+    worker_thread_pool = std::make_unique<boost::asio::thread_pool>(params.n_workers);
+    std::wcout << L"* Created " << params.n_workers << L" render workers" << std::endl;
 
     last_update = std::chrono::system_clock::now();
 
-    std::vector<std::thread> workers;
-    const Float tile_height = params.img_res.y / params.n_workers;
-    for (size_t i = 0; i < params.n_workers; ++i) {
-      const vector2i start(0, i * tile_height);
-      vector2i end(params.img_res.x, start.y + tile_height);
-      if ((i + 1 == params.n_workers) && (end.y < params.img_res.y)) {
-        end.y = params.img_res.y;
+    // separate image into fixed-sized tiles
+    for (int offset_y = 0; offset_y < params.img_res.y; offset_y += TILE_HEIGHT) {
+      for (int offset_x = 0; offset_x < params.img_res.x; offset_x += TILE_WIDTH) {
+        const vector2i tile_end(
+            std::min(offset_x + TILE_WIDTH, params.img_res.x),
+            std::min(offset_y + TILE_HEIGHT, params.img_res.y)
+            );
+
+        const int tile_height = TILE_HEIGHT / params.n_workers;
+        for (size_t i = 0; i < params.n_workers; ++i) {
+          const vector2i start(offset_x, offset_y + i * tile_height);
+          vector2i end(tile_end.x, std::min(start.y + tile_height, tile_end.y));
+          if ((i + 1 == params.n_workers) && (end.y < tile_end.y)) {
+            end.y = tile_end.y;
+          }
+          boost::asio::post(
+              *worker_thread_pool,
+              boost::bind(
+                &scene::render_routine,
+                this,
+                boost::ref(params),
+                start,
+                end,
+                update_callback)
+              );
+        }
+
+        std::unique_lock<std::mutex> main_thread_lock(worker_semaphore_mutex);
+        while (worker_semaphore) { // handle spurious wakeups
+          worker_cond_var.wait(main_thread_lock, std::bind(&scene::workers_finished, this));
+        }
+
+        worker_semaphore = params.n_workers;
       }
-      workers.push_back(std::thread(
-            &scene::render_routine, this, params, params.img_res, start, end, update_callback)
-          );
     }
 
-    std::wcout << L"* Created " << workers.size() << L" render workers" << std::endl;
-    for (std::thread& worker : workers) {
-      worker.join();
-    }
+    worker_thread_pool->join();
 
     if (profile) {
       profile->view_counter   = view_counter;
