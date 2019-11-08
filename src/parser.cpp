@@ -330,6 +330,9 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     if (render_config["seed"].IsDefined()) {
       params->seed = parse_int(render_config, "seed");
     }
+    if (render_config["tile_size"].IsDefined()) {
+      params->tile_size = parse_vector2i(render_config, "tile_size");
+    }
   }
 
   // intersect options

@@ -8,9 +8,12 @@
 
 namespace math {
   namespace random {
+
+    extern const Float INV_UINT_MAX;
+
     inline Float normalize(uint32_t num) {
       if (num == 0) return 0;
-      return Float(num - 1u) / std::numeric_limits<uint32_t>::max();
+      return (num - 1u) * INV_UINT_MAX;
     }
 
     // PCG-XSH-RR

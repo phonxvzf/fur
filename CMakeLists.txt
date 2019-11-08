@@ -11,7 +11,6 @@ file(GLOB VECTOR_TEST_SOURCES "test/vector/*.cpp")
 
 find_package(yaml-cpp REQUIRED)
 find_package(OpenEXR REQUIRED)
-find_package(Boost COMPONENTS thread REQUIRED)
 
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -std=c++14 -pipe")
