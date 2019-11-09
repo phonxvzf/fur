@@ -21,8 +21,8 @@ namespace math {
     public:
       pdf1d(int n_samples, Float from, Float to);
 
-      Float sample(Float u, Float offset) const;
-      Float sample(Float u) const;
+      virtual Float sample(Float u, Float offset) const;
+      virtual Float sample(Float u) const;
   };
 }
 

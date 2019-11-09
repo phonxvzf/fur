@@ -61,51 +61,52 @@ namespace tracer {
 
             rgb_spectrum rgb(0.0f);
 
-            //const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf());
-            const ray r = camera->generate_ray(point2f(x, y) + point2f(0.5f, 0.5f));
+            const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf());
             const int i = params.img_res.x * y + x;
 
             const shape::intersect_result view_result
               = intersect_shapes(r, params.intersect_options);
 
             if (view_result.object != nullptr) {
-              // viewing ray hits surface
-              // cast shadow rays
-              shape::intersect_result shadow_result;
-              for (const std::shared_ptr<light_source>& light : light_sources) {
+              if (!params.show_depth) {
+                // viewing ray hits surface
+                // cast shadow rays
+                shape::intersect_result shadow_result;
+                for (const std::shared_ptr<light_source>& light : light_sources) {
 
-                std::vector<light_source::emitter> light_emitters(light->sample_lights());
+                  std::vector<light_source::emitter> light_emitters(light->sample_lights());
 
-                for (const light_source::emitter& emitter : light_emitters) {
-                  const point3f shadow_r_origin(
-                      view_result.hit_point + params.shadow_bias * view_result.normal
-                      );
-                  const vector3f shadow_r_dir(emitter.position - shadow_r_origin);
-                  const ray shadow_r(
-                      shadow_r_origin,
-                      shadow_r_dir,
-                      shadow_r_dir.size()
-                      );
-                  const shape::intersect_result shadow_result = intersect_shapes(
-                      shadow_r,
-                      params.intersect_options
-                      );
-                  if (shadow_result.object == nullptr) {
-                    rgb += blinn_phong(
-                        emitter,
-                        view_result.hit_point,
-                        view_result.object->surface.surface_rgb,
-                        view_result.normal,
-                        params.eye_position,
-                        view_result.object->surface.Kd,
-                        view_result.object->surface.Ks,
-                        view_result.object->surface.Es
+                  for (const light_source::emitter& emitter : light_emitters) {
+                    const point3f shadow_r_origin(
+                        view_result.hit_point + params.shadow_bias * view_result.normal
                         );
-                  } else {
-                    std::lock_guard<std::mutex> lock(shadow_counter_mutex);
-                    ++shadow_counter;
+                    const vector3f shadow_r_dir(emitter.position - shadow_r_origin);
+                    const ray shadow_r(
+                        shadow_r_origin,
+                        shadow_r_dir,
+                        shadow_r_dir.size()
+                        );
+                    const shape::intersect_result shadow_result = intersect_shapes(
+                        shadow_r,
+                        params.intersect_options
+                        );
+                    if (shadow_result.object == nullptr) {
+                      rgb += blinn_phong(
+                          emitter,
+                          view_result.hit_point,
+                          view_result.object->surface.surface_rgb,
+                          view_result.normal,
+                          params.eye_position,
+                          view_result.object->surface.Kd,
+                          view_result.object->surface.Ks,
+                          view_result.object->surface.Es
+                          );
+                    } else {
+                      std::lock_guard<std::mutex> lock(shadow_counter_mutex);
+                      ++shadow_counter;
+                    }
                   }
-                }
+                } /* if params.show_depth */
               }
               {
                 std::lock_guard<std::mutex> lock(view_counter_mutex);
@@ -113,7 +114,15 @@ namespace tracer {
               }
             } /* if view_result */
 
-            ird_rgb->at(i) += (rgb / Float(params.spp)).clamp(0.0f, 1.0f);
+            if (params.show_depth) {
+              if (view_result.object == nullptr) {
+                ird_rgb->at(i) = rgb_spectrum(-1);
+              } else {
+                ird_rgb->at(i) = rgb_spectrum(view_result.t_hit);
+              }
+            } else {
+              ird_rgb->at(i) += (rgb / Float(params.spp)).clamp(0.0f, 1.0f);
+            }
 
           } /* for n_samples */
 

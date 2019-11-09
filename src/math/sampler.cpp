@@ -7,7 +7,7 @@ namespace math {
     uniform1d::uniform1d(int n_samples, Float a, Float b)
       : pdf1d(n_samples, a, b)
     {
-      ASSERT(!COMPARE_EQ(a, b));
+      ASSERT(!COMPARE_EQ(a, b) && (b > a));
       Float y = 1 / (b - a);
       for (int i = 0; i < n_samples; ++i) {
         pdf[i] = y;
@@ -31,6 +31,44 @@ namespace math {
         x += dx;
       }
       init_cdf();
+    }
+
+    point2f sample_disk(const point2f& u) {
+      point2f u_offset = 2 * u - point2f(1, 1);
+      if (u_offset.is_zero()) return { 0, 0 };
+      Float theta, r;
+      if (std::abs(u_offset.x) > std::abs(u_offset.y)) {
+        r = u_offset.x;
+        theta = PI_OVER_4 * (u_offset.y / u_offset.x);
+      } else {
+        r = u_offset.y;
+        theta = PI_OVER_2 - PI_OVER_4 * (u_offset.x / u_offset.y);
+      }
+      return r * point2f(std::cos(theta), std::sin(theta));
+    }
+
+    point2f sample_disk_distorted(const point2f& u) {
+      Float r = std::sqrt(u.x);
+      return r * point2f(TWO_PI * u.y);
+    }
+
+    point3f sample_hemisphere(const point2f& u) {
+      Float z = u.x;
+      Float r = std::sqrt(1 - z * z);
+      Float two_pi_u = 2 * MATH_PI * u.y;
+      return { std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z };
+    }
+
+    point3f sample_cosine_hemisphere(const point2f& u) {
+      point2f proj = sample_disk(u);
+      return { proj.x, proj.y, std::sqrt(std::max(Float(0), 1 - dot2(proj))) };
+    }
+
+    point3f sample_sphere(const point2f& u) {
+      Float z = 1 - 2 * u.x;
+      Float r = 2 * std::sqrt(u.x * (1 - u.x));
+      Float two_pi_u = 2 * MATH_PI * u.y;
+      return { std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z };
     }
   }
 }

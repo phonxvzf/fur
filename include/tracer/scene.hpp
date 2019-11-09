@@ -21,6 +21,7 @@ namespace tracer {
     uint64_t seed = 0;
     Float shadow_bias = 5e-4;
     point3f eye_position = point3f(0.0f);
+    bool show_depth = false;
     shape::intersect_opts intersect_options = shape::intersect_opts();
   };
 

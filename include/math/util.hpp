@@ -30,6 +30,11 @@ namespace math {
   inline Float dot2(const vector4f v) {
     return v.dot(v);
   }
+
+  extern const Float TWO_PI;
+  extern const Float INV_TWO_PI;
+  extern const Float PI_OVER_2;
+  extern const Float PI_OVER_4;
 }
 
 #endif /* MATH_UTIL_HPP */

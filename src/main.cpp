@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
 
   int arg_n_threads = 0;
   bool verbose = true;
+  bool show_depth = false;
 
   if (argc > 1) {
     int n_sub_args = 0;
@@ -105,9 +106,11 @@ int main(int argc, char** argv) {
           verbose = 0;
           std::cout.setstate(std::ios::failbit);
           std::wcout.setstate(std::ios::failbit);
+        } else if (!std::strcmp(argv[i], "-d") || !std::strcmp(argv[i], "--depth")) {
+          show_depth = true;
         } else if (!std::strcmp(argv[i], "-h") || !std::strcmp(argv[i], "--help")) {
           std::cerr <<
-            "usage: ftracer [ -h | -j workers | -o output | --help | --quiet ] SCENE"
+            "usage: ftracer [ -h | -j workers | -d | -o output | --help | --quiet | --depth ] SCENE"
             << std::endl;
           return 0;
         } else {
@@ -145,6 +148,7 @@ int main(int argc, char** argv) {
 
   // override parameters with the ones provided by the command line
   params.n_workers = n_threads;
+  params.show_depth = show_depth;
 
   // setup rendering
   render_profile profile;
