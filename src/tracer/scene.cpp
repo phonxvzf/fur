@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <thread>
 
 #include "tracer/scene.hpp"

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "float.hpp"
+#include "util.hpp"
 
 namespace math {
   class pdf1d {
@@ -24,6 +25,26 @@ namespace math {
       virtual Float sample(Float u, Float offset) const;
       virtual Float sample(Float u) const;
   };
+
+  inline Float pdf_uniform_disk() {
+    return INV_PI;
+  }
+
+  inline Float pdf_uniform_hemisphere() {
+    return INV_TWO_PI;
+  }
+
+  inline Float pdf_uniform_sphere() {
+    return INV_FOUR_PI;
+  }
+
+  inline Float pdf_uniform_cosine_hemisphere(Float theta) {
+    return std::cos(theta) * INV_PI;
+  }
+
+  inline Float pdf_uniform_cosine_hemisphere_cos(Float cos_theta) {
+    return cos_theta * INV_PI;
+  }
 }
 
 #endif /* MATH_PDF_HPP */

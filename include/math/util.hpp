@@ -32,9 +32,12 @@ namespace math {
   }
 
   extern const Float TWO_PI;
+  extern const Float FOUR_PI;
+  extern const Float INV_PI;
   extern const Float INV_TWO_PI;
-  extern const Float PI_OVER_2;
-  extern const Float PI_OVER_4;
+  extern const Float INV_FOUR_PI;
+  extern const Float PI_OVER_TWO;
+  extern const Float PI_OVER_FOUR;
 }
 
 #endif /* MATH_UTIL_HPP */

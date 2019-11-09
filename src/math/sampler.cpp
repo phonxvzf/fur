@@ -39,10 +39,10 @@ namespace math {
       Float theta, r;
       if (std::abs(u_offset.x) > std::abs(u_offset.y)) {
         r = u_offset.x;
-        theta = PI_OVER_4 * (u_offset.y / u_offset.x);
+        theta = PI_OVER_FOUR * (u_offset.y / u_offset.x);
       } else {
         r = u_offset.y;
-        theta = PI_OVER_2 - PI_OVER_4 * (u_offset.x / u_offset.y);
+        theta = PI_OVER_TWO - PI_OVER_FOUR * (u_offset.x / u_offset.y);
       }
       return r * point2f(std::cos(theta), std::sin(theta));
     }

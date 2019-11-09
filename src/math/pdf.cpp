@@ -50,7 +50,7 @@ namespace math {
     if (index < 0) return 0;
     return offset + dx * index;
   }
-      
+
   Float pdf1d::sample(Float u) const {
     return sample(u, from);
   }
