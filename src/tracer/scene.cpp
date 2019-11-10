@@ -7,14 +7,15 @@
 
 namespace tracer {
 
-  Float geom_ggx(const normal3f& normal, const vector3f& omega, Float k) {
+  Float geom_ggx(const normal3f& normal, const vector3f& omega, Float alpha2) {
     Float n_dot_omega = std::max(Float(0), normal.dot(omega));
-    return n_dot_omega / (k + n_dot_omega * (1 - k));
+    return 2 * n_dot_omega
+      / (n_dot_omega + std::sqrt(n_dot_omega * n_dot_omega * (1 - alpha2) + alpha2));
   }
 
   rgb_spectrum brdf(const vector3f& omega_in, const vector3f& omega_out, const normal3f& normal) {
-    const rgb_spectrum F(0.5);
-    const Float alpha = 0.2;
+    const rgb_spectrum F(0.77, 0.78, 0.78); // use iron for testing
+    const Float alpha = 0.2; // alpha = roughness2
     const vector3f half = (omega_in + omega_out).normalized();
 
     const Float n_dot_half = std::max(Float(0), normal.dot(half));
@@ -22,8 +23,8 @@ namespace tracer {
     Float denom = 1 + n_dot_half * n_dot_half * (alpha2 - 1);
     const Float ggx = alpha2 / (MATH_PI * denom * denom);
 
-    const Float k = (alpha + 1) * (alpha + 1) / 8;
-    const Float geom = geom_ggx(normal, omega_out, k) * geom_ggx(normal, omega_in, k);
+    // Smith
+    const Float geom = geom_ggx(normal, omega_out, alpha2) * geom_ggx(normal, omega_in, alpha2);
 
     const rgb_spectrum fresnel = F + (rgb_spectrum(1) - F)
       * std::pow(1 - std::max(Float(0), omega_out.dot(half)), 5);
@@ -98,10 +99,14 @@ namespace tracer {
                     const vector3f omega_in = shadow_r_dir.normalized();
                     const vector3f omega_out =
                       (params.eye_position - view_result.hit_point).normalized();
-                    const Float prob =
-                      pdf_uniform_cosine_hemisphere_cos(view_result.normal.dot(omega_in));
+                    const Float prob = emitter.parent->pdf(view_result.hit_point, emitter);
                     if (!COMPARE_EQ(prob, 0)) {
-                      rgb += brdf(omega_in, omega_out, view_result.normal)
+                      rgb += (
+                          view_result.object->surface.Kd * view_result.object->surface.surface_rgb
+                          * INV_PI
+                          + view_result.object->surface.Ks
+                          * brdf(omega_in, omega_out, view_result.normal)
+                          )
                         * emitter.color
                         * std::max(Float(0), omega_in.dot(view_result.normal))
                         / prob;
@@ -166,9 +171,8 @@ namespace tracer {
     // pre-sample lights
     random::rng rng(params.seed);
     for (const std::shared_ptr<light_source>& light : light_sources) {
-      // TODO: light spp in YAML
-      for (int i = 0; i < 1000; ++i) {
-        light_emitters.push_back(light->sample_light(rng.next_2uf()));
+      for (size_t i = 0; i < light->spp; ++i) {
+        light_emitters.push_back(light->sample(rng.next_2uf()));
       }
     }
 

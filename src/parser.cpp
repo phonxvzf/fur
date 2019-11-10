@@ -213,10 +213,15 @@ std::shared_ptr<tracer::light_source> parser::parse_light_source(const YAML::Nod
         if (ls_node["transform"].IsDefined()) {
           tf = parse_transform(ls_node["transform"]);
         }
+        size_t spp = 1;
+        if (ls_node["spp"].IsDefined()) {
+          spp = parse_int(ls_node, "spp");
+          if (spp < 1) throw parsing_error(ls_node.Mark().line, "`spp' must be larger than 0");
+        }
         if (ls_node["p_min"].IsDefined() && ls_node["p_max"].IsDefined()) {
           return std::shared_ptr<tracer::light_source>(
               new tracer::rect_light(
-                tf, rgb, parse_vector2f(ls_node, "p_min"), parse_vector2f(ls_node, "p_max")
+                tf, rgb, parse_vector2f(ls_node, "p_min"), parse_vector2f(ls_node, "p_max"), spp
                 )
               );
         } else {

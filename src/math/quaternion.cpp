@@ -64,7 +64,7 @@ namespace math {
     return matrix4f(
         { 1 - 2 * (y * y + z * z), 2 * (x * y + z * r), 2 * (x * z - y * r), 0 },
         { 2 * (x * y - z * r), 1 - 2 * (x * x + z * z), 2 * (y * z + x * r), 0 },
-        { 2 * (x * z + y * r), 2 * (y * z + x * r), 1 - 2 * (x * x + y * y), 0 },
+        { 2 * (x * z + y * r), 2 * (y * z - x * r), 1 - 2 * (x * x + y * y), 0 },
         { 0, 0, 0, 1 }
         );
   }
