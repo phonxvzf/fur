@@ -3,6 +3,7 @@
 #include "parser.hpp"
 #include "math/util.hpp"
 #include "tracer/point_light.hpp"
+#include "tracer/rect_light.hpp"
 #include "tracer/shapes/de_sphere.hpp"
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
@@ -202,6 +203,25 @@ std::shared_ptr<tracer::light_source> parser::parse_light_source(const YAML::Nod
           tf = parse_transform(ls_node["transform"]);
         }
         return std::shared_ptr<tracer::light_source>(new tracer::point_light(tf, rgb));
+      } else {
+        throw parsing_error(ls_node.Mark().line, "light source `color' must be specified");
+      }
+    } else if (type == "rect") {
+      if (ls_node["color"].IsDefined()) {
+        tracer::rgb_spectrum rgb = parse_rgb_spectrum(ls_node, "color");
+        math::tf::transform tf = math::tf::identity;
+        if (ls_node["transform"].IsDefined()) {
+          tf = parse_transform(ls_node["transform"]);
+        }
+        if (ls_node["p_min"].IsDefined() && ls_node["p_max"].IsDefined()) {
+          return std::shared_ptr<tracer::light_source>(
+              new tracer::rect_light(
+                tf, rgb, parse_vector2f(ls_node, "p_min"), parse_vector2f(ls_node, "p_max")
+                )
+              );
+        } else {
+          throw parsing_error(ls_node.Mark().line, "`p_min' and `p_max' must be specified");
+        }
       } else {
         throw parsing_error(ls_node.Mark().line, "light source `color' must be specified");
       }

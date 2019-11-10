@@ -34,9 +34,9 @@ namespace math {
         rng(const rng& cpy);
 
         uint32_t  next_ui();
-        vector2i  next_2ui();
+        point2i   next_2ui();
         Float     next_uf();
-        vector2f  next_2uf();
+        point2f   next_2uf();
     };
   }
 }

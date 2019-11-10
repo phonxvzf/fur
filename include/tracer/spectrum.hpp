@@ -14,7 +14,7 @@ namespace tracer {
       const size_t n_samples;
 
     public:
-      nspectrum(size_t N, Float v = 0) : n_samples(N) {
+      explicit nspectrum(size_t N, Float v = 0) : n_samples(N) {
         spd.resize(N, v);
       }
 
@@ -60,7 +60,7 @@ namespace tracer {
 
   class rgb_spectrum : public nspectrum {
     public:
-      rgb_spectrum(Float x = 0) : nspectrum(3, x) {}
+      explicit rgb_spectrum(Float x = 0) : nspectrum(3, x) {}
       rgb_spectrum(Float r, Float g, Float b) : nspectrum(3) {
         spd[0] = r;
         spd[1] = g;

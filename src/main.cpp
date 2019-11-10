@@ -43,7 +43,7 @@ void update_progress(Float progress) {
   const int finished = std::ceil(progress * bar_width);
   int offset = 0;
   if (progress < 1.0f) {
-    progress_string[offset++] = U_BRAILLE + std::rand() % 20;
+    progress_string[offset++] = U_BRAILLE + std::rand() % 64;
     progress_string[offset++] = L' ';
   }
   progress_string[offset++] = L'[';

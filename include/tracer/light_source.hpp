@@ -28,7 +28,7 @@ namespace tracer {
 
       light_source(const light_source& cpy) : tf_local_to_world(cpy.tf_local_to_world) {}
 
-      virtual std::vector<emitter> sample_lights() const = 0;
+      virtual emitter sample_light(const point2f& u) const = 0;
   };
 } /* namespace tracer */
 

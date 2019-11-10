@@ -16,7 +16,7 @@ namespace math {
       return rotate32(static_cast<uint32_t>(old_state >> 27), count);
     }
 
-    vector2i rng::next_2ui() {
+    point2i rng::next_2ui() {
       return vector2i(next_ui(), next_ui());
     }
 
@@ -24,7 +24,7 @@ namespace math {
       return normalize(static_cast<int>(next_ui()));
     }
 
-    vector2f rng::next_2uf() {
+    point2f rng::next_2uf() {
       return { next_uf(), next_uf() };
     }
     

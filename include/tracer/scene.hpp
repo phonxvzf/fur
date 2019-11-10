@@ -43,6 +43,7 @@ namespace tracer {
           ) const;
 
       std::shared_ptr<std::vector<rgb_spectrum>> ird_rgb = nullptr;
+      std::vector<light_source::emitter> light_emitters;
 
       std::mutex view_counter_mutex;
       std::mutex shadow_counter_mutex;
