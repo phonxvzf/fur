@@ -2,6 +2,7 @@
 #define MATH_SAMPLER_HPP
 
 #include "pdf.hpp"
+#include "random.hpp"
 #include "vector.hpp"
 
 namespace math {
@@ -21,6 +22,13 @@ namespace math {
     point3f sample_hemisphere(const point2f& u);
     point3f sample_cosine_hemisphere(const point2f& u);
     point3f sample_sphere(const point2f& u);
+
+    void sample_stratified_2d(
+        std::vector<point2f>& samples,
+        size_t n_samples,
+        const point2i& n_strata,
+        random::rng& rng
+        );
   }
 }
 

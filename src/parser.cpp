@@ -4,6 +4,7 @@
 #include "math/util.hpp"
 #include "tracer/point_light.hpp"
 #include "tracer/rect_light.hpp"
+#include "tracer/sphere_light.hpp"
 #include "tracer/shapes/de_sphere.hpp"
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
@@ -195,29 +196,20 @@ tracer::materials::phong parser::parse_material(const YAML::Node& mat_node) {
 std::shared_ptr<tracer::light_source> parser::parse_light_source(const YAML::Node& ls_node) {
   if (ls_node["type"].IsDefined()) {
     std::string type = parse_string(ls_node, "type");
-    if (type == "point") {
-      if (ls_node["color"].IsDefined()) {
-        tracer::rgb_spectrum rgb = parse_rgb_spectrum(ls_node, "color");
-        math::tf::transform tf = math::tf::identity;
-        if (ls_node["transform"].IsDefined()) {
-          tf = parse_transform(ls_node["transform"]);
-        }
-        return std::shared_ptr<tracer::light_source>(new tracer::point_light(tf, rgb));
-      } else {
-        throw parsing_error(ls_node.Mark().line, "light source `color' must be specified");
+    if (ls_node["color"].IsDefined()) {
+      tracer::rgb_spectrum rgb = parse_rgb_spectrum(ls_node, "color");
+      math::tf::transform tf = math::tf::identity;
+      if (ls_node["transform"].IsDefined()) {
+        tf = parse_transform(ls_node["transform"]);
       }
-    } else if (type == "rect") {
-      if (ls_node["color"].IsDefined()) {
-        tracer::rgb_spectrum rgb = parse_rgb_spectrum(ls_node, "color");
-        math::tf::transform tf = math::tf::identity;
-        if (ls_node["transform"].IsDefined()) {
-          tf = parse_transform(ls_node["transform"]);
-        }
-        size_t spp = 1;
-        if (ls_node["spp"].IsDefined()) {
-          spp = parse_int(ls_node, "spp");
-          if (spp < 1) throw parsing_error(ls_node.Mark().line, "`spp' must be larger than 0");
-        }
+      size_t spp = 1;
+      if (ls_node["spp"].IsDefined()) {
+        spp = parse_int(ls_node, "spp");
+        if (spp < 1) throw parsing_error(ls_node.Mark().line, "`spp' must be larger than 0");
+      }
+      if (type == "point") {
+        return std::shared_ptr<tracer::light_source>(new tracer::point_light(tf, rgb));
+      } else if (type == "rect") {
         if (ls_node["p_min"].IsDefined() && ls_node["p_max"].IsDefined()) {
           return std::shared_ptr<tracer::light_source>(
               new tracer::rect_light(
@@ -227,11 +219,19 @@ std::shared_ptr<tracer::light_source> parser::parse_light_source(const YAML::Nod
         } else {
           throw parsing_error(ls_node.Mark().line, "`p_min' and `p_max' must be specified");
         }
+      } else if (type == "sphere") {
+        if (ls_node["radius"].IsDefined()) {
+          return std::shared_ptr<tracer::light_source>(
+              new tracer::sphere_light(tf, rgb, parse_float(ls_node, "radius"), spp)
+              );
+        } else {
+          throw parsing_error(ls_node.Mark().line, "`radius' must be specified");
+        }
       } else {
-        throw parsing_error(ls_node.Mark().line, "light source `color' must be specified");
+        throw parsing_error(ls_node[type].Mark().line, "unknown light source type `" + type + "'");
       }
     } else {
-      throw parsing_error(ls_node[type].Mark().line, "unknown light source type `" + type + "'");
+      throw parsing_error(ls_node.Mark().line, "light source `color' must be specified");
     }
   }
 

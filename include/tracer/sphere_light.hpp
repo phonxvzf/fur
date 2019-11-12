@@ -1,29 +1,27 @@
-#ifndef LIGHT_SOURCE_HPP
-#define LIGHT_SOURCE_HPP
+#ifndef SPHERE_LIGHT_HPP
+#define SPHERE_LIGHT_HPP
 
 #include "light_source.hpp"
+#include "math/util.hpp"
 
 namespace tracer {
 
-  class rect_light : public light_source {
+  class sphere_light : public light_source {
     private:
       const rgb_spectrum color;
-      const point2f& p_min;
-      const point2f& p_max;
+      const Float radius;
       const Float inv_area;
 
     public:
-      rect_light(
+      sphere_light(
           const tf::transform& tf_local_to_world,
           const rgb_spectrum& color,
-          const point2f& p_min,
-          const point2f& p_max,
+          Float radius,
           size_t spp)
         : light_source(tf_local_to_world, spp),
         color(color),
-        p_min(p_min),
-        p_max(p_max),
-        inv_area(1 / ((p_max.x - p_min.x) * (p_max.y - p_min.y))) {}
+        radius(radius),
+        inv_area(1 / (FOUR_PI * radius * radius)) {}
 
       emitter sample(const point2f& u) const override;
       Float pdf() const override;
@@ -31,4 +29,4 @@ namespace tracer {
 
 }
 
-#endif /* LIGHT_SOURCE_HPP */
+#endif /* SPHERE_LIGHT_HPP */

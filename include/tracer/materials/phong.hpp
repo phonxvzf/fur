@@ -8,14 +8,11 @@ namespace tracer {
   namespace materials {
     class phong : public material {
       public:
-        rgb_spectrum surface_rgb = rgb_spectrum(1.0f);
-        Float Kd = 0.5f;
-        Float Ks = 0.8f;
-        Float Es = 32;
+        Float Es;
 
-        phong() {}
+        phong() : material(), Es(32) {}
         phong(const rgb_spectrum& rgb, Float Kd, Float Ks, Float Es)
-          : surface_rgb(rgb), Kd(Kd), Ks(Ks), Es(Es) {}
+          : material(rgb, Kd, Ks), Es(Es) {}
     };
   }
 }

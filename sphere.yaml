@@ -1,0 +1,117 @@
+render:
+  resolution: 1000x1000
+  shadow_bias: 5e-4
+  spp: 8
+  tile_size: "8 8"
+  seed: 987654321
+
+intersect:
+  hit_epsilon: 1e-4
+  normal_delta: 1e-4
+  max_iters: 500
+
+scene:
+  camera:
+    type: perspective
+    position: "10 10 0"
+    lookat: "0 0 0"
+    up: "0 1 0"
+    near: 0.1
+    far: 1000
+    fov: 75
+  objects:
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "-1 0.5 0"
+      material:
+        phong:
+          color: "1 1 1"
+          Kd: 0.0
+          Ks: 1.0
+          Es: 16
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "0 0.5 1"
+      material:
+        phong:
+          color: "1.0 1.0 1.0"
+          Kd: 0.0
+          Ks: 1.0
+          Es: 16
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "-2 0.5 -1"
+      material:
+        phong:
+          color: "1.0 1.0 1.0"
+          Kd: 0.0
+          Ks: 1.0
+          Es: 16
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "2 0.5 -1"
+      material:
+        phong:
+          color: "1.0 1.0 1.0"
+          Kd: 0.0
+          Ks: 1.0
+          Es: 16
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "1 0.5 0"
+      material:
+        phong:
+          color: "1.0 1.0 1.0"
+          Kd: 0.0
+          Ks: 1.0
+          Es: 16
+    - shape: "de_quad"
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      transform:
+        - rotate:
+            axis: "1 0 0"
+            angle: 180
+      material:
+        phong:
+          color: "1 0 0"
+          Kd: 0.2
+          Ks: 0.8
+          Es: 32
+    - shape: "de_quad"
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      transform:
+        - rotate:
+            axis: "1 0 0"
+            angle: 180
+        - rotate:
+            axis: "0 0 1"
+            angle: "-90"
+        - translate: "-5 5 0"
+      material:
+        phong:
+          color: "1 0 0"
+          Kd: 0.2
+          Ks: 0.8
+          Es: 32
+  lights:
+    - type: "rect"
+      color: "1.0 1.0 1.0"
+      p_min: "-2.5 -2.5"
+      p_max: "2.5 2.5"
+      spp: 2000
+      transform:
+        - rotate:
+            axis: "1 0 0"
+            angle: "45"
+        - translate: "0 2.5 -2.5"

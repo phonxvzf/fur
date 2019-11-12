@@ -4,6 +4,7 @@
 #include "math/random.hpp"
 #include "math/util.hpp"
 #include "math/pdf.hpp"
+#include "math/sampler.hpp"
 
 namespace tracer {
 
@@ -13,9 +14,14 @@ namespace tracer {
       / (n_dot_omega + std::sqrt(n_dot_omega * n_dot_omega * (1 - alpha2) + alpha2));
   }
 
-  rgb_spectrum brdf(const vector3f& omega_in, const vector3f& omega_out, const normal3f& normal) {
-    const rgb_spectrum F(0.77, 0.78, 0.78); // use iron for testing
-    const Float alpha = 0.2; // alpha = roughness2
+  rgb_spectrum brdf(
+      const vector3f& omega_in,
+      const vector3f& omega_out,
+      const normal3f& normal)
+  {
+    const rgb_spectrum F(0.95, 0.93, 0.88); // use silver for testing
+    //const rgb_spectrum F(1.00, 0.71, 0.29); // use gold for testing
+    const Float alpha = 0.09; // alpha = roughness2
     const vector3f half = (omega_in + omega_out).normalized();
 
     const Float n_dot_half = std::max(Float(0), normal.dot(half));
@@ -23,14 +29,17 @@ namespace tracer {
     Float denom = 1 + n_dot_half * n_dot_half * (alpha2 - 1);
     const Float ggx = alpha2 / (MATH_PI * denom * denom);
 
-    // Smith
-    const Float geom = geom_ggx(normal, omega_out, alpha2) * geom_ggx(normal, omega_in, alpha2);
+    // bi-directional geometry term
+    const Float geom = 1 /
+      (1 + geom_ggx(normal, omega_out, alpha2) + geom_ggx(normal, omega_in, alpha2));
 
     const rgb_spectrum fresnel = F + (rgb_spectrum(1) - F)
-      * std::pow(1 - std::max(Float(0), omega_out.dot(half)), 5);
+      * std::pow(1 - std::max(Float(0), omega_in.dot(half)), 5);
 
-    denom = 4 * normal.dot(omega_out) * normal.dot(omega_in);
+    denom = std::max(Float(0), 4 * normal.dot(omega_out) * normal.dot(omega_in));
     if (COMPARE_EQ(denom, 0)) return rgb_spectrum(0);
+
+    // Torrance-Sparrow
     return ggx * fresnel * geom / denom;
   }
 
@@ -101,17 +110,18 @@ namespace tracer {
                       (params.eye_position - view_result.hit_point).normalized();
                     const Float prob = emitter.parent->pdf(view_result.hit_point, emitter);
                     if (!COMPARE_EQ(prob, 0)) {
+                      rgb_spectrum f = brdf(omega_in, omega_out, view_result.normal);
                       rgb += (
                           view_result.object->surface.Kd * view_result.object->surface.surface_rgb
                           * INV_PI
                           + view_result.object->surface.Ks
-                          * brdf(omega_in, omega_out, view_result.normal)
+                          * f
                           )
                         * emitter.color
                         * std::max(Float(0), omega_in.dot(view_result.normal))
                         / prob;
+                      ++n_emitters_seen;
                     }
-                    ++n_emitters_seen;
                   } else {
                     std::lock_guard<std::mutex> lock(shadow_counter_mutex);
                     ++shadow_counter;
@@ -170,9 +180,20 @@ namespace tracer {
 
     // pre-sample lights
     random::rng rng(params.seed);
+    size_t n_samples = 0;
     for (const std::shared_ptr<light_source>& light : light_sources) {
+      n_samples += light->spp;
+    }
+
+    ASSERT(n_samples > 0);
+    const point2i n_strata(44, 44);
+    std::vector<point2f> stratifed_samples(std::max(size_t(n_strata.x * n_strata.y), n_samples));
+    sampler::sample_stratified_2d(stratifed_samples, stratifed_samples.size(), n_strata, rng);
+    for (const std::shared_ptr<light_source>& light : light_sources) {
+      int sample_i = 0;
       for (size_t i = 0; i < light->spp; ++i) {
-        light_emitters.push_back(light->sample(rng.next_2uf()));
+        light_emitters.push_back(light->sample(stratifed_samples[sample_i]));
+        sample_i = (sample_i + 1) % stratifed_samples.size();
       }
     }
 
