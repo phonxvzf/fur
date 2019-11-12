@@ -8,8 +8,8 @@ namespace tracer {
   class rect_light : public light_source {
     private:
       const rgb_spectrum color;
-      const point2f& p_min;
-      const point2f& p_max;
+      const point2f p_min;
+      const point2f p_max;
       const Float inv_area;
 
     public:
