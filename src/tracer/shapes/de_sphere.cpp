@@ -14,7 +14,7 @@ namespace tracer {
         const normal3f& default_normal
         ) const
     {
-      return p;
+      return normal3f(p.normalized());
     }
 
     Float de_sphere::distance_function(const point3f& p) const {

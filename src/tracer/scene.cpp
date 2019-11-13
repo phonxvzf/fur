@@ -54,7 +54,7 @@ namespace tracer {
     for (const std::shared_ptr<shape>& object : shapes) {
       shape::intersect_result result;
       if (object->intersect(r, options, &result)) {
-        if (result.t_hit < t_min) {
+        if (result.t_hit > 0 && result.t_hit < t_min) {
           t_min = result.t_hit;
           result_seen = result;
         }
@@ -108,6 +108,7 @@ namespace tracer {
                     const vector3f omega_in = shadow_r_dir.normalized();
                     const vector3f omega_out =
                       (params.eye_position - view_result.hit_point).normalized();
+                    const Float dot = std::max(Float(0), omega_in.dot(view_result.normal));
                     const Float prob = emitter.parent->pdf(view_result.hit_point, emitter);
                     if (!COMPARE_EQ(prob, 0)) {
                       rgb_spectrum f = brdf(omega_in, omega_out, view_result.normal);
@@ -118,7 +119,7 @@ namespace tracer {
                           * f
                           )
                         * emitter.color
-                        * std::max(Float(0), omega_in.dot(view_result.normal))
+                        * dot
                         / prob;
                       ++n_emitters_seen;
                     }
@@ -186,7 +187,7 @@ namespace tracer {
     }
 
     ASSERT(n_samples > 0);
-    const point2i n_strata(44, 44);
+    const point2i n_strata(30, 30);
     std::vector<point2f> stratifed_samples(std::max(size_t(n_strata.x * n_strata.y), n_samples));
     sampler::sample_stratified_2d(stratifed_samples, stratifed_samples.size(), n_strata, rng);
     for (const std::shared_ptr<light_source>& light : light_sources) {

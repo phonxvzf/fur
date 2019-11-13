@@ -11,7 +11,7 @@ namespace tracer {
         const point3f& d
         )
       : destimator(shape_to_world), a(a), b(b), c(c), d(d),
-      ba(b-a), cb(c-b), dc(d-c), ad(a-d), normal(ba.cross(ad)) {}
+      ba(b-a), cb(c-b), dc(d-c), ad(a-d), normal(ba.cross(ad).normalized()) {}
         
     normal3f de_quad::calculate_normal(
             const point3f& p,
