@@ -88,7 +88,6 @@ namespace tracer {
                 // viewing ray hits surface
                 // cast shadow rays
                 shape::intersect_result shadow_result;
-                int n_emitters_seen = 0;
                 for (const light_source::emitter& emitter : light_emitters) {
                   const point3f shadow_r_origin(
                       view_result.hit_point + params.shadow_bias * view_result.normal
@@ -121,14 +120,15 @@ namespace tracer {
                         * emitter.color
                         * dot
                         / prob;
-                      ++n_emitters_seen;
                     }
                   } else {
                     std::lock_guard<std::mutex> lock(shadow_counter_mutex);
                     ++shadow_counter;
                   }
                 } /* for emitter */
-                if (n_emitters_seen > 0) rgb = rgb / n_emitters_seen;
+                if (!light_emitters.empty()) {
+                  rgb = rgb / light_emitters.size();
+                }
               } /* if show_depth */
               {
                 std::lock_guard<std::mutex> lock(view_counter_mutex);
@@ -187,7 +187,7 @@ namespace tracer {
     }
 
     ASSERT(n_samples > 0);
-    const point2i n_strata(30, 30);
+    const point2i n_strata(44, 44);
     std::vector<point2f> stratifed_samples(std::max(size_t(n_strata.x * n_strata.y), n_samples));
     sampler::sample_stratified_2d(stratifed_samples, stratifed_samples.size(), n_strata, rng);
     for (const std::shared_ptr<light_source>& light : light_sources) {
