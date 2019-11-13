@@ -56,21 +56,21 @@ namespace math {
       Float z = u.x;
       Float r = std::sqrt(1 - z * z);
       Float two_pi_u = 2 * MATH_PI * u.y;
-      return { std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z };
+      return right_to_left({ std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z });
     }
 
     point3f sample_cosine_hemisphere(const point2f& u) {
       point2f proj = sample_disk(u);
-      return { proj.x, proj.y, std::sqrt(std::max(Float(0), 1 - dot2(proj))) };
+      return right_to_left({ proj.x, proj.y, std::sqrt(std::max(Float(0), 1 - dot2(proj))) });
     }
 
     point3f sample_sphere(const point2f& u) {
       Float z = 1 - 2 * u.x;
       Float r = 2 * std::sqrt(u.x * (1 - u.x));
       Float two_pi_u = 2 * MATH_PI * u.y;
-      return { std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z };
+      return right_to_left({ std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z });
     }
-    
+
     void sample_stratified_2d(
         std::vector<point2f>& samples,
         size_t n_samples,

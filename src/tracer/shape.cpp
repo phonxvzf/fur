@@ -30,8 +30,7 @@ namespace tracer {
     const Float df_by_dy = (distance_function(p + vy) - distance_function(p - vy)) * inv_td;
     const Float df_by_dz = (distance_function(p + vz) - distance_function(p - vz)) * inv_td;
     normal3f normal(df_by_dx, df_by_dy, df_by_dz);
-    normal = normal.normalized();
-    return normal.is_zero() ? default_normal : normal;
+    return normal.is_zero() ? default_normal : normal3f(normal.normalized());
   }
 
   bool destimator::intersect(

@@ -14,14 +14,15 @@
 namespace tracer {
 
   struct render_params {
-    vector2i img_res = { 256, 256 };
-    size_t n_workers = 1;
-    size_t spp = 1;
-    vector2i tile_size = vector2i(64, 64);
-    uint64_t seed = 0;
-    Float shadow_bias = 5e-4;
-    point3f eye_position = point3f(0.0f);
-    bool show_depth = false;
+    vector2i  img_res       = { 256, 256 };
+    size_t    n_workers     = 1;
+    size_t    spp           = 1;
+    vector2i  tile_size     = vector2i(64, 64);
+    uint64_t  seed          = 0;
+    Float     shadow_bias   = 5e-4;
+    point3f   eye_position  = point3f(0.0f);
+    bool      show_depth    = false;
+
     shape::intersect_opts intersect_options = shape::intersect_opts();
   };
 
@@ -34,7 +35,7 @@ namespace tracer {
     private:
       void render_routine(
           const render_params& params,
-          void (*update_callback)(Float)
+          void (*update_callback)(Float, size_t)
           );
 
       shape::intersect_result intersect_shapes(
@@ -56,9 +57,10 @@ namespace tracer {
       size_t shadow_counter = 0;
       size_t pixel_counter  = 0;
 
-      static const uint32_t UPDATE_PERIOD = 200; // ms
+      static const uint32_t UPDATE_PERIOD = 1000; // ms
 
       std::chrono::system_clock::time_point last_update;
+      std::chrono::system_clock::time_point render_start;
 
     public:
       // TODO: store shapes in a scene graph
@@ -74,7 +76,7 @@ namespace tracer {
       std::shared_ptr<std::vector<rgb_spectrum>> render(
           const render_params& params,
           render_profile* profile = nullptr,
-          void (*update_callback)(Float) = nullptr
+          void (*update_callback)(Float, size_t) = nullptr
           );
       float render_progress() const;
       bool rendering() const;

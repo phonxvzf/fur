@@ -63,7 +63,7 @@ namespace tracer {
     return result_seen;
   }
 
-  void scene::render_routine(const render_params& params, void (*update_callback)(Float)) {
+  void scene::render_routine(const render_params& params, void (*update_callback)(Float, size_t)) {
     random::rng rng(params.seed);
     job j;
     while (master.get_job(&j)) {
@@ -159,7 +159,11 @@ namespace tracer {
               if ((duration_cast<milliseconds>(system_clock::now() - last_update).count()
                     >= UPDATE_PERIOD) || !rendering())
               {
-                update_callback(render_progress());
+                size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
+                size_t remaining = params.img_res.x * params.img_res.y - pixel_counter;
+                Float pps = elapsed > 0 ? pixel_counter / elapsed : 0;
+                size_t eta = pps ? remaining / pps : 0;
+                update_callback(render_progress(), eta);
                 last_update = system_clock::now();
               }
             }
@@ -172,7 +176,7 @@ namespace tracer {
   std::shared_ptr<std::vector<rgb_spectrum>> scene::render(
       const render_params& params,
       render_profile* profile,
-      void (*update_callback)(Float)
+      void (*update_callback)(Float, size_t)
       )
   {
     ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(params.img_res.x * params.img_res.y);
@@ -185,7 +189,7 @@ namespace tracer {
     }
 
     ASSERT(n_samples > 0);
-    const point2i n_strata(44, 44);
+    const point2i n_strata(45, 45);
     std::vector<point2f> stratifed_samples(std::max(size_t(n_strata.x * n_strata.y), n_samples));
     sampler::sample_stratified_2d(stratifed_samples, stratifed_samples.size(), n_strata, rng);
     for (const std::shared_ptr<light_source>& light : light_sources) {
@@ -200,6 +204,7 @@ namespace tracer {
     master.init(params.img_res, params.tile_size);
     
     last_update = std::chrono::system_clock::now();
+    render_start = std::chrono::system_clock::now();
 
     // render
     std::vector<std::thread> workers;

@@ -31,6 +31,20 @@ namespace math {
     return v.dot(v);
   }
 
+  inline vector3f left_to_right(const vector3f& v) {
+    return { -v.z, v.x, v.y };
+  }
+
+  inline vector3f right_to_left(const vector3f& v) {
+    return { v.y, v.z, -v.x };
+  }
+
+  inline void orthogonals(const vector3f& n, vector3f* u, vector3f* v) {
+    if (std::abs(n.x) > std::abs(n.y)) *u = vector3f(-n.z, 0, n.x).normalized();
+    else *u = vector3f(0, n.z, -n.y).normalized();
+    *v = n.cross(*u);
+  }
+
   extern const Float TWO_PI;
   extern const Float FOUR_PI;
   extern const Float INV_PI;
