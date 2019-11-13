@@ -21,7 +21,7 @@ namespace tracer {
   {
     const rgb_spectrum F(0.95, 0.93, 0.88); // use silver for testing
     //const rgb_spectrum F(1.00, 0.71, 0.29); // use gold for testing
-    const Float alpha = 0.09; // alpha = roughness2
+    const Float alpha = 0.08; // alpha = roughness2
     const vector3f half = (omega_in + omega_out).normalized();
 
     const Float n_dot_half = std::max(Float(0), normal.dot(half));
@@ -110,12 +110,10 @@ namespace tracer {
                     const Float dot = std::max(Float(0), omega_in.dot(view_result.normal));
                     const Float prob = emitter.parent->pdf(view_result.hit_point, emitter);
                     if (!COMPARE_EQ(prob, 0)) {
-                      rgb_spectrum f = brdf(omega_in, omega_out, view_result.normal);
                       rgb += (
                           view_result.object->surface.Kd * view_result.object->surface.surface_rgb
                           * INV_PI
-                          + view_result.object->surface.Ks
-                          * f
+                          + brdf(omega_in, omega_out, view_result.normal)
                           )
                         * emitter.color
                         * dot
