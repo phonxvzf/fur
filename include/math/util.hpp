@@ -51,6 +51,19 @@ namespace math {
     return { v.y, v.z, -v.x };
   }
 
+  inline vector3f change_bases(
+      const vector3f& v,
+      const vector3f& x,
+      const vector3f& y,
+      const vector3f& z)
+  {
+    return x * v.x + y * v.y + z * v.z;
+  }
+
+  inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
+    return 2 * maxdot(omega, normal) * normal - omega;
+  }
+
   inline void orthogonals(const vector3f& n, vector3f* u, vector3f* v) {
     if (std::abs(n.x) > std::abs(n.y)) *u = vector3f(-n.z, 0, n.x).normalized();
     else *u = vector3f(0, n.z, -n.y).normalized();

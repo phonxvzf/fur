@@ -1,9 +1,12 @@
 render:
-  resolution: 200x200
+  resolution: 100x100
   shadow_bias: 5e-4
   spp: 1
-  tile_size: "8 8"
+  sspp: 500
+  bounce: 2
+  tile_size: "2 2"
   seed: 987654321
+  min_rr: 0.5 # minimum probability to continue tracing path (0 means always trace)
 
 intersect:
   hit_epsilon: 1e-4
@@ -19,7 +22,7 @@ scene:
     near: 0.1
     far: 1000
     fov: 75
-  objects:
+  objects: # for light source, use material "light"
     - shape: "de_sphere"
       radius: 0.5
       transform:
@@ -27,6 +30,7 @@ scene:
       material:
         ggx:
           color: "0.8 0.8 0"
+          emittance: "0 0 0"
           Kd: 0.8
           roughness: 0.2
           fresnel: "0.9 0.8 0.8"
@@ -37,6 +41,7 @@ scene:
       material:
         ggx:
           color: "0 0.8 0"
+          emittance: "0 0 0"
           Kd: 0.8
           roughness: 0.2
           fresnel: "0.9 0.8 0.8"
@@ -47,6 +52,7 @@ scene:
       material:
         ggx:
           color: "0 0 0.8"
+          emittance: "0 0 0"
           Kd: 0.8
           roughness: 0.2
           fresnel: "0.9 0.8 0.8"
@@ -57,6 +63,7 @@ scene:
       material:
         ggx:
           color: "0 0.8 0.8"
+          emittance: "0 0 0"
           Kd: 0.8
           roughness: 0.2
           fresnel: "0.9 0.8 0.8"
@@ -67,6 +74,7 @@ scene:
       material:
         ggx:
           color: "0.8 0 0.8"
+          emittance: "0 0 0"
           Kd: 0.8
           roughness: 0.2
           fresnel: "0.9 0.8 0.8"
@@ -78,6 +86,7 @@ scene:
       material:
         ggx:
           color: "1 0 0"
+          emittance: "0 0 0"
           Kd: 0.2
           roughness: 0.5
           fresnel: "1 0 0"
@@ -93,18 +102,22 @@ scene:
         - translate: "-5 5 0"
       material:
         ggx:
+          emittance: "0 0 0"
           color: "1 0 0"
           Kd: 0.2
           roughness: 0.5
           fresnel: "1 0 0"
-  lights:
-    - type: "rect"
-      color: "3 3 3"
-      p_min: "-2.5 -2.5"
-      p_max: "2.5 2.5"
-      spp: 2000
+    - shape: "de_quad"
+      color: "0 0 0"
+      a: "-2.5 2.5 0"
+      b: "2.5 2.5 0"
+      c: "2.5 -2.5 0"
+      d: "-2.5 -2.5 0"
       transform:
         - rotate:
             axis: "1 0 0"
             angle: "45"
         - translate: "0 2.5 -2.5"
+      material:
+        light:
+          emittance: "3 3 3"

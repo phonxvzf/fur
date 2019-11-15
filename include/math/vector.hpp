@@ -16,37 +16,43 @@ namespace math {
   template <typename T> class point2 : public vector2<T> {
     public:
       point2(const vector2<T>& v) : vector2<T>(v) {}
-      point2(T x = 0, T y = 0) : vector2<T>(x, y) {}
+      point2(T x = 0) : vector2<T>(x) {}
+      point2(T x, T y) : vector2<T>(x, y) {}
   };
 
   template <typename T> class point3 : public vector3<T> {
     public:
       point3(const vector3<T>& v) : vector3<T>(v) {}
-      point3(T x = 0, T y = 0, T z = 0) : vector3<T>(x, y, z) {}
+      point3(T x = 0) : vector3<T>(x) {}
+      point3(T x, T y, T z) : vector3<T>(x, y, z) {}
   };
 
   template <typename T> class point4 : public vector4<T> {
     public:
       point4(const vector4<T>& v) : vector4<T>(v) {}
-      point4(T x = 0, T y = 0, T z = 0, T w = 0) : vector4<T>(x, y, z, w) {}
+      point4(T x = 0) : vector4<T>(x) {}
+      point4(T x, T y, T z, T w) : vector4<T>(x, y, z, w) {}
   };
 
   template <typename T> class normal2 : public vector2<T> {
     public:
       normal2(const vector2<T>& v) : vector2<T>(v) {}
-      normal2(T x = 0, T y = 0) : vector2<T>(x, y) {}
+      normal2(T x = 0) : vector2<T>(x) {}
+      normal2(T x, T y) : vector2<T>(x, y) {}
   };
 
   template <typename T> class normal3 : public vector3<T> {
     public:
       normal3(const vector3<T>& v) : vector3<T>(v) {}
-      normal3(T x = 0, T y = 0, T z = 0) : vector3<T>(x, y, z) {}
+      normal3(T x = 0) : vector3<T>(x) {}
+      normal3(T x, T y, T z) : vector3<T>(x, y, z) {}
   };
 
   template <typename T> class normal4 : public vector4<T> {
     public:
       normal4(const vector4<T>& v) : vector4<T>(v) {}
-      normal4(T x = 0, T y = 0, T z = 0, T w = 0) : vector4<T>(x, y, z, w) {}
+      normal4(T x = 0) : vector4<T>(x) {}
+      normal4(T x, T y, T z, T w) : vector4<T>(x, y, z, w) {}
   };
 
   typedef vector2<Float>  vector2f;

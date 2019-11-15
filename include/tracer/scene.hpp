@@ -6,6 +6,7 @@
 #include <mutex>
 #include <chrono>
 
+#include "math/random.hpp"
 #include "tracer/shape.hpp"
 #include "tracer/light_source.hpp"
 #include "tracer/camera.hpp"
@@ -22,12 +23,14 @@ namespace tracer {
     Float     shadow_bias   = 5e-4;
     point3f   eye_position  = point3f(0.0f);
     bool      show_depth    = false;
+    int       max_bounce    = 1;
+    size_t    sspp          = 1;
+    Float     min_rr        = 0.5;
 
     shape::intersect_opts intersect_options = shape::intersect_opts();
   };
 
   struct render_profile {
-    size_t view_counter;
     size_t time_elapsed;
   };
 
@@ -42,17 +45,20 @@ namespace tracer {
           const ray& r,
           const shape::intersect_opts& options
           ) const;
+  
+      rgb_spectrum trace_path(const render_params& params, const ray& r, int bounce) const;
 
       std::shared_ptr<std::vector<rgb_spectrum>> ird_rgb = nullptr;
       std::vector<light_source::emitter> light_emitters;
+      std::vector<point2f> stratified_samples;
 
-      std::mutex view_counter_mutex;
+      Float inv_sspp;
+
       std::mutex pixel_counter_mutex;
 
       job_master master;
 
       // profiling
-      size_t view_counter   = 0;
       size_t pixel_counter  = 0;
 
       static const uint32_t UPDATE_PERIOD = 1000; // ms

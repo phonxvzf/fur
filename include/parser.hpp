@@ -23,7 +23,6 @@ class parser {
         );
     math::tf::transform parse_transform(const YAML::Node& tf_node);
     std::shared_ptr<tracer::material> parse_material(const YAML::Node& mat_node);
-    std::shared_ptr<tracer::light_source> parse_light_source(const YAML::Node& ls_node);
     std::shared_ptr<tracer::shape> parse_shape(const YAML::Node& attr, const std::string& name);
     std::shared_ptr<tracer::camera::camera> parse_camera(
         const YAML::Node& cam_node, const math::vector2i& img_res, math::point3f* eye_position);

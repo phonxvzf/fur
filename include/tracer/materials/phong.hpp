@@ -10,12 +10,12 @@ namespace tracer {
       public:
         const Float Es;
 
-        phong(const rgb_spectrum& rgb, Float Kd, Float Ks, Float Es)
-          : material(REFLECT, rgb, Kd, Ks), Es(Es) {}
+        phong(const rgb_spectrum& rgb, const rgb_spectrum& emittance, Float Kd, Float Ks, Float Es)
+          : material(REFLECT, rgb, emittance, Kd, Ks), Es(Es) {}
       
-        rgb_spectrum bxdf(
+        rgb_spectrum weight(
           const vector3f& omega_in,
-          const vector3f& omega_out,
+          const vector3f& half,
           const normal3f& normal
           ) const override;
     };

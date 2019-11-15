@@ -5,6 +5,7 @@
 
 #include "math/transform.hpp"
 #include "tracer/spectrum.hpp"
+#include "tracer/shape.hpp"
 
 namespace tracer {
 

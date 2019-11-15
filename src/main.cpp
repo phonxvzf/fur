@@ -179,8 +179,8 @@ int main(int argc, char** argv) {
   render_profile profile;
 
   // render
-  std::wcout << L"* Rendering scene with " << main_scene->shapes.size() << L" shapes and "
-    << main_scene->light_sources.size() << " light sources..." << std::endl;
+  std::wcout << L"* Rendering scene with " << main_scene->shapes.size()
+    << L" shapes..." << std::endl;
 
   auto ird_rgb = main_scene->render(
       params, &profile, verbose ? &update_progress : nullptr
@@ -188,13 +188,15 @@ int main(int argc, char** argv) {
   auto ird_rgb_exr = std::unique_ptr<Imf::Rgba>(
       new Imf::Rgba[params.img_res.x * params.img_res.y]
       );
-  wchar_t elapsed_str[16];
-
-  format_duration(elapsed_str, profile.time_elapsed);
 
   std::wcout << std::endl;
-  std::wcout << "* " << profile.view_counter << " viewing rays hit" << std::endl;
-  std::wcout << "* Total time of " << elapsed_str + 4 << std::endl;
+  if (profile.time_elapsed > 0) {
+    wchar_t elapsed_str[16];
+    format_duration(elapsed_str, profile.time_elapsed);
+    std::wcout << "* Total time of " << elapsed_str + 4 << std::endl;
+  } else {
+    std::wcout << "* Total time of 0s" << std::endl;
+  }
 
   // write to file
   for (size_t i = 0; i < ird_rgb->size(); ++i) {

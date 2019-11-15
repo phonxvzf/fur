@@ -71,25 +71,25 @@ namespace math {
       return right_to_left({ std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z });
     }
 
-    void sample_stratified_2d(
-        std::vector<point2f>& samples,
+    std::vector<point2f> sample_stratified_2d(
         size_t n_samples,
         const point2i& n_strata,
         random::rng& rng)
     {
       ASSERT(n_strata.x > 0 && n_strata.y > 0);
-      size_t i = 0;
+      std::vector<point2f> samples;
       const point2f stratum_size(Float(1) / n_strata.x, Float(1) / n_strata.y);
-      while (i < n_samples) {
+      while (samples.size() < n_samples) {
         for (int x = 0; x < n_strata.x; ++x) {
           for (int y = 0; y < n_strata.y; ++y) {
             const point2f u = rng.next_2uf();
-            samples[i++] = point2f((x + u.x) * stratum_size.x, (y + u.y) * stratum_size.y)
-              .clamped(FLOAT_TOLERANT, ONE_MINUS_FLOAT_TOLERANT);
-            if (i >= n_samples) return;
+            samples.push_back(point2f((x + u.x) * stratum_size.x, (y + u.y) * stratum_size.y)
+              .clamped(FLOAT_TOLERANT, ONE_MINUS_FLOAT_TOLERANT));
+            if (samples.size() >= n_samples) return samples;
           }
         }
       }
+      return samples;
     }
 
   } /* namespace sampler */

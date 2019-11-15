@@ -16,17 +16,21 @@ namespace tracer {
 
         ggx(
             transport_type transport,
+            const rgb_spectrum& emittance,
             const rgb_spectrum& fresnel,
             const rgb_spectrum& diffuse,
             Float roughness,
             Float Kd = 0)
-          : material(transport, diffuse, Kd), alpha2(pow4(roughness)), fresnel(fresnel) {}
+          : material(transport, diffuse, emittance, Kd),
+          alpha2(pow4(roughness)),
+          fresnel(fresnel) {}
+
         ggx(const ggx& cpy)
-          : material(cpy.transport, cpy.surface_rgb, cpy.Kd), alpha2(cpy.alpha2) {}
+          : material(cpy.transport, cpy.surface_rgb, cpy.emittance, cpy.Kd), alpha2(cpy.alpha2) {}
       
-        rgb_spectrum bxdf(
+        rgb_spectrum weight(
             const vector3f& omega_in,
-            const vector3f& omega_out,
+            const vector3f& mf_normal,
             const normal3f& normal
             ) const override;
     };

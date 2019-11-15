@@ -1,4 +1,5 @@
 #include <thread>
+#include <stack>
 
 #include "tracer/scene.hpp"
 #include "math/random.hpp"
@@ -28,9 +29,50 @@ namespace tracer {
     return result_seen;
   }
 
+  rgb_spectrum scene::trace_path(const render_params& params, const ray& r, int bounce) const {
+    if (bounce > params.max_bounce) return rgb_spectrum(0);
+
+    shape::intersect_result result = intersect_shapes(r, params.intersect_options);
+    if (result.object == nullptr) return rgb_spectrum(0);
+    if (params.show_depth) return rgb_spectrum(result.t_hit);
+    if (result.object->surface->transport == material::EMIT)
+      return result.object->surface->emittance;
+
+    vector3f u, v;
+    orthogonals(result.normal, &u, &v);
+
+    rgb_spectrum spectrum(0);
+
+    random::rng rng(params.seed);
+    const vector3f omega_out(-r.dir.normalized());
+
+    for (const point2f& sample : stratified_samples) {
+      const vector3f mf_normal = change_bases(
+          sampler::sample_hemisphere(sample),
+          u,
+          result.normal,
+          v
+          ).normalized();
+      const vector3f ray_dir(reflect(omega_out, mf_normal).normalized());
+      const ray r_next(result.hit_point, ray_dir, r.t_max);
+      const Float rr_prob = std::max(params.min_rr, maxdot(r_next.dir, result.normal));
+
+      if (rng.next_uf() < rr_prob) {
+        // for microfacets models
+        spectrum += result.object->surface->weight(r_next.dir, mf_normal, result.normal)
+          * trace_path(params, r_next, bounce + 1) / rr_prob;
+      }
+    }
+
+    spectrum = spectrum * inv_sspp;
+
+    return result.object->surface->emittance + spectrum;
+  }
+
   void scene::render_routine(const render_params& params, void (*update_callback)(Float, size_t)) {
     random::rng rng(params.seed);
     job j;
+    const Float inv_spp = Float(1) / params.spp;
     while (master.get_job(&j)) {
       const vector2i start = j.start;
       const vector2i end = j.end;
@@ -41,100 +83,32 @@ namespace tracer {
           const int i = params.img_res.x * y + x;
 
           for (size_t n_samples = 0; n_samples < params.spp; ++n_samples) {
-
             rgb_spectrum rgb(0.0f);
             const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf());
+            rgb_pixel += trace_path(params, r, 0);
+          }
 
-            const shape::intersect_result view_result
-              = intersect_shapes(r, params.intersect_options);
-
-            if (view_result.object != nullptr) {
-              if (!params.show_depth) {
-                // viewing ray hits surface
-                // cast shadow rays
-                shape::intersect_result shadow_result;
-                for (const light_source::emitter& emitter : light_emitters) {
-                  const point3f shadow_r_origin(
-                      view_result.hit_point + params.shadow_bias * view_result.normal
-                      );
-                  const vector3f shadow_r_dir(emitter.position - shadow_r_origin);
-                  const ray shadow_r(
-                      shadow_r_origin,
-                      shadow_r_dir,
-                      shadow_r_dir.size()
-                      );
-                  const shape::intersect_result shadow_result = intersect_shapes(
-                      shadow_r,
-                      params.intersect_options
-                      );
-                  if (shadow_result.object == nullptr) {
-                    // shadow ray did not intersect any object
-                    const vector3f omega_in = shadow_r_dir.normalized();
-                    const vector3f omega_out =
-                      (params.eye_position - view_result.hit_point).normalized();
-                    const Float dot = std::max(Float(0), omega_in.dot(view_result.normal));
-                    const Float prob = emitter.parent->pdf(view_result.hit_point, emitter);
-                    if (!COMPARE_EQ(prob, 0)) {
-                      rgb += (
-                          // Lambert hack for non-dielectric material like plastic
-                          view_result.object->surface->Kd
-                          * view_result.object->surface->surface_rgb
-                          * INV_PI
-                          // GGX
-                          + view_result.object->surface->bxdf(
-                            omega_in,
-                            omega_out,
-                            view_result.normal
-                            )
-                          )
-                        * emitter.color
-                        * dot
-                        / prob;
-                    }
-                  }
-                } /* for emitter */
-                if (!light_emitters.empty()) {
-                  rgb = rgb / light_emitters.size();
-                }
-              } /* if show_depth */
-              {
-                std::lock_guard<std::mutex> lock(view_counter_mutex);
-                ++view_counter;
-              }
-            } /* if view_result */
-
-            if (params.show_depth) {
-              if (view_result.object == nullptr) {
-                ird_rgb->at(i) = rgb_spectrum(-1);
-              } else {
-                ird_rgb->at(i) = rgb_spectrum(view_result.t_hit);
-              }
-            }
-
-            rgb_pixel += rgb;
-          } /* for n_samples */
+          ird_rgb->at(i) = rgb_pixel;
 
           if (!params.show_depth) {
-            ird_rgb->at(i) = rgb_pixel / params.spp;
+            ird_rgb->at(i) = ird_rgb->at(i) * inv_spp;
           }
 
           // profile if requested
-          {
+          if (update_callback != nullptr) {
             std::lock_guard<std::mutex> lock(pixel_counter_mutex);
             ++pixel_counter;
 
-            if (update_callback != nullptr) {
-              using namespace std::chrono;
-              if ((duration_cast<milliseconds>(system_clock::now() - last_update).count()
-                    >= UPDATE_PERIOD) || !rendering())
-              {
-                size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
-                size_t remaining = params.img_res.x * params.img_res.y - pixel_counter;
-                Float pps = elapsed > 0 ? pixel_counter / elapsed : 0;
-                size_t eta = pps ? remaining / pps : 0;
-                update_callback(render_progress(), eta);
-                last_update = system_clock::now();
-              }
+            using namespace std::chrono;
+            if ((duration_cast<milliseconds>(system_clock::now() - last_update).count()
+                  >= UPDATE_PERIOD) || !rendering())
+            {
+              size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
+              size_t remaining = params.img_res.x * params.img_res.y - pixel_counter;
+              Float pps = elapsed > 0 ? pixel_counter / elapsed : 0;
+              size_t eta = pps ? remaining / pps : 0;
+              update_callback(render_progress(), eta);
+              last_update = system_clock::now();
             }
           }
         } /* for x */
@@ -150,24 +124,14 @@ namespace tracer {
   {
     ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(params.img_res.x * params.img_res.y);
 
-    // pre-sample lights
+    // pre-sample rays
     random::rng rng(params.seed);
-    size_t n_samples = 0;
-    for (const std::shared_ptr<light_source>& light : light_sources) {
-      n_samples += light->spp;
-    }
-
-    ASSERT(n_samples > 0);
-    const point2i n_strata(45, 45);
-    std::vector<point2f> stratifed_samples(std::max(size_t(n_strata.x * n_strata.y), n_samples));
-    sampler::sample_stratified_2d(stratifed_samples, stratifed_samples.size(), n_strata, rng);
-    for (const std::shared_ptr<light_source>& light : light_sources) {
-      int sample_i = 0;
-      for (size_t i = 0; i < light->spp; ++i) {
-        light_emitters.push_back(light->sample(stratifed_samples[sample_i]));
-        sample_i = (sample_i + 1) % stratifed_samples.size();
-      }
-    }
+    stratified_samples = sampler::sample_stratified_2d(
+        params.sspp,
+        point2i(std::max(1, static_cast<int>(std::sqrt(params.sspp)))),
+        rng
+        );
+    inv_sspp = Float(1) / params.sspp;
 
     // init thread scheduler
     master.init(params.img_res, params.tile_size);
@@ -191,7 +155,6 @@ namespace tracer {
 
     // render finished
     if (profile) {
-      profile->view_counter = view_counter;
       profile->time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(
           (std::chrono::system_clock::now() - render_start)
           ).count();

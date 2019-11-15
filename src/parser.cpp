@@ -179,80 +179,49 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
   if (mat_node["phong"].IsDefined()) {
     YAML::Node phong_node = mat_node["phong"];
     if (phong_node["Kd"].IsDefined() && phong_node["Ks"].IsDefined()
-        && phong_node["Es"].IsDefined() && phong_node["color"].IsDefined())
+        && phong_node["Es"].IsDefined() && phong_node["color"].IsDefined()
+        && phong_node["emittance"].IsDefined())
     {
       return std::shared_ptr<tracer::material>(new tracer::materials::phong(
           parse_rgb_spectrum(phong_node, "color"),
+          parse_rgb_spectrum(phong_node, "emittance"),
           parse_float(phong_node, "Kd"),
           parse_float(phong_node, "Ks"),
           parse_float(phong_node, "Es")
           ));
     } else {
-      throw parsing_error(phong_node.Mark().line, "specify color, Kd, Ks and Es");
+      throw parsing_error(phong_node.Mark().line, "specify color, emittance, Kd, Ks and Es");
     }
   } else if (mat_node["ggx"].IsDefined()) {
     YAML::Node ggx_node = mat_node["ggx"];
     if (ggx_node["roughness"].IsDefined() && ggx_node["color"].IsDefined()
-        && ggx_node["fresnel"].IsDefined() && ggx_node["Kd"].IsDefined())
+        && ggx_node["fresnel"].IsDefined() && ggx_node["Kd"].IsDefined()
+        && ggx_node["emittance"].IsDefined())
     {
       return std::shared_ptr<tracer::material>(new tracer::materials::ggx(
-            tracer::materials::ggx::REFLECT, // TODO
+            tracer::materials::ggx::REFLECT, // TODO: more transport type
+            parse_rgb_spectrum(ggx_node, "emittance"),
             parse_rgb_spectrum(ggx_node, "fresnel"),
             parse_rgb_spectrum(ggx_node, "color"),
             parse_float(ggx_node, "roughness"),
             parse_float(ggx_node, "Kd")
             ));
     } else {
-      throw parsing_error(ggx_node.Mark().line, "specify color, roughness, fresnel, and Kd");
+      throw parsing_error(
+          ggx_node.Mark().line,
+          "specify color, emittance, roughness, fresnel, and Kd"
+          );
+    }
+  } else if (mat_node["light"].IsDefined()) {
+    YAML::Node light_node = mat_node["light"];
+    if (light_node["emittance"].IsDefined()) {
+      return std::shared_ptr<tracer::material>(new tracer::materials::light(parse_rgb_spectrum(light_node, "emittance")));
+    } else {
+      throw parsing_error(light_node.Mark().line, "specify emittance");
     }
   }
 
   throw parsing_error(mat_node.Mark().line, "only phong model is available right now");
-}
-
-std::shared_ptr<tracer::light_source> parser::parse_light_source(const YAML::Node& ls_node) {
-  if (ls_node["type"].IsDefined()) {
-    std::string type = parse_string(ls_node, "type");
-    if (ls_node["color"].IsDefined()) {
-      tracer::rgb_spectrum rgb = parse_rgb_spectrum(ls_node, "color");
-      math::tf::transform tf = math::tf::identity;
-      if (ls_node["transform"].IsDefined()) {
-        tf = parse_transform(ls_node["transform"]);
-      }
-      size_t spp = 1;
-      if (ls_node["spp"].IsDefined()) {
-        spp = parse_int(ls_node, "spp");
-        if (spp < 1) throw parsing_error(ls_node.Mark().line, "`spp' must be larger than 0");
-      }
-      if (type == "point") {
-        return std::shared_ptr<tracer::light_source>(new tracer::point_light(tf, rgb));
-      } else if (type == "rect") {
-        if (ls_node["p_min"].IsDefined() && ls_node["p_max"].IsDefined()) {
-          return std::shared_ptr<tracer::light_source>(
-              new tracer::rect_light(
-                tf, rgb, parse_vector2f(ls_node, "p_min"), parse_vector2f(ls_node, "p_max"), spp
-                )
-              );
-        } else {
-          throw parsing_error(ls_node.Mark().line, "`p_min' and `p_max' must be specified");
-        }
-      } else if (type == "sphere") {
-        if (ls_node["radius"].IsDefined()) {
-          return std::shared_ptr<tracer::light_source>(
-              new tracer::sphere_light(tf, rgb, parse_float(ls_node, "radius"), spp)
-              );
-        } else {
-          throw parsing_error(ls_node.Mark().line, "`radius' must be specified");
-        }
-      } else {
-        throw parsing_error(ls_node[type].Mark().line, "unknown light source type `" + type + "'");
-      }
-    } else {
-      throw parsing_error(ls_node.Mark().line, "light source `color' must be specified");
-    }
-  }
-
-  throw parsing_error(ls_node.Mark().line, "light source `type' must be specified");
 }
 
 std::shared_ptr<tracer::shape> parser::parse_shape(
@@ -367,11 +336,20 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     if (render_config["spp"].IsDefined()) {
       params->spp = parse_int(render_config, "spp");
     }
+    if (render_config["sspp"].IsDefined()) {
+      params->sspp = parse_int(render_config, "sspp");
+    }
     if (render_config["seed"].IsDefined()) {
       params->seed = parse_int(render_config, "seed");
     }
     if (render_config["tile_size"].IsDefined()) {
       params->tile_size = parse_vector2i(render_config, "tile_size");
+    }
+    if (render_config["bounce"].IsDefined()) {
+      params->max_bounce = parse_int(render_config, "bounce");
+    }
+    if (render_config["min_rr"].IsDefined()) {
+      params->min_rr = parse_float(render_config, "min_rr");
     }
   }
 
@@ -419,19 +397,6 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       } else {
         throw parsing_error(object_node.Mark().line, "`objects' must be a sequence");
       }
-    }
-
-    if (scene_config["lights"].IsDefined()) {
-      YAML::Node light_node = scene_config["lights"];
-      if (light_node.IsSequence()) {
-        for (size_t i = 0; i < light_node.size(); ++i) {
-          empty_scene->light_sources.push_back(parse_light_source(light_node[i]));
-        }
-      } else {
-        throw parsing_error(light_node.Mark().line, "`lights' must be a sequence");
-      }
-    } else {
-      throw parsing_error(scene_config.Mark().line, "specify light source `lights'");
     }
   } else {
     throw parsing_error(root.Mark().line, "no `scene' defined");
