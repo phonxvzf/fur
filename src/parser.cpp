@@ -9,6 +9,8 @@
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
 #include "tracer/shapes/de_quad.hpp"
+#include "tracer/materials/phong.hpp"
+#include "tracer/materials/ggx.hpp"
 
 parser::parser() {}
 
@@ -173,20 +175,35 @@ math::tf::transform parser::parse_transform(const YAML::Node& tf_node) {
   throw parsing_error(tf_node.Mark().line, "`transform' must be a sequence");
 }
 
-tracer::materials::phong parser::parse_material(const YAML::Node& mat_node) {
+std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_node) {
   if (mat_node["phong"].IsDefined()) {
     YAML::Node phong_node = mat_node["phong"];
     if (phong_node["Kd"].IsDefined() && phong_node["Ks"].IsDefined()
         && phong_node["Es"].IsDefined() && phong_node["color"].IsDefined())
     {
-      return tracer::materials::phong(
+      return std::shared_ptr<tracer::material>(new tracer::materials::phong(
           parse_rgb_spectrum(phong_node, "color"),
           parse_float(phong_node, "Kd"),
           parse_float(phong_node, "Ks"),
           parse_float(phong_node, "Es")
-          );
+          ));
     } else {
       throw parsing_error(phong_node.Mark().line, "specify color, Kd, Ks and Es");
+    }
+  } else if (mat_node["ggx"].IsDefined()) {
+    YAML::Node ggx_node = mat_node["ggx"];
+    if (ggx_node["roughness"].IsDefined() && ggx_node["color"].IsDefined()
+        && ggx_node["fresnel"].IsDefined() && ggx_node["Kd"].IsDefined())
+    {
+      return std::shared_ptr<tracer::material>(new tracer::materials::ggx(
+            tracer::materials::ggx::REFLECT, // TODO
+            parse_rgb_spectrum(ggx_node, "fresnel"),
+            parse_rgb_spectrum(ggx_node, "color"),
+            parse_float(ggx_node, "roughness"),
+            parse_float(ggx_node, "Kd")
+            ));
+    } else {
+      throw parsing_error(ggx_node.Mark().line, "specify color, roughness, fresnel, and Kd");
     }
   }
 
@@ -243,33 +260,31 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
     const std::string& name)
 {
   math::tf::transform tf = parse_transform(attr["transform"]);
-  tracer::materials::phong phong = parse_material(attr["material"]);
+  std::shared_ptr<tracer::material> surface = parse_material(attr["material"]);
 
   if (name == "de_sphere") {
-    tracer::shape* shape = new tracer::shapes::de_sphere(tf, parse_float(attr, "radius"));
-    shape->surface = phong;
+    tracer::shape* shape = new tracer::shapes::de_sphere(tf, surface, parse_float(attr, "radius"));
     return std::shared_ptr<tracer::shape>(shape);
   } else if (name == "de_inf_spheres") {
     tracer::shape* shape = new tracer::shapes::de_inf_spheres(
         tf,
+        surface,
         parse_float(attr, "radius"),
         parse_float(attr, "cell")
         );
-    shape->surface = phong;
     return std::shared_ptr<tracer::shape>(shape);
   } else if (name == "de_mandelbulb") {
-    tracer::shape* shape = new tracer::shapes::de_mandelbulb(tf);
-    shape->surface = phong;
+    tracer::shape* shape = new tracer::shapes::de_mandelbulb(tf, surface);
     return std::shared_ptr<tracer::shape>(shape);
   } else if (name == "de_quad") {
     tracer::shape* shape = new tracer::shapes::de_quad(
         tf,
+        surface,
         parse_vector3f(attr, "a"),
         parse_vector3f(attr, "b"),
         parse_vector3f(attr, "c"),
         parse_vector3f(attr, "d")
         );
-    shape->surface = phong;
     return std::shared_ptr<tracer::shape>(shape);
   }
 

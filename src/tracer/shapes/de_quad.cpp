@@ -5,12 +5,13 @@ namespace tracer {
   namespace shapes {
     de_quad::de_quad(
         const tf::transform& shape_to_world,
+        const std::shared_ptr<material>& surface,
         const point3f& a,
         const point3f& b,
         const point3f& c,
         const point3f& d
         )
-      : destimator(shape_to_world), a(a), b(b), c(c), d(d),
+      : destimator(shape_to_world, surface), a(a), b(b), c(c), d(d),
       ba(b-a), cb(c-b), dc(d-c), ad(a-d), normal(ba.cross(ad).normalized()) {}
         
     normal3f de_quad::calculate_normal(
@@ -19,7 +20,7 @@ namespace tracer {
             const normal3f& default_normal
             ) const
     {
-      return normal.is_zero() ? default_normal : normal;
+      return normal.is_zero() ? default_normal : normal3f(-normal);
     }
 
     Float de_quad::distance_function(const point3f& p) const {

@@ -3,17 +3,27 @@
 
 namespace tracer {
 
-  shape::shape(const tf::transform& shape_to_world)
-    : tf_shape_to_world(shape_to_world), tf_world_to_shape(shape_to_world.inverse()) {}
+  shape::shape(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface)
+    : tf_shape_to_world(shape_to_world),
+    tf_world_to_shape(shape_to_world.inverse()),
+    surface(surface) {}
+
   shape::shape(const shape& cpy)
-    : tf_shape_to_world(cpy.tf_shape_to_world), tf_world_to_shape(cpy.tf_world_to_shape) {}
+    : tf_shape_to_world(cpy.tf_shape_to_world),
+    tf_world_to_shape(cpy.tf_world_to_shape),
+    surface(cpy.surface) {}
       
-  bool shape::intersect(const ray& r, const intersect_opts& options, intersect_result* result) const
+  bool shape::intersect(
+      const ray& r,
+      const intersect_opts& options,
+      intersect_result* result) const
   {
     return false;
   }
 
-  destimator::destimator(const tf::transform& shape_to_world) : shape(shape_to_world) {}
+  destimator::destimator(
+      const tf::transform& shape_to_world,
+      const std::shared_ptr<material>& surface) : shape(shape_to_world, surface) {}
 
   normal3f destimator::calculate_normal(
           const point3f& p,

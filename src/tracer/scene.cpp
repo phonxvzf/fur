@@ -8,41 +8,6 @@
 
 namespace tracer {
 
-  Float geom_ggx(const normal3f& normal, const vector3f& omega, Float alpha2) {
-    Float n_dot_omega = std::max(Float(0), normal.dot(omega));
-    return 2 * n_dot_omega
-      / (n_dot_omega + std::sqrt(n_dot_omega * n_dot_omega * (1 - alpha2) + alpha2));
-  }
-
-  rgb_spectrum brdf(
-      const vector3f& omega_in,
-      const vector3f& omega_out,
-      const normal3f& normal)
-  {
-    const rgb_spectrum F(0.95, 0.93, 0.88); // use silver for testing
-    //const rgb_spectrum F(1.00, 0.71, 0.29); // use gold for testing
-    const Float alpha = 0.08; // alpha = roughness2
-    const vector3f half = (omega_in + omega_out).normalized();
-
-    const Float n_dot_half = std::max(Float(0), normal.dot(half));
-    const Float alpha2 = alpha * alpha;
-    Float denom = 1 + n_dot_half * n_dot_half * (alpha2 - 1);
-    const Float ggx = alpha2 / (MATH_PI * denom * denom);
-
-    // bi-directional geometry term
-    const Float geom = 1 /
-      (1 + geom_ggx(normal, omega_out, alpha2) + geom_ggx(normal, omega_in, alpha2));
-
-    const rgb_spectrum fresnel = F + (rgb_spectrum(1) - F)
-      * std::pow(1 - std::max(Float(0), omega_in.dot(half)), 5);
-
-    denom = std::max(Float(0), 4 * normal.dot(omega_out) * normal.dot(omega_in));
-    if (COMPARE_EQ(denom, 0)) return rgb_spectrum(0);
-
-    // Torrance-Sparrow
-    return ggx * fresnel * geom / denom;
-  }
-
   shape::intersect_result scene::intersect_shapes(
       const ray& r,
       const shape::intersect_opts& options
@@ -111,17 +76,21 @@ namespace tracer {
                     const Float prob = emitter.parent->pdf(view_result.hit_point, emitter);
                     if (!COMPARE_EQ(prob, 0)) {
                       rgb += (
-                          view_result.object->surface.Kd * view_result.object->surface.surface_rgb
+                          // Lambert hack for non-dielectric material like plastic
+                          view_result.object->surface->Kd
+                          * view_result.object->surface->surface_rgb
                           * INV_PI
-                          + brdf(omega_in, omega_out, view_result.normal)
+                          // GGX
+                          + view_result.object->surface->bxdf(
+                            omega_in,
+                            omega_out,
+                            view_result.normal
+                            )
                           )
                         * emitter.color
                         * dot
                         / prob;
                     }
-                  } else {
-                    std::lock_guard<std::mutex> lock(shadow_counter_mutex);
-                    ++shadow_counter;
                   }
                 } /* for emitter */
                 if (!light_emitters.empty()) {
@@ -220,9 +189,12 @@ namespace tracer {
       worker.join();
     }
 
+    // render finished
     if (profile) {
-      profile->view_counter   = view_counter;
-      profile->shadow_counter = shadow_counter;
+      profile->view_counter = view_counter;
+      profile->time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+          (std::chrono::system_clock::now() - render_start)
+          ).count();
     }
 
     return ird_rgb;

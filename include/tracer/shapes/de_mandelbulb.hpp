@@ -10,7 +10,9 @@ namespace tracer {
         Float distance_function(const point3f& p) const override;
 
       public:
-        de_mandelbulb(const tf::transform& shape_to_world);
+        de_mandelbulb(
+            const tf::transform& shape_to_world,
+            const std::shared_ptr<material>& surface);
         de_mandelbulb(const de_mandelbulb& cpy);
     };
   }

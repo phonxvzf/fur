@@ -2,11 +2,13 @@
 
 namespace tracer {
   namespace shapes {
-    de_mandelbulb::de_mandelbulb(const tf::transform& shape_to_world)
-      : destimator(shape_to_world) {}
+    de_mandelbulb::de_mandelbulb(
+        const tf::transform& shape_to_world,
+        const std::shared_ptr<material>& surface)
+      : destimator(shape_to_world, surface) {}
 
     de_mandelbulb::de_mandelbulb(const de_mandelbulb& cpy)
-      : destimator(cpy.tf_shape_to_world) {}
+      : destimator(cpy.tf_shape_to_world, cpy.surface) {}
 
     Float de_mandelbulb::distance_function(const point3f& pt) const {
       // code taken from the Stanford's cs348b course

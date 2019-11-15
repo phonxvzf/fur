@@ -28,7 +28,7 @@ namespace tracer {
 
   struct render_profile {
     size_t view_counter;
-    size_t shadow_counter;
+    size_t time_elapsed;
   };
 
   class scene {
@@ -47,14 +47,12 @@ namespace tracer {
       std::vector<light_source::emitter> light_emitters;
 
       std::mutex view_counter_mutex;
-      std::mutex shadow_counter_mutex;
       std::mutex pixel_counter_mutex;
 
       job_master master;
 
       // profiling
       size_t view_counter   = 0;
-      size_t shadow_counter = 0;
       size_t pixel_counter  = 0;
 
       static const uint32_t UPDATE_PERIOD = 1000; // ms

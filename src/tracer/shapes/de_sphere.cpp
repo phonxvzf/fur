@@ -2,11 +2,14 @@
 
 namespace tracer {
   namespace shapes {
-    de_sphere::de_sphere(const tf::transform& shape_to_world, Float radius)
-      : destimator(shape_to_world), radius(radius) {}
+    de_sphere::de_sphere(
+        const tf::transform& shape_to_world,
+        const std::shared_ptr<material>& surface,
+        Float radius)
+      : destimator(shape_to_world, surface), radius(radius) {}
 
     de_sphere::de_sphere(const de_sphere& cpy)
-      : destimator(cpy.tf_shape_to_world), radius(cpy.radius) {}
+      : destimator(cpy.tf_shape_to_world, cpy.surface), radius(cpy.radius) {}
 
     normal3f de_sphere::calculate_normal(
         const point3f& p,

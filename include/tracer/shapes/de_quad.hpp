@@ -28,6 +28,7 @@ namespace tracer {
       public:
         de_quad(
             const tf::transform& shape_to_world,
+            const std::shared_ptr<material>& surface,
             const point3f& a,
             const point3f& b,
             const point3f& c,

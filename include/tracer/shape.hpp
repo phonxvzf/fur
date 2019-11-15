@@ -32,7 +32,9 @@ namespace tracer {
         ray debug;
       };
 
-      shape(const tf::transform& shape_to_world);
+      const std::shared_ptr<material> surface;
+
+      shape(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface);
       shape(const shape& cpy);
 
       virtual bool intersect(
@@ -40,8 +42,6 @@ namespace tracer {
           const intersect_opts& options,
           intersect_result* result
           ) const;
-
-      materials::phong surface;
   };
 
   class destimator : public shape {
@@ -55,7 +55,7 @@ namespace tracer {
       virtual Float distance_function(const point3f& p) const = 0;
 
     public:
-      destimator(const tf::transform& shape_to_world);
+      destimator(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface);
 
       bool intersect(const ray& r, const intersect_opts& options, intersect_result* result)
         const override;

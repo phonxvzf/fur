@@ -8,11 +8,16 @@ namespace tracer {
   namespace materials {
     class phong : public material {
       public:
-        Float Es;
+        const Float Es;
 
-        phong() : material(), Es(32) {}
         phong(const rgb_spectrum& rgb, Float Kd, Float Ks, Float Es)
-          : material(rgb, Kd, Ks), Es(Es) {}
+          : material(REFLECT, rgb, Kd, Ks), Es(Es) {}
+      
+        rgb_spectrum bxdf(
+          const vector3f& omega_in,
+          const vector3f& omega_out,
+          const normal3f& normal
+          ) const override;
     };
   }
 }

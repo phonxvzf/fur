@@ -185,11 +185,16 @@ int main(int argc, char** argv) {
   auto ird_rgb = main_scene->render(
       params, &profile, verbose ? &update_progress : nullptr
       );
-  auto ird_rgb_exr = std::unique_ptr<Imf::Rgba>(new Imf::Rgba[params.img_res.x * params.img_res.y]);
+  auto ird_rgb_exr = std::unique_ptr<Imf::Rgba>(
+      new Imf::Rgba[params.img_res.x * params.img_res.y]
+      );
+  wchar_t elapsed_str[16];
+
+  format_duration(elapsed_str, profile.time_elapsed);
 
   std::wcout << std::endl;
   std::wcout << "* " << profile.view_counter << " viewing rays hit" << std::endl;
-  std::wcout << "* " << profile.shadow_counter << " shadow rays hit" << std::endl;
+  std::wcout << "* Total time of " << elapsed_str + 4 << std::endl;
 
   // write to file
   for (size_t i = 0; i < ird_rgb->size(); ++i) {

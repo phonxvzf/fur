@@ -22,7 +22,7 @@ class parser {
         const std::string& name
         );
     math::tf::transform parse_transform(const YAML::Node& tf_node);
-    tracer::materials::phong parse_material(const YAML::Node& mat_node);
+    std::shared_ptr<tracer::material> parse_material(const YAML::Node& mat_node);
     std::shared_ptr<tracer::light_source> parse_light_source(const YAML::Node& ls_node);
     std::shared_ptr<tracer::shape> parse_shape(const YAML::Node& attr, const std::string& name);
     std::shared_ptr<tracer::camera::camera> parse_camera(
@@ -44,7 +44,7 @@ class parsing_error : public std::runtime_error {
 
   public:
     parsing_error(int line_num, const std::string& msg) : std::runtime_error(msg) {
-      error_msg = "parsing error at line " + std::to_string(line_num+1)
+      error_msg = "parsing error at line " + std::to_string(line_num)
           + ": " + std::runtime_error::what();
     }
     

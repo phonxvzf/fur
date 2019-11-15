@@ -19,16 +19,28 @@ namespace math {
     return x > 0 ? 1 : -1;
   }
 
-  inline Float dot2(const vector2f v) {
+  inline Float pow4(Float x) {
+    return (x * x) * (x * x);
+  }
+
+  inline Float pow5(Float x) {
+    return pow4(x) * x;
+  }
+
+  inline Float dot2(const vector2f& v) {
     return v.dot(v);
   }
 
-  inline Float dot2(const vector3f v) {
+  inline Float dot2(const vector3f& v) {
     return v.dot(v);
   }
 
-  inline Float dot2(const vector4f v) {
+  inline Float dot2(const vector4f& v) {
     return v.dot(v);
+  }
+
+  inline Float maxdot(const vector3f& u, const vector3f& v) {
+    return std::max(Float(0), u.dot(v));
   }
 
   inline vector3f left_to_right(const vector3f& v) {
