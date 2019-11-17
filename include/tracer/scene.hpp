@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <chrono>
 
 #include "math/random.hpp"
@@ -20,12 +21,12 @@ namespace tracer {
     size_t    spp           = 1;
     vector2i  tile_size     = vector2i(64, 64);
     uint64_t  seed          = 0;
-    Float     shadow_bias   = 5e-4;
     point3f   eye_position  = point3f(0.0f);
     bool      show_depth    = false;
     int       max_bounce    = 1;
     size_t    sspp          = 1;
-    Float     min_rr        = 0.5;
+    Float     max_rr        = 0.5;
+    int       thread_id;
 
     shape::intersect_opts intersect_options = shape::intersect_opts();
   };
@@ -43,16 +44,24 @@ namespace tracer {
 
       shape::intersect_result intersect_shapes(
           const ray& r,
-          const shape::intersect_opts& options
+          const shape::intersect_opts& options,
+          const tracer::shape* ignored_shape
           ) const;
   
-      rgb_spectrum trace_path(const render_params& params, const ray& r, int bounce) const;
+      rgb_spectrum trace_path(
+          const render_params& params,
+          const ray& r,
+          const tracer::shape* ignored_shape,
+          const point2f& sample,
+          int bounce
+          );
 
       std::shared_ptr<std::vector<rgb_spectrum>> ird_rgb = nullptr;
       std::vector<light_source::emitter> light_emitters;
-      std::vector<point2f> stratified_samples;
+      std::vector<random::rng> rngs;
 
       Float inv_sspp;
+      point2i n_strata;
 
       std::mutex pixel_counter_mutex;
 

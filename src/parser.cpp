@@ -194,22 +194,20 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     }
   } else if (mat_node["ggx"].IsDefined()) {
     YAML::Node ggx_node = mat_node["ggx"];
-    if (ggx_node["roughness"].IsDefined() && ggx_node["color"].IsDefined()
-        && ggx_node["fresnel"].IsDefined() && ggx_node["Kd"].IsDefined()
+    if (ggx_node["roughness"].IsDefined() && ggx_node["fresnel"].IsDefined()
         && ggx_node["emittance"].IsDefined())
     {
       return std::shared_ptr<tracer::material>(new tracer::materials::ggx(
             tracer::materials::ggx::REFLECT, // TODO: more transport type
             parse_rgb_spectrum(ggx_node, "emittance"),
             parse_rgb_spectrum(ggx_node, "fresnel"),
-            parse_rgb_spectrum(ggx_node, "color"),
             parse_float(ggx_node, "roughness"),
-            parse_float(ggx_node, "Kd")
+            0
             ));
     } else {
       throw parsing_error(
           ggx_node.Mark().line,
-          "specify color, emittance, roughness, fresnel, and Kd"
+          "specify emittance, roughness, and fresnel"
           );
     }
   } else if (mat_node["light"].IsDefined()) {
@@ -330,9 +328,6 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       }
       params->img_res = img_res;
     }
-    if (render_config["shadow_bias"].IsDefined()) {
-      params->shadow_bias = parse_float(render_config, "shadow_bias");
-    }
     if (render_config["spp"].IsDefined()) {
       params->spp = parse_int(render_config, "spp");
     }
@@ -348,8 +343,8 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     if (render_config["bounce"].IsDefined()) {
       params->max_bounce = parse_int(render_config, "bounce");
     }
-    if (render_config["min_rr"].IsDefined()) {
-      params->min_rr = parse_float(render_config, "min_rr");
+    if (render_config["max_rr"].IsDefined()) {
+      params->max_rr = parse_float(render_config, "max_rr");
     }
   }
 

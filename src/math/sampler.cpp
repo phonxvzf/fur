@@ -55,7 +55,7 @@ namespace math {
     point3f sample_hemisphere(const point2f& u) {
       Float z = u.x;
       Float r = std::sqrt(1 - z * z);
-      Float two_pi_u = 2 * MATH_PI * u.y;
+      Float two_pi_u = TWO_PI * u.y;
       return right_to_left({ std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z });
     }
 
@@ -67,29 +67,40 @@ namespace math {
     point3f sample_sphere(const point2f& u) {
       Float z = 1 - 2 * u.x;
       Float r = 2 * std::sqrt(u.x * (1 - u.x));
-      Float two_pi_u = 2 * MATH_PI * u.y;
+      Float two_pi_u = TWO_PI * u.y;
       return right_to_left({ std::cos(two_pi_u) * r, std::sin(two_pi_u) * r, z });
     }
+ 
+    void sample_orthogonals(const vector3f& n, vector3f* u, vector3f* v, random::rng& rng) {
+      vector3f tmp;
+      do {
+        // rejection sampling ;)
+        tmp = rng.next_3uf();
+      } while (COMPARE_EQ(pow2(tmp.dot(n)), tmp.size_sq()));
+      *u = n.cross(tmp).normalized();
+      *v = n.cross(*u).normalized();
+    }
 
-    std::vector<point2f> sample_stratified_2d(
+    void sample_stratified_2d(
+        std::vector<point2f>& samples,
         size_t n_samples,
         const point2i& n_strata,
         random::rng& rng)
     {
       ASSERT(n_strata.x > 0 && n_strata.y > 0);
-      std::vector<point2f> samples;
+      samples.resize(n_samples);
       const point2f stratum_size(Float(1) / n_strata.x, Float(1) / n_strata.y);
-      while (samples.size() < n_samples) {
+      size_t i = 0;
+      while (i < n_samples) {
         for (int x = 0; x < n_strata.x; ++x) {
           for (int y = 0; y < n_strata.y; ++y) {
             const point2f u = rng.next_2uf();
-            samples.push_back(point2f((x + u.x) * stratum_size.x, (y + u.y) * stratum_size.y)
+            samples[i] = (point2f((x + u.x) * stratum_size.x, (y + u.y) * stratum_size.y)
               .clamped(FLOAT_TOLERANT, ONE_MINUS_FLOAT_TOLERANT));
-            if (samples.size() >= n_samples) return samples;
+            if (++i >= n_samples) return;
           }
         }
       }
-      return samples;
     }
 
   } /* namespace sampler */

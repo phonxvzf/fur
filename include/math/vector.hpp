@@ -225,11 +225,11 @@ namespace math {
         }
 
         std::string to_string() const {
-          return "[\t" + std::to_string(x) + "\t" + std::to_string(y) + "\t]";
+          return "[ " + std::to_string(x) + " " + std::to_string(y) + " ]";
         }
 
         std::wstring to_wstring() const {
-          return L"[\t" + std::to_wstring(x) + L"\t" + std::to_wstring(y) + L"\t]";
+          return L"[ " + std::to_wstring(x) + L" " + std::to_wstring(y) + L" ]";
         }
 
         friend std::ostream& operator<<(std::ostream& os, const vector2& vec) {
@@ -386,23 +386,23 @@ namespace math {
         }
 
         std::string to_string() const {
-          return "[\t"
+          return "[ "
             + std::to_string(x)
-            + "\t"
+            + " "
             + std::to_string(y)
-            + "\t"
+            + " "
             + std::to_string(z)
-            + "\t]";
+            + " ]";
         }
 
         std::wstring to_wstring() const {
-          return L"[\t"
+          return L"[ "
             + std::to_wstring(x)
-            + L"\t"
+            + L" "
             + std::to_wstring(y)
-            + L"\t"
+            + L" "
             + std::to_wstring(z)
-            + L"\t]";
+            + L" ]";
         }
 
         friend std::ostream& operator<<(std::ostream& os, const vector3& vec) {
@@ -574,27 +574,27 @@ namespace math {
         }
 
         std::string to_string() const {
-          return "[\t"
+          return "[ "
             + std::to_string(x)
-            + "\t"
+            + " "
             + std::to_string(y)
-            + "\t"
+            + " "
             + std::to_string(z)
-            + "\t"
+            + " "
             + std::to_string(w)
-            + "\t]";
+            + " ]";
         }
 
         std::wstring to_wstring() const {
-          return L"[\t"
+          return L"[ "
             + std::to_wstring(x)
-            + L"\t"
+            + L" "
             + std::to_wstring(y)
-            + L"\t"
+            + L" "
             + std::to_wstring(z)
-            + L"\t"
+            + L" "
             + std::to_wstring(w)
-            + L"\t]";
+            + L" ]";
         }
 
         friend std::ostream& operator<<(std::ostream& os, const vector4& vec) {

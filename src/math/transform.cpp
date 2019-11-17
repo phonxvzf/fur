@@ -98,8 +98,8 @@ namespace math {
 
     transform look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up) {
       const vector3f dir = (at - cam_pos).normalized();
-      const vector3f right = world_up.normalized().cross(dir);
-      const vector3f up = dir.cross(right);
+      const vector3f right = world_up.cross(dir).normalized();
+      const vector3f up = dir.cross(right).normalized();
       return matrix4f(right, up, dir, vector4f(cam_pos, 1.0));
     }
 

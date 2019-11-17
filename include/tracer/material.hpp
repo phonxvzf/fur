@@ -29,11 +29,20 @@ namespace tracer {
       /*
        * Evaluate weight term including w.n, BxDF, PDF and Lambert hack.
        * Multiply this function's result with incoming radiance can output outgoing radiance.
+       * All input vectors are in tangent space (up basis vector (surface normal) is <0,1,0>)
        */
       virtual rgb_spectrum weight(
-          const vector3f& omega_in,
-          const vector3f& omega_out,
-          const normal3f& normal
+          vector3f omega_in,
+          vector3f omega_out
+          ) const = 0;
+
+      /*
+       * Sample incoming ray direction omega_in based on the BxDF (importance sampling).
+       * omega_out must be in tangent space. The returning vector will also be in tangent space.
+       */
+      virtual vector3f sample(
+          vector3f omega_out,
+          const point2f& u
           ) const = 0;
   };
 }

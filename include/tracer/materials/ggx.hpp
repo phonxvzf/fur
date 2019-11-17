@@ -8,8 +8,17 @@ namespace tracer {
   namespace materials {
     class ggx : public material {
       private:
+        const Float alpha;
         const Float alpha2;
-        Float geometry(const normal3f& normal, const vector3f& omega, Float alpha2) const;
+
+        Float geometry(
+            const normal3f& normal,
+            const normal3f& mf_normal,
+            const vector3f& omega,
+            Float alpha2
+            ) const;
+
+        Float distribution(const normal3f& normal, const normal3f& mf_normal) const;
 
       public:
         const rgb_spectrum fresnel;
@@ -18,20 +27,26 @@ namespace tracer {
             transport_type transport,
             const rgb_spectrum& emittance,
             const rgb_spectrum& fresnel,
-            const rgb_spectrum& diffuse,
             Float roughness,
             Float Kd = 0)
-          : material(transport, diffuse, emittance, Kd),
-          alpha2(pow4(roughness)),
+          : material(transport, rgb_spectrum(0), emittance, Kd),
+          alpha(pow2(roughness)),
+          alpha2(pow2(alpha)),
           fresnel(fresnel) {}
 
         ggx(const ggx& cpy)
-          : material(cpy.transport, cpy.surface_rgb, cpy.emittance, cpy.Kd), alpha2(cpy.alpha2) {}
-      
+          : material(cpy.transport, cpy.surface_rgb, cpy.emittance, cpy.Kd),
+          alpha(cpy.alpha),
+          alpha2(cpy.alpha2) {}
+
         rgb_spectrum weight(
-            const vector3f& omega_in,
-            const vector3f& mf_normal,
-            const normal3f& normal
+            vector3f omega_in,
+            vector3f omega_out
+            ) const override;
+
+        vector3f sample(
+            vector3f omega_out,
+            const point2f& u
             ) const override;
     };
   }

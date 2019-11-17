@@ -27,6 +27,10 @@ namespace math {
     point2f rng::next_2uf() {
       return { next_uf(), next_uf() };
     }
+
+    point3f rng::next_3uf() {
+      return { next_uf(), next_uf(), next_uf() };
+    }
     
     const Float INV_UINT_MAX = 1.0 / std::numeric_limits<uint32_t>::max();
   }

@@ -37,6 +37,7 @@ namespace math {
         point2i   next_2ui();
         Float     next_uf();
         point2f   next_2uf();
+        point3f   next_3uf();
     };
   }
 }

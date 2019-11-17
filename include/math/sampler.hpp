@@ -23,7 +23,10 @@ namespace math {
     point3f sample_cosine_hemisphere(const point2f& u);
     point3f sample_sphere(const point2f& u);
 
-    std::vector<point2f> sample_stratified_2d(
+    void sample_orthogonals(const vector3f& n, vector3f* u, vector3f* v, random::rng& rng);
+
+    void sample_stratified_2d(
+        std::vector<point2f>& samples,
         size_t n_samples,
         const point2i& n_strata,
         random::rng& rng

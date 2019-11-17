@@ -8,12 +8,16 @@ namespace tracer {
       public:
         light(const rgb_spectrum& rgb)
           : material(EMIT, rgb_spectrum(0), rgb) {}
-      
+
         rgb_spectrum weight(
-          const vector3f& omega_in,
-          const vector3f& omega_out,
-          const normal3f& normal
-          ) const override;
+            vector3f omega_in,
+            vector3f omega_out
+            ) const override;
+
+        vector3f sample(
+            const vector3f omega_out,
+            const point2f& u
+            ) const override;
     };
   }
 }
