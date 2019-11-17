@@ -65,7 +65,7 @@ namespace tracer {
     const ray r_next(result.hit_point, from_tangent_space.dot(omega_in), r.t_max);
 
     // Russian roulette path termination
-    const Float rr_prob = std::min(params.max_rr, 1 - maxdot(r_next.dir, result.normal));
+    const Float rr_prob = std::min(params.max_rr, 1 - result.object->surface->surface_rgb.max());
     if (rng.next_uf() < rr_prob) return rgb_spectrum(0);
 
     return result.object->surface->emittance

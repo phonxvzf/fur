@@ -44,7 +44,6 @@ namespace tracer {
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      //return (D * F * G / denom) * TWO_PI * in_dot_n;
       return (in_dot_m * G / (in_dot_n * n_dot_m)) * fresnel;
     }
 

@@ -73,6 +73,10 @@ namespace tracer {
       Float g() const { return spd[1]; }
       Float b() const { return spd[2]; }
 
+      inline Float max() const {
+        return std::max(spd[0], std::max(spd[1], spd[2]));
+      }
+
       friend std::ostream& operator<<(std::ostream& os, const rgb_spectrum& rgb) {
         return os << "rgb(" << rgb.spd[0] << ", " << rgb.spd[1] << ", " << rgb.spd[2] << ")";
       }

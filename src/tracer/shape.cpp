@@ -61,7 +61,7 @@ namespace tracer {
           result->hit_point = tf_shape_to_world(phit);
           result->normal = tf_shape_to_world(
               calculate_normal(phit, options.normal_delta, normal3f(0, 1, 0))
-              ).normalized();
+              );
           result->object = this;
         }
         return true;

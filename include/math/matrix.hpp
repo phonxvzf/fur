@@ -216,10 +216,11 @@ namespace math {
 
         template <typename U>
           vector3<U> dot(const vector3<U>& v) const {
-            vector3<U> c1(value[0][0], value[1][0], value[2][0]);
-            vector3<U> c2(value[0][1], value[1][1], value[2][1]);
-            vector3<U> c3(value[0][2], value[1][2], value[2][2]);
-            return c1 * v.x + c2 * v.y + c3 * v.z;
+            return vector3<U>(
+                value[0][0] * v.x + value[0][1] * v.y + value[0][2] * v.z,
+                value[1][0] * v.x + value[1][1] * v.y + value[1][2] * v.z,
+                value[2][0] * v.x + value[2][1] * v.y + value[2][2] * v.z
+                );
           }
 
         matrix3 operator*(const matrix3& m) const {
@@ -369,7 +370,12 @@ namespace math {
 
         template <typename U>
           vector4<U> dot(const vector4<U>& v) const {
-            return col(0) * v.x + col(1) * v.y + col(2) * v.z + col(3) * v.w;
+            return vector4<U>(
+                value[0][0] * v.x + value[0][1] * v.y + value[0][2] * v.z + value[0][3] * v.w,
+                value[1][0] * v.x + value[1][1] * v.y + value[1][2] * v.z + value[1][3] * v.w,
+                value[2][0] * v.x + value[2][1] * v.y + value[2][2] * v.z + value[2][3] * v.w,
+                value[3][0] * v.x + value[3][1] * v.y + value[3][2] * v.z + value[3][3] * v.w
+                );
           }
 
         matrix4f inverse() const {

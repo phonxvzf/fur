@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 void ASSERT(bool cond) {
-#ifndef DNDEBUG
+#ifndef NDEBUG
   if (cond) return;
   std::cerr << std::endl << "ASSERTION FAILED:" << std::endl;
   void* frames[32];

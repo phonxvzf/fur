@@ -29,7 +29,7 @@ namespace tracer {
             const rgb_spectrum& fresnel,
             Float roughness,
             Float Kd = 0)
-          : material(transport, rgb_spectrum(0), emittance, Kd),
+          : material(transport, fresnel, emittance, Kd),
           alpha(pow2(roughness)),
           alpha2(pow2(alpha)),
           fresnel(fresnel) {}
