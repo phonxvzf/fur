@@ -1,0 +1,139 @@
+render:
+  resolution: 1920x1080
+  spp: 4
+  sspp: 1024
+  bounce: 3
+  tile_size: "32 32"
+  seed: 0
+  max_rr: 0.3
+
+intersect:
+  hit_epsilon: 1e-4
+  normal_delta: 1e-4
+  max_iters: 100
+
+scene:
+  camera:
+    type: perspective
+    position: "10 6 0"
+    lookat: "1 1 0"
+    up: "0 1 0"
+    near: 0.1
+    far: 1000
+    fov: 75
+  objects: # for light source, use material "light"
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "0 0.5 0"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.4
+          #fresnel: "0.9 0.8 0"
+          fresnel: "1 1 1"
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "1 0.5 1"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.4
+          #fresnel: "0 0.8 0"
+          fresnel: "1 1 1"
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "-1 0.5 -1"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.4
+          #fresnel: "0 0 0.8"
+          fresnel: "1 1 1"
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "3 0.5 -1"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.4
+          #fresnel: "0 0.8 0.8"
+          fresnel: "1 1 1"
+    - shape: "de_sphere"
+      radius: 0.5
+      transform:
+        - translate: "2 0.5 0"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.4
+          #fresnel: "0.8 0 0"
+          fresnel: "1 1 1"
+    - shape: "de_quad" # bottom plane
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.4
+          fresnel: "0.7 0.7 0.7"
+    - shape: "de_quad" # back plane
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      transform:
+        - rotate:
+            axis: "0 0 1"
+            angle: "-90"
+        - translate: "-5 5 0"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.05
+          fresnel: "1 1 1"
+    - shape: "de_quad" # left plane
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      transform:
+        - rotate:
+            axis: "1 0 0"
+            angle: "90"
+        - translate: "0 5 -5"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.6
+          fresnel: "1 0.2 0.2"
+    - shape: "de_quad" # right plane
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      transform:
+        - rotate:
+            axis: "1 0 0"
+            angle: "-90"
+        - translate: "0 5 5"
+      material:
+        ggx:
+          emittance: "0 0 0"
+          roughness: 0.6
+          fresnel: "0.2 0.2 1"
+    - shape: "de_quad" # light
+      a: "-5 0 5"
+      b: "5 0 5"
+      c: "5 0 -5"
+      d: "-5 0 -5"
+      transform:
+        - translate: "0 6 0"
+      material:
+        light:
+          emittance: "1.2 1.2 1.2"
