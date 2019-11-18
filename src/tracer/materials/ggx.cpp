@@ -44,7 +44,7 @@ namespace tracer {
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      return (in_dot_m * G / (in_dot_n * n_dot_m)) * fresnel;
+      return (in_dot_m * G / (in_dot_n * n_dot_m)) * surface_rgb;
     }
 
     vector3f ggx::sample(vector3f omega_out, const point2f& u) const {

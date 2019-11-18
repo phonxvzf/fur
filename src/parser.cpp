@@ -194,13 +194,13 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     }
   } else if (mat_node["ggx"].IsDefined()) {
     YAML::Node ggx_node = mat_node["ggx"];
-    if (ggx_node["roughness"].IsDefined() && ggx_node["fresnel"].IsDefined()
+    if (ggx_node["roughness"].IsDefined() && ggx_node["albedo"].IsDefined()
         && ggx_node["emittance"].IsDefined())
     {
       return std::shared_ptr<tracer::material>(new tracer::materials::ggx(
             tracer::materials::ggx::REFLECT, // TODO: more transport type
             parse_rgb_spectrum(ggx_node, "emittance"),
-            parse_rgb_spectrum(ggx_node, "fresnel"),
+            parse_rgb_spectrum(ggx_node, "albedo"),
             parse_float(ggx_node, "roughness"),
             0
             ));

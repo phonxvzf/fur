@@ -21,18 +21,15 @@ namespace tracer {
         Float distribution(const normal3f& normal, const normal3f& mf_normal) const;
 
       public:
-        const rgb_spectrum fresnel;
-
         ggx(
             transport_type transport,
             const rgb_spectrum& emittance,
-            const rgb_spectrum& fresnel,
+            const rgb_spectrum& albedo,
             Float roughness,
             Float Kd = 0)
-          : material(transport, fresnel, emittance, Kd),
+          : material(transport, albedo, emittance, Kd),
           alpha(pow2(roughness)),
-          alpha2(pow2(alpha)),
-          fresnel(fresnel) {}
+          alpha2(pow2(alpha)) {}
 
         ggx(const ggx& cpy)
           : material(cpy.transport, cpy.surface_rgb, cpy.emittance, cpy.Kd),
