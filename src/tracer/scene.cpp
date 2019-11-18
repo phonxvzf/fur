@@ -1,5 +1,4 @@
 #include <thread>
-#include <stack>
 
 #include "tracer/scene.hpp"
 #include "tracer/shapes/de_sphere.hpp"
@@ -37,7 +36,7 @@ namespace tracer {
       const render_params& params,
       const ray& r,
       const tracer::shape* last_shape,
-      const point2f& sample, // TODO: use stratified samples
+      const point2f& sample,
       int bounce)
   {
     if (bounce > params.max_bounce) return rgb_spectrum(0);
@@ -170,7 +169,7 @@ namespace tracer {
     }
 
     return ird_rgb;
-  }
+  } /* render */
 
   float scene::render_progress() const {
     return static_cast<float>(pixel_counter) / ird_rgb->size();
