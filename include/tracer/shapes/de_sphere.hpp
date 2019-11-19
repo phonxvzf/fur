@@ -23,6 +23,8 @@ namespace tracer {
             const std::shared_ptr<material>& surface,
             Float radius);
         de_sphere(const de_sphere& cpy);
+
+        bounds3f bounds() const override;
     };
   }
 }

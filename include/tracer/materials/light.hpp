@@ -1,22 +1,27 @@
 #ifndef TRACER_MATERIALS_LIGHT_HPP
 #define TRACER_MATERIALS_LIGHT_HPP
+
 #include "tracer/material.hpp"
 
 namespace tracer {
   namespace materials {
     class light : public material {
       public:
-        light(const rgb_spectrum& rgb)
-          : material(EMIT, rgb_spectrum(0), rgb) {}
+        light(const rgb_spectrum& emittance)
+          : material(rgb_spectrum(0), rgb_spectrum(0), emittance, EMIT) {}
 
         rgb_spectrum weight(
-            vector3f omega_in,
-            vector3f omega_out
+            const vector3f& omega_in,
+            const vector3f& omega_out,
+            const light_transport& lt
             ) const override;
 
-        vector3f sample(
-            const vector3f omega_out,
-            const point2f& u
+        light_transport sample(
+            vector3f* omega_in,
+            const vector3f& omega_out,
+            const light_transport& lt,
+            const point2f& u,
+            Float e
             ) const override;
     };
   }

@@ -35,6 +35,8 @@ namespace tracer {
             const point3f& d
             );
         de_quad(const de_quad& cpy);
+
+        bounds3f bounds() const override;
     };
   }
 }

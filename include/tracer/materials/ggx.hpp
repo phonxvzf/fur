@@ -10,6 +10,10 @@ namespace tracer {
       private:
         const Float alpha;
         const Float alpha2;
+        const Float eta_i;
+        const Float eta_t;
+
+        Float distribution(const normal3f& normal, const normal3f& mf_normal) const;
 
         Float geometry(
             const normal3f& normal,
@@ -18,32 +22,40 @@ namespace tracer {
             Float alpha2
             ) const;
 
-        Float distribution(const normal3f& normal, const normal3f& mf_normal) const;
-
       public:
         ggx(
-            transport_type transport,
+            const rgb_spectrum& rgb_refl,
+            const rgb_spectrum& rgb_refr,
             const rgb_spectrum& emittance,
-            const rgb_spectrum& albedo,
             Float roughness,
-            Float Kd = 0)
-          : material(transport, albedo, emittance, Kd),
+            Float eta_i,
+            Float eta_t,
+            const transport_type& transport = REFLECT)
+          : material(rgb_refl, rgb_refr, emittance, transport),
           alpha(pow2(roughness)),
-          alpha2(pow2(alpha)) {}
+          alpha2(pow2(alpha)),
+          eta_i(eta_i),
+          eta_t(eta_t) {}
 
         ggx(const ggx& cpy)
-          : material(cpy.transport, cpy.surface_rgb, cpy.emittance, cpy.Kd),
+          : material(cpy.rgb_refl, cpy.rgb_refr, cpy.emittance),
           alpha(cpy.alpha),
-          alpha2(cpy.alpha2) {}
+          alpha2(cpy.alpha2),
+          eta_i(cpy.eta_i),
+          eta_t(cpy.eta_t) {}
 
         rgb_spectrum weight(
-            vector3f omega_in,
-            vector3f omega_out
+            const vector3f& omega_in,
+            const vector3f& omega_out,
+            const light_transport& lt
             ) const override;
 
-        vector3f sample(
-            vector3f omega_out,
-            const point2f& u
+        light_transport sample(
+            vector3f* omega_in,
+            const vector3f& omega_out,
+            const light_transport& lt,
+            const point2f& u,
+            Float xi
             ) const override;
     };
   }

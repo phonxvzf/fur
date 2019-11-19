@@ -3,6 +3,7 @@
 #include "tracer/scene.hpp"
 #include "tracer/shapes/de_sphere.hpp"
 #include "tracer/shapes/de_quad.hpp"
+#include "tracer/material.hpp"
 #include "math/random.hpp"
 #include "math/util.hpp"
 #include "math/pdf.hpp"
@@ -13,16 +14,25 @@ namespace tracer {
   shape::intersect_result scene::intersect_shapes(
       const ray& r,
       const shape::intersect_opts& options,
-      const tracer::shape* ignored_shape
+      const tracer::shape* ignored_shape,
+      const material::light_transport& lt
       ) const
   {
     // TODO: scene graph, BVH
+    if (ignored_shape) {
+      if (lt.med == INSIDE) {
+        shape::intersect_result result;
+        ignored_shape->intersect(r, options, lt.med, &result);
+        return result;
+      }
+    }
+
     Float t_min = std::numeric_limits<Float>::max();
     shape::intersect_result result_seen;
     for (const std::shared_ptr<shape>& object : shapes) {
       if (object.get() == ignored_shape) continue;
       shape::intersect_result result;
-      if (object->intersect(r, options, &result)) {
+      if (object->intersect(r, options, lt.med, &result)) {
         if (result.t_hit > 0 && result.t_hit < t_min) {
           t_min = result.t_hit;
           result_seen = result;
@@ -36,17 +46,26 @@ namespace tracer {
       const render_params& params,
       const ray& r,
       const tracer::shape* last_shape,
+      const material::light_transport& prev_lt,
       const point2f& sample,
       int bounce)
   {
     if (bounce > params.max_bounce) return rgb_spectrum(0);
 
-    shape::intersect_result result = intersect_shapes(r, params.intersect_options, last_shape);
+    shape::intersect_result result = 
+      intersect_shapes(r, params.intersect_options, last_shape, prev_lt);
 
     if (result.object == nullptr) return rgb_spectrum(0);
     if (params.show_depth) return rgb_spectrum(result.t_hit);
-    if (result.object->surface->transport == material::EMIT)
-      return result.object->surface->emittance;
+
+    switch (result.object->surface->transport_model) {
+      case material::EMIT:
+        return result.object->surface->emittance;
+      case material::NONE:
+        return rgb_spectrum(0);
+      default:
+        break;
+    }
 
     random::rng& rng = rngs[params.thread_id];
 
@@ -57,19 +76,48 @@ namespace tracer {
 
     // omegas in tangent space
     const vector3f omega_out(from_tangent_space.t().dot(-r.dir));
-    const vector3f omega_in = result.object->surface->sample(omega_out, sample);
-    
-    if ((omega_in + omega_out).is_zero()) return rgb_spectrum(0);
+    vector3f omega_in;
+
+    const material::light_transport lt =
+      result.object->surface->sample(
+          &omega_in,
+          omega_out,
+          { result.object->surface->transport_model, prev_lt.med },
+          sample,
+          rng.next_uf()
+          );
 
     const ray r_next(result.hit_point, from_tangent_space.dot(omega_in), r.t_max);
+    const rgb_spectrum color = (lt.transport == material::REFLECT) ?
+      result.object->surface->rgb_refl : result.object->surface->rgb_refr;
 
     // Russian roulette path termination
-    const Float rr_prob = std::min(params.max_rr, 1 - result.object->surface->surface_rgb.max());
+    const Float rr_prob = std::min(params.max_rr, 1 - color.max());
     if (rng.next_uf() < rr_prob) return rgb_spectrum(0);
 
+    material::light_transport next_lt;
+    if (prev_lt.med == INSIDE) {
+      if (lt.transport == material::REFRACT) {
+        next_lt.transport = material::REFLECT;
+        next_lt.med = OUTSIDE;
+      } else {
+        // TIR
+        next_lt.transport = material::REFLECT;
+        next_lt.med = INSIDE;
+      }
+    } else {
+      if (lt.transport == material::REFRACT) {
+        next_lt.transport = material::REFRACT;
+        next_lt.med = INSIDE;
+      } else {
+        next_lt.transport = material::REFLECT;
+        next_lt.med = OUTSIDE;
+      }
+    }
+
     return result.object->surface->emittance
-      + result.object->surface->weight(omega_in, omega_out)
-      * trace_path(params, r_next, result.object, sample, bounce + 1) / (1 - rr_prob);
+      + result.object->surface->weight(omega_in, omega_out, lt)
+      * trace_path(params, r_next, result.object, next_lt, sample, bounce + 1) / (1 - rr_prob);
   }
 
   void scene::render_routine(const render_params& params, void (*update_callback)(Float, size_t)) {
@@ -92,7 +140,9 @@ namespace tracer {
             const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf()).normalized();
             sampler::sample_stratified_2d(stratified_samples, params.sspp, n_strata, rng);
             for (const point2f& sample : stratified_samples) {
-              rgb += trace_path(params, r, nullptr, sample, 0);
+              rgb += trace_path(
+                  params, r, nullptr, { material::REFLECT, OUTSIDE }, sample, 0
+                  );
             }
             rgb_pixel += rgb * inv_sspp;
           }

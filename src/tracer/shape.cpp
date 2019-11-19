@@ -1,5 +1,7 @@
-#include "tracer/shape.hpp"
 #include <iostream>
+
+#include "tracer/shape.hpp"
+#include "math/util.hpp"
 
 namespace tracer {
 
@@ -16,6 +18,7 @@ namespace tracer {
   bool shape::intersect(
       const ray& r,
       const intersect_opts& options,
+      material::medium med,
       intersect_result* result) const
   {
     return false;
@@ -46,11 +49,17 @@ namespace tracer {
   bool destimator::intersect(
       const ray& r,
       const intersect_opts& options,
+      material::medium med,
       intersect_result* result
       ) const
   {
-    const ray sray(tf_world_to_shape(r).normalized());
-    if (result) result->debug = sray;
+    ray sray(tf_world_to_shape(r).normalized());
+
+    if (med == INSIDE) {
+      sray.origin += r.dir * 2 * bounds().diagonal();
+      sray.dir = -r.dir;
+    }
+
     Float t = 0;
     for (int i = 0; i < options.trace_max_iters; ++i) {
       const point3f phit = sray(t);

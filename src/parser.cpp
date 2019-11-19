@@ -9,7 +9,6 @@
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
 #include "tracer/shapes/de_quad.hpp"
-#include "tracer/materials/phong.hpp"
 #include "tracer/materials/ggx.hpp"
 
 parser::parser() {}
@@ -174,52 +173,55 @@ math::tf::transform parser::parse_transform(const YAML::Node& tf_node) {
 
   throw parsing_error(tf_node.Mark().line, "`transform' must be a sequence");
 }
+    
+tracer::material::transport_type parser::parse_transport_model(
+        const YAML::Node& node, const std::string& name)
+{
+  std::string type = parse_string(node, name);
+  if (type == "reflect")  return tracer::material::REFLECT;
+  if (type == "refract")  return tracer::material::REFRACT;
+  if (type == "sss")      return tracer::material::SSS;
+  if (type == "none")     return tracer::material::NONE;
+
+  throw parsing_error(node.Mark().line, "unknown transport model");
+}
 
 std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_node) {
-  if (mat_node["phong"].IsDefined()) {
-    YAML::Node phong_node = mat_node["phong"];
-    if (phong_node["Kd"].IsDefined() && phong_node["Ks"].IsDefined()
-        && phong_node["Es"].IsDefined() && phong_node["color"].IsDefined()
-        && phong_node["emittance"].IsDefined())
-    {
-      return std::shared_ptr<tracer::material>(new tracer::materials::phong(
-          parse_rgb_spectrum(phong_node, "color"),
-          parse_rgb_spectrum(phong_node, "emittance"),
-          parse_float(phong_node, "Kd"),
-          parse_float(phong_node, "Ks"),
-          parse_float(phong_node, "Es")
-          ));
-    } else {
-      throw parsing_error(phong_node.Mark().line, "specify color, emittance, Kd, Ks and Es");
-    }
-  } else if (mat_node["ggx"].IsDefined()) {
+  if (mat_node["ggx"].IsDefined()) {
     YAML::Node ggx_node = mat_node["ggx"];
-    if (ggx_node["roughness"].IsDefined() && ggx_node["albedo"].IsDefined()
-        && ggx_node["emittance"].IsDefined())
+    auto transport = ggx_node["transport"].IsDefined() ?
+      parse_transport_model(ggx_node, "transport") : tracer::material::REFLECT;
+    if (ggx_node["rgb_refl"].IsDefined() && ggx_node["emittance"].IsDefined()
+        && ggx_node["roughness"].IsDefined())
     {
+      const bool is_refract = transport == tracer::material::REFRACT;
       return std::shared_ptr<tracer::material>(new tracer::materials::ggx(
-            tracer::materials::ggx::REFLECT, // TODO: more transport type
+            parse_rgb_spectrum(ggx_node, "rgb_refl"),
+            is_refract ? parse_rgb_spectrum(ggx_node, "rgb_refr") : tracer::rgb_spectrum(0),
             parse_rgb_spectrum(ggx_node, "emittance"),
-            parse_rgb_spectrum(ggx_node, "albedo"),
             parse_float(ggx_node, "roughness"),
-            0
+            is_refract ? parse_float(ggx_node, "eta_i") : 1,
+            is_refract ? parse_float(ggx_node, "eta_t") : 1,
+            transport
             ));
     } else {
       throw parsing_error(
           ggx_node.Mark().line,
-          "specify emittance, roughness, and fresnel"
+          "specify rgb_refl, rgb_refr, emittance, roughness, eta_i, and eta_t"
           );
     }
   } else if (mat_node["light"].IsDefined()) {
     YAML::Node light_node = mat_node["light"];
     if (light_node["emittance"].IsDefined()) {
-      return std::shared_ptr<tracer::material>(new tracer::materials::light(parse_rgb_spectrum(light_node, "emittance")));
+      return std::shared_ptr<tracer::material>(new tracer::materials::light(
+            parse_rgb_spectrum(light_node, "emittance")
+            ));
     } else {
       throw parsing_error(light_node.Mark().line, "specify emittance");
     }
   }
 
-  throw parsing_error(mat_node.Mark().line, "only phong model is available right now");
+  throw parsing_error(mat_node.Mark().line, "only ggx and light are available");
 }
 
 std::shared_ptr<tracer::shape> parser::parse_shape(

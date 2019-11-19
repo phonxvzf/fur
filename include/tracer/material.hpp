@@ -6,43 +6,56 @@
 namespace tracer {
   class material {
     public:
-      const rgb_spectrum surface_rgb;
+      const rgb_spectrum rgb_refl;
+      const rgb_spectrum rgb_refr;
       const rgb_spectrum emittance;
-      const Float Kd;
-      const Float Ks;
 
-      const enum transport_type {
-        EMIT,
+      enum transport_type {
         REFLECT,
-        TRANSMIT,
-        SSS
-      } transport;
+        REFRACT,
+        SSS,
+        EMIT,
+        NONE
+      } transport_model;
+
+      typedef uint8_t medium;
+
+      struct light_transport {
+        transport_type transport;
+        medium med;
+      };
 
       material(
-          transport_type transport,
-          const rgb_spectrum& rgb = rgb_spectrum(1),
+          const rgb_spectrum& rgb_refl = rgb_spectrum(1),
+          const rgb_spectrum& rgb_refr = rgb_spectrum(1),
           const rgb_spectrum& emittance = rgb_spectrum(0),
-          Float Kd = 0.5,
-          Float Ks = 0.5)
-        : surface_rgb(rgb), emittance(emittance), Kd(Kd), Ks(Ks), transport(transport) {}
+          const transport_type& transport = REFLECT)
+        : rgb_refl(rgb_refl),
+        rgb_refr(rgb_refr),
+        emittance(emittance),
+        transport_model(transport) {}
 
       /*
-       * Evaluate weight term including w.n, BxDF, PDF and Lambert hack.
+       * Evaluate weight term including w.n, BxDF, and PDF
        * Multiply this function's result with incoming radiance can output outgoing radiance.
        * All input vectors are in tangent space (up basis vector (surface normal) is <0,1,0>)
        */
       virtual rgb_spectrum weight(
-          vector3f omega_in,
-          vector3f omega_out
+          const vector3f& omega_in,
+          const vector3f& omega_out,
+          const light_transport& lt
           ) const = 0;
 
       /*
        * Sample incoming ray direction omega_in based on the BxDF (importance sampling).
        * omega_out must be in tangent space. The returning vector will also be in tangent space.
        */
-      virtual vector3f sample(
-          vector3f omega_out,
-          const point2f& u
+      virtual light_transport sample(
+          vector3f* omega_in,
+          const vector3f& omega_out,
+          const light_transport& lt,
+          const point2f& u,
+          Float e
           ) const = 0;
   };
 }

@@ -38,5 +38,10 @@ namespace tracer {
       }
       return 0.5 * log(r) * r / dr;
     }
+
+    bounds3f de_mandelbulb::bounds() const {
+      // TODO
+      return bounds3f(point3f(0));
+    }
   }
 }

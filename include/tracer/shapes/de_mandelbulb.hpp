@@ -14,6 +14,8 @@ namespace tracer {
             const tf::transform& shape_to_world,
             const std::shared_ptr<material>& surface);
         de_mandelbulb(const de_mandelbulb& cpy);
+
+        bounds3f bounds() const override;
     };
   }
 }

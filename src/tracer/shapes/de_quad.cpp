@@ -43,5 +43,9 @@ namespace tracer {
           :
           normal.dot(pa)*normal.dot(pa)/dot2(normal));
     }
+
+    bounds3f de_quad::bounds() const {
+      return bounds3f(a).merge(bounds3f(b)).merge(bounds3f(c)).merge(bounds3f(d));
+    }
   }
 }

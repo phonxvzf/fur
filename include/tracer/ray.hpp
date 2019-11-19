@@ -19,16 +19,16 @@ namespace tracer {
       ray(const point3f& origin, const vector3f& dir) : origin(origin), dir(dir) {}
       ray(const point3f& origin, const vector3f& dir, Float t_max)
         : origin(origin), dir(dir), t_max(t_max) {}
-      ray(const ray& cpy) : origin(cpy.origin), dir(cpy.origin), t_max(cpy.t_max) {}
+      ray(const ray& cpy) : origin(cpy.origin), dir(cpy.dir), t_max(cpy.t_max) {}
 
       ray& operator=(const ray& cpy) {
-        origin = cpy.origin;
-        dir = cpy.dir;
-        t_max = cpy.t_max;
+        origin  = cpy.origin;
+        dir     = cpy.dir;
+        t_max   = cpy.t_max;
         return *this;
       }
 
-      vector3f operator()(Float t) const {
+      point3f operator()(Float t) const {
         return origin + dir * t;
       }
 

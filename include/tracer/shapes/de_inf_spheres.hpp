@@ -20,6 +20,8 @@ namespace tracer {
             Float radius,
             Float cell_size);
         de_inf_spheres(const de_inf_spheres& cpy);
+    
+        bounds3f bounds() const override;
     };
   }
 }

@@ -16,7 +16,7 @@ namespace tracer {
       if (COMPARE_EQ(dot, 0)) return 0;
       return chi_plus(omega.dot(mf_normal) / dot) * 2 / (1 + std::sqrt(1 + alpha2 * tan2));
     }
- 
+
     Float ggx::distribution(const normal3f& normal, const normal3f& mf_normal) const {
       const Float cos2 = pow2(normal.dot(mf_normal));
       if (COMPARE_EQ(cos2, 0)) return 0;
@@ -24,37 +24,62 @@ namespace tracer {
     }
 
     rgb_spectrum ggx::weight(
-        vector3f omega_in,
-        vector3f omega_out
+        const vector3f& omega_in,
+        const vector3f& omega_out,
+        const light_transport& lt
         ) const
     {
-      const normal3f normal(0, 1, 0);
-      const vector3f mf_normal = (omega_in + omega_out).normalized();
+      if (lt.transport == REFLECT && (omega_in + omega_out).is_zero()) return rgb_spectrum(0);
 
-      const Float n_dot_m = maxdot(normal, mf_normal);
-      const Float in_dot_n = omega_in.dot(normal);
-      const Float in_dot_m = omega_in.dot(mf_normal);
-      const Float out_dot_n = maxdot(omega_out, normal);
-      if (COMPARE_EQ(n_dot_m, 0)
-          || COMPARE_EQ(in_dot_n, 0)
-          || COMPARE_EQ(in_dot_m, 0)
-          || COMPARE_EQ(out_dot_n, 0)) return rgb_spectrum(0);
+      const normal3f normal = (lt.transport == REFLECT) ? normal3f(0, 1, 0) : normal3f(0, -1, 0);
+      const normal3f mf_normal = (lt.transport == REFLECT) ? (omega_in + omega_out).normalized()
+        : (lt.med == OUTSIDE) ? (eta_i * omega_in + eta_t * omega_out).normalized()
+        : (eta_t * omega_in + eta_i * omega_out).normalized();
+
+      const Float n_dot_m   = absdot(normal, mf_normal);
+      const Float out_dot_n = absdot(omega_out, normal);
+      const Float in_dot_n  = absdot(omega_out, normal);
+      if (COMPARE_EQ(n_dot_m, 0) || COMPARE_EQ(out_dot_n, 0)) return rgb_spectrum(0);
 
       // Smith geometry term G = G1_in * G1_out
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      return (in_dot_m * G / (in_dot_n * n_dot_m)) * surface_rgb;
+      return (absdot(omega_in, mf_normal) * G / (in_dot_n * n_dot_m))
+        * (lt.transport == REFLECT ? rgb_refl : rgb_refr);
     }
 
-    vector3f ggx::sample(vector3f omega_out, const point2f& u) const {
+    ggx::light_transport ggx::sample(
+        vector3f* omega_in,
+        const vector3f& omega_out,
+        const light_transport& lt,
+        const point2f& u,
+        Float xi) const
+    {
       const Float cos_theta = std::sqrt((1 - u.x) / (u.x * (alpha2 - 1) + 1));
       const Float sin_theta = sin_from_cos(cos_theta);
       const Float phi = TWO_PI * u.y;
       const Float cos_phi = std::cos(phi);
       const Float sin_phi = sin_from_cos_theta(cos_phi, phi);
       const vector3f m(sin_theta * cos_phi, cos_theta, sin_theta * sin_phi);
-      return reflect(omega_out, m);
+
+      if (transport_model == REFRACT) {
+        Float eta_i_chk = eta_i, eta_t_chk = eta_t;
+        if (lt.med == OUTSIDE) std::swap(eta_i_chk, eta_t_chk);
+
+        // check for external & internal reflection
+        const vector3f refl = reflect(omega_out, m);
+        if (xi < fresnel_schlick(refl, m, eta_t_chk, eta_i_chk)) {
+          *omega_in = refl;
+          return { REFLECT, lt.med };
+        }
+
+        *omega_in = refract(omega_out, { 0, 1, 0 }, m, eta_t_chk / eta_i_chk);
+        return { REFRACT, medium(lt.med ^ 1) };
+      }
+
+      *omega_in = reflect(omega_out, m);
+      return { REFLECT, OUTSIDE };
     }
   }
 }

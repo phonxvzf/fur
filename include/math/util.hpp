@@ -4,6 +4,8 @@
 #include "vector.hpp"
 
 #define MATH_PI (3.141592653589793)
+#define INSIDE  (0)
+#define OUTSIDE (1)
 
 namespace math {
 
@@ -84,17 +86,30 @@ namespace math {
     return { v.y, v.z, -v.x };
   }
 
-  inline vector3f change_bases(
-      const vector3f& v,
-      const vector3f& x,
-      const vector3f& y,
-      const vector3f& z)
-  {
-    return (x * v.x) + (y * v.y) + (z * v.z);
+  inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
+    return 2 * absdot(omega, normal) * normal - omega;
   }
 
-  inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
-    return 2 * omega.dot(normal) * normal - omega;
+  inline vector3f refract(
+      const vector3f& in,
+      const normal3f& normal,
+      const normal3f& mf_normal,
+      Float eta)
+  {
+    const Float c = in.dot(mf_normal);
+    const Float dist = 1 + eta * (c * c - 1);
+    if (dist < 0) return reflect(in, mf_normal); // total internal reflection
+    return ((eta * c - sign(in.dot(normal)) * std::sqrt(dist)) * mf_normal - eta * in)
+      .normalized();
+  }
+
+  inline vector3f inv_refract(
+      const vector3f& out,
+      const normal3f& normal,
+      const normal3f& mf_normal,
+      Float eta)
+  {
+    return refract(out, -normal, -mf_normal, 1 / eta);
   }
 
   inline Float reduce_angle(Float theta) {
@@ -114,6 +129,34 @@ namespace math {
     theta = reduce_angle(theta);
     if (theta >= 0 && theta <= MATH_PI) return sin_from_cos(cosine);
     return -sin_from_cos(cosine);
+  }
+
+  inline Float fresnel(
+      const vector3f& omega,
+      const normal3f& mf_normal,
+      Float eta_i,
+      Float eta_t)
+  {
+    // Exact version from Cook-Torrance paper
+    const Float c = absdot(omega, mf_normal);
+    const Float g2 = pow2(eta_t / eta_i) - 1 + pow2(c);
+
+    if (g2 < 0) return 1; // total internal reflection
+
+    const Float g = std::sqrt(g2);
+
+    return Float(0.5) * pow2((g - c) / (g + c))
+      * (1 + pow2((c * (g + c) - 1) / (c * (g - c) + 1)));
+  }
+
+  inline Float fresnel_schlick(
+      const vector3f& omega,
+      const normal3f& mf_normal,
+      Float eta_i,
+      Float eta_t)
+  {
+    const Float r0 = pow2((eta_i - eta_t) / (eta_i + eta_t));
+    return r0 + (1 - r0) * pow5(1 - absdot(omega, mf_normal));
   }
 }
 

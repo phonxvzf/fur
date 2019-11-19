@@ -27,5 +27,9 @@ namespace tracer {
       Float dz = p.z - sphere_position(p.z);
       return std::sqrt(dx * dx + dy * dy + dz * dz) - radius;
     }
+
+    bounds3f de_inf_spheres::bounds() const {
+      return bounds3f(-point3f(1e9), point3f(1e9));
+    }
   }
 }

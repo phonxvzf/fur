@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "math/transform.hpp"
-#include "tracer/materials/phong.hpp"
 #include "tracer/ray.hpp"
+#include "tracer/material.hpp"
 
 namespace tracer {
 
@@ -28,8 +28,6 @@ namespace tracer {
         point3f   hit_point;
         normal3f  normal;
         const shape* object = nullptr;
-
-        ray debug;
       };
 
       const std::shared_ptr<material> surface;
@@ -37,9 +35,12 @@ namespace tracer {
       shape(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface);
       shape(const shape& cpy);
 
+      virtual bounds3f bounds() const = 0;
+
       virtual bool intersect(
           const ray& r,
           const intersect_opts& options,
+          material::medium med,
           intersect_result* result
           ) const;
   };
@@ -57,7 +58,11 @@ namespace tracer {
     public:
       destimator(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface);
 
-      bool intersect(const ray& r, const intersect_opts& options, intersect_result* result)
+      bool intersect(
+          const ray& r,
+          const intersect_opts& options,
+          material::medium med,
+          intersect_result* result)
         const override;
   };
 }

@@ -23,5 +23,9 @@ namespace tracer {
     Float de_sphere::distance_function(const point3f& p) const {
       return std::sqrt(p.dot(p)) - radius;
     }
+
+    bounds3f de_sphere::bounds() const {
+      return bounds3f(-point3f(radius), point3f(radius));
+    }
   }
 }

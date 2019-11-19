@@ -45,13 +45,15 @@ namespace tracer {
       shape::intersect_result intersect_shapes(
           const ray& r,
           const shape::intersect_opts& options,
-          const tracer::shape* ignored_shape
+          const tracer::shape* ignored_shape,
+          const material::light_transport& lt
           ) const;
   
       rgb_spectrum trace_path(
           const render_params& params,
           const ray& r,
           const tracer::shape* ignored_shape,
+          const material::light_transport& lt,
           const point2f& sample,
           int bounce
           );

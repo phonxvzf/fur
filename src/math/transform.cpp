@@ -50,15 +50,15 @@ namespace math {
     }
  
     bounds3f transform::operator()(const bounds3f& b) const {
-      // TODO
-      bounds3f new_bounds({ b.p_max.x, b.p_max.y, b.p_max.z });
-      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_min.y, b.p_min.z));
-      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_min.y, b.p_max.z));
-      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_max.y, b.p_min.z));
-      new_bounds = new_bounds.merge(point3f(b.p_min.x, b.p_max.y, b.p_max.z));
-      new_bounds = new_bounds.merge(point3f(b.p_max.x, b.p_min.y, b.p_min.z));
-      new_bounds = new_bounds.merge(point3f(b.p_max.x, b.p_min.y, b.p_max.z));
-      new_bounds = new_bounds.merge(point3f(b.p_max.x, b.p_max.y, b.p_min.z));
+      // TODO: optimize this
+      bounds3f new_bounds((*this)(point3f(b.p_max.x, b.p_max.y, b.p_max.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_min.x, b.p_min.y, b.p_min.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_min.x, b.p_min.y, b.p_max.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_min.x, b.p_max.y, b.p_min.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_min.x, b.p_max.y, b.p_max.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_max.x, b.p_min.y, b.p_min.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_max.x, b.p_min.y, b.p_max.z)));
+      new_bounds = new_bounds.merge((*this)(point3f(b.p_max.x, b.p_max.y, b.p_min.z)));
       return new_bounds;
     }
 
