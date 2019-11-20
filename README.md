@@ -11,8 +11,8 @@ _This project is currently in progress._
 - Importance sampling
 - Stratified sampling
 - Russian roulette path termination
-- Antialiasing achieved with subpixels with average filter
-- Multithreaded (C++ STL threads)
+- Anti-aliasing achieved via subpixels with average filter
+- Multi-threaded (C++ STL threads)
 - YAML scene file
 
 ## Prerequisites
