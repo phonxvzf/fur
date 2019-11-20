@@ -16,10 +16,11 @@ namespace tracer {
         const vector3f dc;
         const vector3f ad;
         const normal3f normal;
-        
+
         normal3f calculate_normal(
             const point3f& p,
             Float delta,
+            const ray& r,
             const normal3f& default_normal
             ) const override;
 

@@ -14,14 +14,19 @@ namespace tracer {
       : destimator(shape_to_world, surface), a(a), b(b), c(c), d(d),
       ba(b-a), cb(c-b), dc(d-c), ad(a-d), normal(ba.cross(ad).normalized()) {}
         
+    de_quad::de_quad(const de_quad& cpy)
+      : destimator(cpy.tf_shape_to_world, cpy.surface),
+      a(cpy.a), b(cpy.b), c(cpy.c), d(cpy.d), ba(cpy.ba), cb(cpy.cb), dc(cpy.dc), ad(cpy.ad) {}
+
     normal3f de_quad::calculate_normal(
-            const point3f& p,
-            Float delta,
-            const normal3f& default_normal
-            ) const
+        const point3f& p,
+        Float delta,
+        const ray& r,
+        const normal3f& default_normal
+        ) const
     {
-      normal3f norm = p.dot(-normal) > 0 ? normal3f(-normal) : normal;
-      return normal.is_zero() ? default_normal : norm;
+      const vector3f n = (r.dir.dot(normal) < 0) ? normal : normal3f(-normal);
+      return n.is_zero() ? default_normal : n;
     }
 
     Float de_quad::distance_function(const point3f& p) const {

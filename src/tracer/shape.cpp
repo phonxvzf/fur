@@ -5,7 +5,10 @@
 
 namespace tracer {
 
-  shape::shape(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface)
+  shape::shape(
+      const tf::transform& shape_to_world,
+      const std::shared_ptr<material>& surface
+      )
     : tf_shape_to_world(shape_to_world),
     tf_world_to_shape(shape_to_world.inverse()),
     surface(surface) {}
@@ -14,7 +17,7 @@ namespace tracer {
     : tf_shape_to_world(cpy.tf_shape_to_world),
     tf_world_to_shape(cpy.tf_world_to_shape),
     surface(cpy.surface) {}
-      
+
   bool shape::intersect(
       const ray& r,
       const intersect_opts& options,
@@ -26,7 +29,9 @@ namespace tracer {
 
   destimator::destimator(
       const tf::transform& shape_to_world,
-      const std::shared_ptr<material>& surface) : shape(shape_to_world, surface) {}
+      const std::shared_ptr<material>& surface
+      )
+    : shape(shape_to_world, surface) {}
 
   normal3f destimator::calculate_normal(
           const point3f& p,
@@ -44,6 +49,16 @@ namespace tracer {
     const Float df_by_dz = (distance_function(p + vz) - distance_function(p - vz)) * inv_td;
     normal3f normal(df_by_dx, df_by_dy, df_by_dz);
     return normal.is_zero() ? default_normal : normal3f(normal.normalized());
+  }
+
+  normal3f destimator::calculate_normal(
+          const point3f& p,
+          Float delta,
+          const ray& r,
+          const normal3f& default_normal
+          ) const
+  {
+    return calculate_normal(p, delta, default_normal);
   }
 
   bool destimator::intersect(
@@ -69,7 +84,7 @@ namespace tracer {
           result->t_hit = t;
           result->hit_point = tf_shape_to_world(phit);
           result->normal = tf_shape_to_world(
-              calculate_normal(phit, options.normal_delta, normal3f(0, 1, 0))
+              calculate_normal(phit, options.normal_delta, sray, normal3f(0, 1, 0))
               );
           result->object = this;
         }

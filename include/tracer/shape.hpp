@@ -32,7 +32,10 @@ namespace tracer {
 
       const std::shared_ptr<material> surface;
 
-      shape(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface);
+      shape(
+          const tf::transform& shape_to_world,
+          const std::shared_ptr<material>& surface
+          );
       shape(const shape& cpy);
 
       virtual bounds3f bounds() const = 0;
@@ -53,10 +56,20 @@ namespace tracer {
           const normal3f& default_normal
           ) const;
 
+      virtual normal3f calculate_normal(
+          const point3f& p,
+          Float delta,
+          const ray& r,
+          const normal3f& default_normal
+          ) const;
+
       virtual Float distance_function(const point3f& p) const = 0;
 
     public:
-      destimator(const tf::transform& shape_to_world, const std::shared_ptr<material>& surface);
+      destimator(
+          const tf::transform& shape_to_world,
+          const std::shared_ptr<material>& surface
+          );
 
       bool intersect(
           const ray& r,
