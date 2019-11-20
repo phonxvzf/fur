@@ -5,6 +5,16 @@ A physically-based image synthesizer using ray marching methods.
 
 _This project is currently in progress._
 
+## Features
+- Path-traced global illumination (unbiased Monte Carlo)
+- GGX BSDF for both reflection and refraction
+- Importance sampling
+- Stratified sampling
+- Russian roulette path termination
+- Antialiasing achieved with subpixels with average filter
+- Multithreaded (C++ STL threads)
+- YAML scene file
+
 ## Prerequisites
 - CMake >= 3.7
 - A sane GNU/Linux environment
@@ -34,7 +44,7 @@ If you have problems displaying the progress bar, please consider use `--quiet` 
 ### Command line options
 - `-h or --help` print help message and exit gracefully
 - `-j n` use `n` number of threads to render
-- `-d or --depth` output the rays' depth that hit a surface instead of color spectrum. -1 is defined as not hit.
+- `-d or --depth` output the rays' depth that hit a surface instead of color spectrum. 0 is defined as not hit.
 - `-o output` write output in EXR format to file name `output`. The program defaults `output` to `output.exr` if this option is not set.
 - `--quiet` do not report anything (This option sets `std::cout` and `std::wcout` state to `std::ios::failbit`.)
 
@@ -52,3 +62,8 @@ $ display output.exr
 
 ## YAML Scene File
 Please see `example_scene.yaml` for references.
+
+## TODOs
+- Triangle meshes
+- Subsurface scattering
+- Environment map & IBL
