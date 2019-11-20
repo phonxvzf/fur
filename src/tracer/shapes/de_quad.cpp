@@ -20,7 +20,8 @@ namespace tracer {
             const normal3f& default_normal
             ) const
     {
-      return normal.is_zero() ? default_normal : normal3f(-normal);
+      normal3f norm = p.dot(-normal) > 0 ? normal3f(-normal) : normal;
+      return normal.is_zero() ? default_normal : norm;
     }
 
     Float de_quad::distance_function(const point3f& p) const {

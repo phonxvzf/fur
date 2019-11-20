@@ -330,11 +330,11 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       }
       params->img_res = img_res;
     }
-    if (render_config["spp"].IsDefined()) {
-      params->spp = parse_int(render_config, "spp");
+    if (render_config["subpixels"].IsDefined()) {
+      params->spp = parse_int(render_config, "subpixels");
     }
-    if (render_config["sspp"].IsDefined()) {
-      params->sspp = parse_int(render_config, "sspp");
+    if (render_config["spp"].IsDefined()) {
+      params->sspp = parse_int(render_config, "spp");
     }
     if (render_config["seed"].IsDefined()) {
       params->seed = parse_int(render_config, "seed");

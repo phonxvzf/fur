@@ -1,7 +1,7 @@
 render:
   resolution: 1920x1080
-  spp: 4
-  sspp: 1024
+  subpixels: 4
+  spp: 1024
   bounce: 3
   tile_size: "32 32"
   seed: 0
@@ -30,7 +30,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.4
-          albedo: "1 1 1"
+          rgb_refl: "1 1 1"
     - shape: "de_sphere"
       radius: 0.5
       transform:
@@ -39,7 +39,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.4
-          albedo: "1 1 1"
+          rgb_refl: "1 1 1"
     - shape: "de_sphere"
       radius: 0.5
       transform:
@@ -48,7 +48,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.4
-          albedo: "1 1 1"
+          rgb_refl: "1 1 1"
     - shape: "de_sphere"
       radius: 0.5
       transform:
@@ -57,7 +57,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.4
-          albedo: "1 1 1"
+          rgb_refl: "1 1 1"
     - shape: "de_sphere"
       radius: 0.5
       transform:
@@ -66,7 +66,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.4
-          albedo: "1 1 1"
+          rgb_refl: "1 1 1"
     - shape: "de_quad" # bottom plane
       a: "-5 0 5"
       b: "5 0 5"
@@ -76,7 +76,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.4
-          albedo: "0.7 0.7 0.7"
+          rgb_refl: "0.7 0.7 0.7"
     - shape: "de_quad" # back plane
       a: "-5 0 5"
       b: "5 0 5"
@@ -91,7 +91,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.05
-          albedo: "1 1 1"
+          rgb_refl: "1 1 1"
     - shape: "de_quad" # left plane
       a: "-5 0 5"
       b: "5 0 5"
@@ -106,7 +106,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.6
-          albedo: "1 0.2 0.2"
+          rgb_refl: "1 0.2 0.2"
     - shape: "de_quad" # right plane
       a: "-5 0 5"
       b: "5 0 5"
@@ -121,7 +121,7 @@ scene:
         ggx:
           emittance: "0 0 0"
           roughness: 0.6
-          albedo: "0.2 0.2 1"
+          rgb_refl: "0.2 0.2 1"
     - shape: "de_quad" # light
       a: "-5 0 5"
       b: "5 0 5"
