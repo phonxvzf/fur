@@ -29,7 +29,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
-      if (lt.transport == REFLECT && (omega_in + omega_out).is_zero()) return rgb_spectrum(0);
+      if ((omega_in + omega_out).is_zero()) return rgb_spectrum(lt.transport == REFRACT);
 
       const normal3f normal = (lt.transport == REFLECT) ? normal3f(0, 1, 0) : normal3f(0, -1, 0);
       const normal3f mf_normal = (lt.transport == REFLECT) ? (omega_in + omega_out).normalized()
@@ -37,9 +37,8 @@ namespace tracer {
         : (eta_t * omega_in + eta_i * omega_out).normalized();
 
       const Float n_dot_m   = absdot(normal, mf_normal);
-      const Float out_dot_n = absdot(omega_out, normal);
       const Float in_dot_n  = absdot(omega_out, normal);
-      if (COMPARE_EQ(n_dot_m, 0) || COMPARE_EQ(out_dot_n, 0)) return rgb_spectrum(0);
+      if (COMPARE_EQ(n_dot_m, 0)) return rgb_spectrum(0);
 
       // Smith geometry term G = G1_in * G1_out
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
