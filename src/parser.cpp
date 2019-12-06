@@ -9,6 +9,7 @@
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
 #include "tracer/shapes/de_quad.hpp"
+#include "tracer/shapes/de_triangle.hpp"
 #include "tracer/materials/ggx.hpp"
 
 parser::parser() {}
@@ -253,6 +254,15 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
         parse_vector3f(attr, "b"),
         parse_vector3f(attr, "c"),
         parse_vector3f(attr, "d")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "de_triangle") {
+    tracer::shape* shape = new tracer::shapes::de_triangle(
+        tf,
+        surface,
+        parse_vector3f(attr, "a"),
+        parse_vector3f(attr, "b"),
+        parse_vector3f(attr, "c")
         );
     return std::shared_ptr<tracer::shape>(shape);
   }

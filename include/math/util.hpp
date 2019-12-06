@@ -17,6 +17,16 @@ namespace math {
   extern const Float PI_OVER_TWO;
   extern const Float PI_OVER_FOUR;
 
+  template <typename T>
+    inline T max3(T a, T b, T c) {
+      return std::max(a, std::max(b, c));
+    }
+
+  template <typename T>
+    inline T min3(T a, T b, T c) {
+      return std::min(a, std::min(b, c));
+    }
+
   inline Float max0(Float x) {
     return std::max(Float(0), x);
   }
@@ -158,6 +168,24 @@ namespace math {
     const Float r0 = pow2((eta_i - eta_t) / (eta_i + eta_t));
     return r0 + (1 - r0) * pow5(1 - absdot(omega, mf_normal));
   }
+
+  template <typename T>
+    inline point3<T> minp3(const point3<T>& p1, const point3<T>& p2) {
+      return {
+        std::min(p1.x, p2.x),
+        std::min(p1.y, p2.y),
+        std::min(p1.z, p2.z)
+      };
+    }
+
+  template <typename T>
+    inline point3<T> maxp3(const point3<T>& p1, const point3<T>& p2) {
+      return {
+        std::max(p1.x, p2.x),
+        std::max(p1.y, p2.y),
+        std::max(p1.z, p2.z)
+      };
+    }
 }
 
 #endif /* MATH_UTIL_HPP */
