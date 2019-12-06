@@ -19,8 +19,8 @@ _This project is currently in progress._
 - CMake >= 3.7
 - A sane GNU/Linux environment
 - C++ compiler with C++14 support (most compilers support this)
-- OpenEXR library
-- yaml-cpp library
+- OpenEXR >= 2.4.0
+- yaml-cpp >= 0.6.3
 
 ## Building
 ```
@@ -65,5 +65,6 @@ Please see `example_scene.yaml` for references.
 
 ## TODOs
 - Triangle meshes
-- Subsurface scattering
-- Environment map & IBL
+- Path-traced subsurface scattering
+- 2-pass bipole subsurface scattering
+
