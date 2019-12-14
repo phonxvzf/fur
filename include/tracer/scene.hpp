@@ -23,6 +23,7 @@ namespace tracer {
     uint64_t  seed          = 0;
     point3f   eye_position  = point3f(0.0f);
     bool      show_depth    = false;
+    bool      show_normal   = false;
     int       max_bounce    = 1;
     size_t    sspp          = 1;
     Float     max_rr        = 0.5;

@@ -71,7 +71,7 @@ namespace tracer {
     ray sray(tf_world_to_shape(r).normalized());
 
     if (med == INSIDE) {
-      sray.origin += r.dir * 2 * bounds().diagonal();
+      sray.origin += r.dir * 2 * bounds().diagonal().size();
       sray.dir = -r.dir;
     }
 

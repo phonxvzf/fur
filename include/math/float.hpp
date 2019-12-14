@@ -18,6 +18,14 @@ namespace math {
     return std::abs(x - y) < FLOAT_TOLERANT;
   }
 
+  inline bool COMPARE_EQ(Float x, Float y, Float eps) {
+    return std::abs(x - y) < eps;
+  }
+
+  inline bool COMPARE_LEQ(Float x, Float y) {
+    return COMPARE_EQ(x, y) || (x < y);
+  }
+
   inline Float clamp(Float x, Float min, Float max) {
     return std::min(max, std::max(min, x));
   }

@@ -27,6 +27,11 @@ namespace math {
       return std::min(a, std::min(b, c));
     }
 
+  template <typename T>
+    inline bool in_range(T x, T a, T b) {
+      return (a <= x) && (x <= b);
+    }
+
   inline Float max0(Float x) {
     return std::max(Float(0), x);
   }

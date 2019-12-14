@@ -56,6 +56,7 @@ namespace tracer {
       intersect_shapes(r, params.intersect_options, last_shape, prev_lt);
 
     if (result.object == nullptr) return rgb_spectrum(0);
+    if (params.show_normal) return rgb_spectrum(result.normal.x, result.normal.y, result.normal.z);
     if (params.show_depth) return rgb_spectrum(result.t_hit);
 
     switch (result.object->surface->transport_model) {
@@ -78,7 +79,7 @@ namespace tracer {
     const vector3f omega_out(from_tangent_space.t().dot(-r.dir));
     vector3f omega_in;
 
-    const material::light_transport lt =
+    const material::light_transport next_lt =
       result.object->surface->sample(
           &omega_in,
           omega_out,
@@ -88,35 +89,15 @@ namespace tracer {
           );
 
     const ray r_next(result.hit_point, from_tangent_space.dot(omega_in), r.t_max);
-    const rgb_spectrum color = (lt.transport == material::REFLECT) ?
+    const rgb_spectrum color = (next_lt.transport == material::REFLECT) ?
       result.object->surface->rgb_refl : result.object->surface->rgb_refr;
 
     // Russian roulette path termination
     const Float rr_prob = std::min(params.max_rr, 1 - color.max());
     if (rng.next_uf() < rr_prob) return rgb_spectrum(0);
 
-    material::light_transport next_lt;
-    if (prev_lt.med == INSIDE) {
-      if (lt.transport == material::REFRACT) {
-        next_lt.transport = material::REFLECT;
-        next_lt.med = OUTSIDE;
-      } else {
-        // TIR
-        next_lt.transport = material::REFLECT;
-        next_lt.med = INSIDE;
-      }
-    } else {
-      if (lt.transport == material::REFRACT) {
-        next_lt.transport = material::REFRACT;
-        next_lt.med = INSIDE;
-      } else {
-        next_lt.transport = material::REFLECT;
-        next_lt.med = OUTSIDE;
-      }
-    }
-
     return result.object->surface->emittance
-      + result.object->surface->weight(omega_in, omega_out, lt)
+      + result.object->surface->weight(omega_in, omega_out, next_lt)
       * trace_path(params, r_next, result.object, next_lt, sample, bounce + 1) / (1 - rr_prob);
   }
 
@@ -125,6 +106,7 @@ namespace tracer {
     job j;
     const Float inv_spp = Float(1) / params.spp;
     std::vector<point2f> stratified_samples;
+    const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.spp;
 
     while (master.get_job(&j)) {
       const vector2i start = j.start;
@@ -135,7 +117,7 @@ namespace tracer {
           rgb_spectrum rgb_pixel(0.0f);
           const int i = params.img_res.x * y + x;
 
-          for (size_t n_samples = 0; n_samples < params.spp; ++n_samples) {
+          for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             rgb_spectrum rgb(0.0f);
             const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf()).normalized();
             sampler::sample_stratified_2d(stratified_samples, params.sspp, n_strata, rng);
@@ -149,7 +131,7 @@ namespace tracer {
 
           ird_rgb->at(i) = rgb_pixel;
 
-          if (!params.show_depth) {
+          if (!params.show_depth && !params.show_normal) {
             ird_rgb->at(i) = ird_rgb->at(i) * inv_spp;
           }
 

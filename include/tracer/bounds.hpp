@@ -2,6 +2,7 @@
 #define TRACER_BOUNDS_HPP
 
 #include "math/vector.hpp"
+#include "ray.hpp"
 
 namespace tracer {
   using namespace math;
@@ -91,8 +92,8 @@ namespace tracer {
         return width_x() <= 0 || width_y() <= 0 || width_z() <= 0;
       }
 
-      Float diagonal() const {
-        return (p_max - p_min).size();
+      vector3f diagonal() const {
+        return p_max - p_min;
       }
 
       bounds3<T> merge(const bounds3<T>& other) const {

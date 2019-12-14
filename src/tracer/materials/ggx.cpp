@@ -9,12 +9,13 @@ namespace tracer {
         const vector3f& omega,
         Float alpha2) const
     {
-      Float cos2 = pow2(omega.dot(normal));
+      Float dot = omega.dot(normal);
+      Float dotm = omega.dot(mf_normal);
+      if (COMPARE_LEQ(dot * dotm, 0)) return 0;
+      Float cos2 = pow2(dot);
       if (COMPARE_EQ(cos2, 0)) return 0;
       Float tan2 = 1 / cos2 - 1;
-      Float dot = omega.dot(normal);
-      if (COMPARE_EQ(dot, 0)) return 0;
-      return chi_plus(omega.dot(mf_normal) / dot) * 2 / (1 + std::sqrt(1 + alpha2 * tan2));
+      return chi_plus(dotm / dot) * 2 / (1 + std::sqrt(1 + alpha2 * tan2));
     }
 
     Float ggx::distribution(const normal3f& normal, const normal3f& mf_normal) const {
@@ -38,13 +39,14 @@ namespace tracer {
 
       const Float n_dot_m   = absdot(normal, mf_normal);
       const Float in_dot_n  = absdot(omega_out, normal);
-      if (COMPARE_EQ(n_dot_m, 0)) return rgb_spectrum(0);
+      const Float denom = n_dot_m * in_dot_n;
+      if (COMPARE_EQ(denom, 0)) return rgb_spectrum(0);
 
       // Smith geometry term G = G1_in * G1_out
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      return (absdot(omega_in, mf_normal) * G / (in_dot_n * n_dot_m))
+      return (absdot(omega_in, mf_normal) * G / denom)
         * (lt.transport == REFLECT ? rgb_refl : rgb_refr);
     }
 
@@ -68,12 +70,13 @@ namespace tracer {
 
         // check for external & internal reflection
         const vector3f refl = reflect(omega_out, m);
-        if (xi < fresnel_schlick(refl, m, eta_t_chk, eta_i_chk)) {
+        if (xi < fresnel(refl, m, eta_t_chk, eta_i_chk)) {
           *omega_in = refl;
           return { REFLECT, lt.med };
         }
 
-        *omega_in = refract(omega_out, { 0, 1, 0 }, m, eta_t_chk / eta_i_chk);
+        *omega_in = COMPARE_EQ(eta_i_chk, eta_t_chk) ?
+          -omega_out : refract(omega_out, { 0, 1, 0 }, m, eta_t_chk / eta_i_chk);
         return { REFRACT, medium(lt.med ^ 1) };
       }
 
