@@ -19,7 +19,7 @@
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
 #include "tracer/scene.hpp"
-#include "tracer/point_light.hpp"
+#include "tracer/bvh_tree.hpp"
 #include "parser.hpp"
 
 using namespace tracer;
@@ -185,7 +185,7 @@ int main(int argc, char** argv) {
   render_profile profile;
 
   // render
-  std::wcout << L"* Rendering scene with " << main_scene->shapes.size()
+  std::wcout << L"* Rendering scene with " << main_scene->shapes.n_shapes()
     << L" shapes..." << std::endl;
 
   auto ird_rgb = main_scene->render(

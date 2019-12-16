@@ -16,6 +16,7 @@ namespace math {
   extern const Float INV_FOUR_PI;
   extern const Float PI_OVER_TWO;
   extern const Float PI_OVER_FOUR;
+  extern const Float SQRT_TWO;
 
   template <typename T>
     inline T max3(T a, T b, T c) {

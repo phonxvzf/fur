@@ -332,8 +332,6 @@ std::shared_ptr<tracer::scene> parser::load_scene(
 {
   YAML::Node root = YAML::LoadFile(file);
 
-  auto empty_scene = std::make_shared<tracer::scene>();
-
   // render options
   if (root["render"].IsDefined()) {
     YAML::Node render_config = root["render"];
@@ -386,14 +384,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
   if (root["scene"].IsDefined()) {
     YAML::Node scene_config = root["scene"];
 
-    if (scene_config["camera"].IsDefined()) {
-      empty_scene->camera = parse_camera(
-          scene_config["camera"], params->img_res, &params->eye_position
-          );
-    } else {
-      throw parsing_error(scene_config.Mark().line, "`camera' must be specified");
-    }
-
+    std::vector<std::shared_ptr<tracer::shape>> shapes;
     if (scene_config["objects"].IsDefined()) {
       YAML::Node object_node = scene_config["objects"];
       if (object_node.IsSequence()) {
@@ -401,7 +392,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
           YAML::Node object = object_node[i];
           if (object["shape"].IsDefined()) {
             std::string shape_name = object["shape"].as<std::string>();
-            empty_scene->shapes.push_back(parse_shape(object, shape_name));
+            shapes.push_back(parse_shape(object, shape_name));
           } else {
             throw parsing_error(
                 object_node.Mark().line,
@@ -413,9 +404,19 @@ std::shared_ptr<tracer::scene> parser::load_scene(
         throw parsing_error(object_node.Mark().line, "`objects' must be a sequence");
       }
     }
-  } else {
-    throw parsing_error(root.Mark().line, "no `scene' defined");
+
+    auto main_scene = std::make_shared<tracer::scene>(shapes);
+
+    if (scene_config["camera"].IsDefined()) {
+      main_scene->camera = parse_camera(
+          scene_config["camera"], params->img_res, &params->eye_position
+          );
+    } else {
+      throw parsing_error(scene_config.Mark().line, "`camera' must be specified");
+    }
+
+    return main_scene;
   }
 
-  return empty_scene;
+  throw parsing_error(root.Mark().line, "no `scene' defined");
 }

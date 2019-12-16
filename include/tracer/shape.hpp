@@ -24,7 +24,7 @@ namespace tracer {
       };
 
       struct intersect_result {
-        Float     t_hit;
+        Float     t_hit = std::numeric_limits<Float>::max();
         point3f   hit_point;
         normal3f  normal;
         const shape* object = nullptr;
@@ -39,6 +39,7 @@ namespace tracer {
       shape(const shape& cpy);
 
       virtual bounds3f bounds() const = 0;
+      bounds3f world_bounds() const;
 
       virtual bool intersect(
           const ray& r,

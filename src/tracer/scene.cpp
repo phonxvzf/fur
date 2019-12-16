@@ -14,11 +14,10 @@ namespace tracer {
   shape::intersect_result scene::intersect_shapes(
       const ray& r,
       const shape::intersect_opts& options,
-      const tracer::shape* ignored_shape,
+      const shape* ignored_shape,
       const material::light_transport& lt
       ) const
   {
-    // TODO: scene graph, BVH
     if (ignored_shape) {
       if (lt.med == INSIDE) {
         shape::intersect_result result;
@@ -27,18 +26,8 @@ namespace tracer {
       }
     }
 
-    Float t_min = std::numeric_limits<Float>::max();
     shape::intersect_result result_seen;
-    for (const std::shared_ptr<shape>& object : shapes) {
-      if (object.get() == ignored_shape) continue;
-      shape::intersect_result result;
-      if (object->intersect(r, options, lt.med, &result)) {
-        if (result.t_hit > 0 && result.t_hit < t_min) {
-          t_min = result.t_hit;
-          result_seen = result;
-        }
-      }
-    }
+    shapes.intersect(r, options, ignored_shape, lt.med, &result_seen);
     return result_seen;
   }
 

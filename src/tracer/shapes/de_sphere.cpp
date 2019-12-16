@@ -1,4 +1,5 @@
 #include "tracer/shapes/de_sphere.hpp"
+#include "math/util.hpp"
 
 namespace tracer {
   namespace shapes {
@@ -25,7 +26,7 @@ namespace tracer {
     }
 
     bounds3f de_sphere::bounds() const {
-      return bounds3f(-point3f(radius), point3f(radius));
+      return bounds3f(-point3f(SQRT_TWO * radius), point3f(SQRT_TWO * radius));
     }
   }
 }

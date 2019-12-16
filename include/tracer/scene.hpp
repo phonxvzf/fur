@@ -11,6 +11,7 @@
 #include "tracer/shape.hpp"
 #include "tracer/light_source.hpp"
 #include "tracer/camera.hpp"
+#include "tracer/bvh_tree.hpp"
 #include "job_master.hpp"
 
 namespace tracer {
@@ -79,15 +80,13 @@ namespace tracer {
       std::chrono::system_clock::time_point render_start;
 
     public:
-      // TODO: store shapes in a scene graph
-      std::vector<std::shared_ptr<shape>> shapes;
-      std::vector<std::shared_ptr<light_source>> light_sources;
+      bvh_tree shapes;
 
       std::shared_ptr<camera::camera> camera;
 
-      scene() {}
+      scene(const std::vector<std::shared_ptr<shape>>& shapes) : shapes(shapes) {}
       scene(const scene& cpy)
-        : shapes(cpy.shapes), light_sources(cpy.light_sources), camera(cpy.camera) {}
+        : shapes(cpy.shapes), camera(cpy.camera) {}
 
       std::shared_ptr<std::vector<rgb_spectrum>> render(
           const render_params& params,

@@ -12,7 +12,7 @@ namespace tracer {
       point2<T> p_min, p_max;
 
       bounds2(const point2<T>& p_min, const point2<T>& p_max) : p_min(p_min), p_max(p_max) {}
-      bounds2(const point2<T>& p) : p_min(p), p_max(p) {}
+      bounds2(const point2<T>& p = 0) : p_min(p), p_max(p) {}
 
       bounds2& operator=(const bounds2& cpy) {
         p_min = cpy.p_min;
@@ -40,6 +40,19 @@ namespace tracer {
         return width() * height();
       }
 
+      point2f centroid() const {
+        return 0.5f * (p_max + p_min);
+      }
+
+      vector2f diagonal() const {
+        return p_max - p_min;
+      }
+
+      T longest() const {
+        vector2f dd = diagonal();
+        return std::max(dd.x, dd.y);
+      }
+
       bool invalid() const {
         return width() <= 0 || height() <= 0;
       }
@@ -64,7 +77,7 @@ namespace tracer {
       point3<T> p_min, p_max;
 
       bounds3(const point3<T>& p_min, const point3<T>& p_max) : p_min(p_min), p_max(p_max) {}
-      bounds3(const point3<T>& p) : p_min(p), p_max(p) {}
+      bounds3(const point3<T>& p = 0) : p_min(p), p_max(p) {}
       
       bounds3& operator=(const bounds3& cpy) {
         p_min = cpy.p_min;
@@ -88,12 +101,30 @@ namespace tracer {
         return width_x() * width_y() * width_z();
       }
 
+      point3f centroid() const {
+        return 0.5f * (p_max + p_min);
+      }
+
       bool invalid() const {
         return width_x() <= 0 || width_y() <= 0 || width_z() <= 0;
       }
 
       vector3f diagonal() const {
         return p_max - p_min;
+      }
+
+      T longest() const {
+        vector3f dd = diagonal();
+        return std::max(dd.x, std::max(dd.y, dd.z));
+      }
+
+      T which_longest() const {
+        vector3f dd = diagonal();
+        int i = 0;
+        if (dd[0] > dd[i]) i = 0;
+        if (dd[1] > dd[i]) i = 1;
+        if (dd[2] > dd[i]) i = 2;
+        return i;
       }
 
       bounds3<T> merge(const bounds3<T>& other) const {

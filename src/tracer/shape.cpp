@@ -18,6 +18,11 @@ namespace tracer {
     tf_world_to_shape(cpy.tf_world_to_shape),
     surface(cpy.surface) {}
 
+  bounds3f shape::world_bounds() const {
+    // TODO: cache this
+    return tf_shape_to_world(bounds());
+  }
+
   bool shape::intersect(
       const ray& r,
       const intersect_opts& options,
@@ -71,7 +76,7 @@ namespace tracer {
     ray sray(tf_world_to_shape(r).normalized());
 
     if (med == INSIDE) {
-      sray.origin += r.dir * 2 * bounds().diagonal().size();
+      sray.origin = sray(2 * bounds().diagonal().size());
       sray.dir = -r.dir;
     }
 

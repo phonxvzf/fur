@@ -6,15 +6,49 @@
 namespace tracer {
   class bvh_tree {
     private:
-
       struct bvh_node {
         bounds3f bounds;
-        bvh_node* children[2];
-        std::shared_ptr<shape> shapes[2];
+        std::shared_ptr<bvh_node> children[2] = { nullptr, nullptr };
+        std::vector<std::shared_ptr<shape>> shapes;
       };
 
+      std::shared_ptr<bvh_node> root;
+
+      std::shared_ptr<bvh_node> construct_tree(
+          std::vector<std::shared_ptr<shape>>& shapes,
+          int start,
+          int end
+          );
+
+      bool intersect_bounds(
+          const ray& r,
+          const bounds3f& bounds,
+          const shape::intersect_opts& options
+          ) const;
+
+      size_t n_shapes(const std::shared_ptr<bvh_node>& node) const;
+      
+      bool intersect(
+          const std::shared_ptr<bvh_node>& node,
+          const ray& r,
+          const shape::intersect_opts& options,
+          const shape* ignored_shape,
+          material::medium med,
+          shape::intersect_result* result
+          ) const;
+
     public:
-      bvh_tree(const std::vector<std::shared_ptr<shape>>& shapes);
+      bvh_tree(std::vector<std::shared_ptr<shape>> shapes);
+
+      size_t n_shapes() const;
+
+      bool intersect(
+          const ray& r,
+          const shape::intersect_opts& options,
+          const shape* ignored_shape,
+          material::medium med,
+          shape::intersect_result* result
+          ) const;
   };
 }
 
