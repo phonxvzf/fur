@@ -224,6 +224,10 @@ namespace math {
           return *this / sz;
         }
 
+        vector2 inverse() const {
+          return { 1.f / x, 1.f / y };
+        }
+
         std::string to_string() const {
           return "[ " + std::to_string(x) + " " + std::to_string(y) + " ]";
         }
@@ -383,6 +387,10 @@ namespace math {
           Float sz = this->size();
           ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
+        }
+
+        vector3 inverse() const {
+          return { 1.f / x, 1.f / y, 1.f / z };
         }
 
         std::string to_string() const {
@@ -571,6 +579,10 @@ namespace math {
           Float sz = this->size();
           ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
+        }
+
+        vector4 inverse() const {
+          return { 1.f / x, 1.f / y, 1.f / z, 1.f / w };
         }
 
         std::string to_string() const {

@@ -9,14 +9,14 @@ namespace tracer {
       const tf::transform& shape_to_world,
       const std::shared_ptr<material>& surface
       )
-    : tf_shape_to_world(shape_to_world),
-    tf_world_to_shape(shape_to_world.inverse()),
-    surface(surface) {}
+    : surface(surface),
+    tf_shape_to_world(shape_to_world),
+    tf_world_to_shape(shape_to_world.inverse()) {}
 
   shape::shape(const shape& cpy)
-    : tf_shape_to_world(cpy.tf_shape_to_world),
-    tf_world_to_shape(cpy.tf_world_to_shape),
-    surface(cpy.surface) {}
+    : surface(cpy.surface),
+    tf_shape_to_world(cpy.tf_shape_to_world),
+    tf_world_to_shape(cpy.tf_world_to_shape) {}
 
   bounds3f shape::world_bounds() const {
     // TODO: cache this
@@ -29,7 +29,12 @@ namespace tracer {
       material::medium med,
       intersect_result* result) const
   {
-    return false;
+    ray sray(tf_world_to_shape(r).normalized());
+    if (med == INSIDE) {
+      sray.origin = sray(2 * bounds().diagonal().size());
+      sray.dir = -r.dir;
+    }
+    return intersect_shape(sray, options, result);
   }
 
   destimator::destimator(
@@ -66,38 +71,30 @@ namespace tracer {
     return calculate_normal(p, delta, default_normal);
   }
 
-  bool destimator::intersect(
+  bool destimator::intersect_shape(
       const ray& r,
       const intersect_opts& options,
-      material::medium med,
       intersect_result* result
       ) const
   {
-    ray sray(tf_world_to_shape(r).normalized());
-
-    if (med == INSIDE) {
-      sray.origin = sray(2 * bounds().diagonal().size());
-      sray.dir = -r.dir;
-    }
-
     Float t = 0;
     for (int i = 0; i < options.trace_max_iters; ++i) {
-      const point3f phit = sray(t);
+      const point3f phit = r(t);
       const Float dist = distance_function(phit);
       if (dist < options.hit_epsilon) {
         if (result != nullptr) {
           result->t_hit = t;
           result->hit_point = tf_shape_to_world(phit);
           result->normal = tf_shape_to_world(
-              calculate_normal(phit, options.normal_delta, sray, normal3f(0, 1, 0))
-              );
+              calculate_normal(phit, options.normal_delta, r, normal3f(0, 1, 0))
+              ).normalized();
           result->object = this;
         }
         return true;
       }
 
       t += dist;
-      if (t >= sray.t_max) {
+      if (t >= r.t_max) {
         break;
       }
     }

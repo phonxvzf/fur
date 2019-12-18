@@ -8,19 +8,13 @@
 #include "tracer/material.hpp"
 
 namespace tracer {
-
   class shape {
-    protected:
-      const tf::transform tf_shape_to_world;
-      const tf::transform tf_world_to_shape;
-
     public:
       struct intersect_opts {
-        Float hit_epsilon;
-        Float normal_delta;
-        int trace_max_iters;
-
-        intersect_opts() : hit_epsilon(1e-4), normal_delta(1e-4), trace_max_iters(1000) {}
+        Float hit_epsilon     = 1e-4;
+        Float bias_epsilon    = 1e-4;
+        Float normal_delta    = 1e-4;
+        int trace_max_iters   = 1000;
       };
 
       struct intersect_result {
@@ -47,6 +41,16 @@ namespace tracer {
           material::medium med,
           intersect_result* result
           ) const;
+
+    protected:
+      const tf::transform tf_shape_to_world;
+      const tf::transform tf_world_to_shape;
+
+      virtual bool intersect_shape(
+          const ray& r,
+          const intersect_opts& options,
+          intersect_result* result
+          ) const = 0;
   };
 
   class destimator : public shape {
@@ -66,18 +70,17 @@ namespace tracer {
 
       virtual Float distance_function(const point3f& p) const = 0;
 
+      bool intersect_shape(
+          const ray& r,
+          const intersect_opts& options,
+          intersect_result* result)
+        const override;
+
     public:
       destimator(
           const tf::transform& shape_to_world,
           const std::shared_ptr<material>& surface
           );
-
-      bool intersect(
-          const ray& r,
-          const intersect_opts& options,
-          material::medium med,
-          intersect_result* result)
-        const override;
   };
 }
 

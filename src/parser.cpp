@@ -11,6 +11,9 @@
 #include "tracer/shapes/de_quad.hpp"
 #include "tracer/shapes/de_triangle.hpp"
 #include "tracer/shapes/de_box.hpp"
+#include "tracer/shapes/sphere.hpp"
+#include "tracer/shapes/quad.hpp"
+#include "tracer/shapes/triangle.hpp"
 #include "tracer/materials/ggx.hpp"
 
 parser::parser() {}
@@ -273,11 +276,33 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
         parse_vector3f(attr, "b")
         );
     return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "sphere") {
+    tracer::shape* shape = new tracer::shapes::sphere(tf, surface, parse_float(attr, "radius"));
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "quad") {
+    tracer::shape* shape = new tracer::shapes::quad(
+        tf,
+        surface,
+        parse_vector3f(attr, "a"),
+        parse_vector3f(attr, "b"),
+        parse_vector3f(attr, "c"),
+        parse_vector3f(attr, "d")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "triangle") {
+    tracer::shape* shape = new tracer::shapes::triangle(
+        tf,
+        surface,
+        parse_vector3f(attr, "a"),
+        parse_vector3f(attr, "b"),
+        parse_vector3f(attr, "c")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
   }
 
   throw parsing_error(attr["shape"].Mark().line, "unknown shape `" + name + "'");
 }
-    
+
 std::shared_ptr<tracer::camera::camera> parser::parse_camera(
     const YAML::Node& cam_node, const math::vector2i& img_res, math::point3f* eye_position)
 {
@@ -371,6 +396,9 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     YAML::Node intersect_config = root["intersect"];
     if (intersect_config["hit_epsilon"].IsDefined()) {
       params->intersect_options.hit_epsilon = parse_float(intersect_config, "hit_epsilon");
+    }
+    if (intersect_config["bias_epsilon"].IsDefined()) {
+      params->intersect_options.bias_epsilon = parse_float(intersect_config, "bias_epsilon");
     }
     if (intersect_config["normal_delta"].IsDefined()) {
       params->intersect_options.normal_delta = parse_float(intersect_config, "normal_delta");

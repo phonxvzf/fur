@@ -66,15 +66,18 @@ namespace tracer {
     return node;
   }
 
-  bool bvh_tree::intersect_bounds(
-      const ray& r,
-      const bounds3f& bounds,
-      const shape::intersect_opts& options
-      ) const
-  {
-    vector3f b = 0.5f * bounds.diagonal();
-    shapes::de_box box(tf::translate(bounds.p_min + b), nullptr, b);
-    return box.intersect(r, options, OUTSIDE, nullptr);
+  bool bvh_tree::intersect_bounds(const ray& r, const bounds3f& bounds) const {
+    // ray r is in world space
+    Float t1 = (bounds.p_min.x - r.origin.x) * r.inv_dir.x;
+    Float t2 = (bounds.p_max.x - r.origin.x) * r.inv_dir.x;
+    Float t3 = (bounds.p_min.y - r.origin.y) * r.inv_dir.y;
+    Float t4 = (bounds.p_max.y - r.origin.y) * r.inv_dir.y;
+    Float t5 = (bounds.p_min.z - r.origin.z) * r.inv_dir.z;
+    Float t6 = (bounds.p_max.z - r.origin.z) * r.inv_dir.z;
+    Float t_min = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
+    Float t_max = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
+    if (t_max < 0 || t_min > t_max) return false;
+    return true;
   }
 
   size_t bvh_tree::n_shapes(const std::shared_ptr<bvh_node>& node) const {
@@ -89,40 +92,36 @@ namespace tracer {
   bool bvh_tree::intersect(
       const ray& r,
       const shape::intersect_opts& options,
-      const shape* ignored_shape,
       material::medium med,
       shape::intersect_result* result
       ) const
   {
-    return intersect(root, r, options, ignored_shape, med, result);
+    return intersect(root, r, options, med, result);
   }
 
   bool bvh_tree::intersect(
       const std::shared_ptr<bvh_node>& node,
       const ray& r,
       const shape::intersect_opts& options,
-      const shape* ignored_shape,
       material::medium med,
       shape::intersect_result* result
       ) const
   {
-    if (!intersect_bounds(r, node->bounds, options)) return false;
+    if (!intersect_bounds(r, node->bounds)) return false;
 
     bool hit = false;
     if (node->shapes.size() > 0) {
       for (size_t i = 0; i < node->shapes.size(); ++i) {
-        if (node->shapes[i].get() != ignored_shape) {
-          shape::intersect_result inner_result;
-          hit = node->shapes[i]->intersect(r, options, med, &inner_result);
-          if (hit && (inner_result.t_hit < result->t_hit)) *result = inner_result;
-        }
+        shape::intersect_result inner_result;
+        hit = node->shapes[i]->intersect(r, options, med, &inner_result);
+        if (hit && (inner_result.t_hit < result->t_hit)) *result = inner_result;
       }
     }
 
     if (node->children[0])
-      hit |= intersect(node->children[0], r, options, ignored_shape, med, result);
+      hit |= intersect(node->children[0], r, options, med, result);
     if (node->children[1])
-      hit |= intersect(node->children[1], r, options, ignored_shape, med, result);
+      hit |= intersect(node->children[1], r, options, med, result);
 
     return hit;
   }

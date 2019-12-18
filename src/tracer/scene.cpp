@@ -27,7 +27,7 @@ namespace tracer {
     }
 
     shape::intersect_result result_seen;
-    shapes.intersect(r, options, ignored_shape, lt.med, &result_seen);
+    shapes.intersect(r, options, lt.med, &result_seen);
     return result_seen;
   }
 
@@ -77,7 +77,11 @@ namespace tracer {
           rng.next_uf()
           );
 
-    const ray r_next(result.hit_point, from_tangent_space.dot(omega_in), r.t_max);
+    const ray r_next(
+        result.hit_point + params.intersect_options.bias_epsilon * result.normal,
+        from_tangent_space.dot(omega_in),
+        r.t_max
+        );
     const rgb_spectrum color = (next_lt.transport == material::REFLECT) ?
       result.object->surface->rgb_refl : result.object->surface->rgb_refr;
 
