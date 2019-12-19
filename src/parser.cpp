@@ -1,5 +1,3 @@
-#include <vector>
-
 #include "parser.hpp"
 #include "math/util.hpp"
 #include "tracer/point_light.hpp"
@@ -15,6 +13,7 @@
 #include "tracer/shapes/quad.hpp"
 #include "tracer/shapes/triangle.hpp"
 #include "tracer/materials/ggx.hpp"
+#include "tracer/model.hpp"
 
 parser::parser() {}
 
@@ -303,6 +302,18 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
   throw parsing_error(attr["shape"].Mark().line, "unknown shape `" + name + "'");
 }
 
+void parser::parse_model(
+    std::vector<std::shared_ptr<tracer::shape>>& shapes,
+    const YAML::Node& model_node
+    )
+{
+  math::tf::transform tf = parse_transform(model_node["transform"]);
+  std::shared_ptr<tracer::material> surface = parse_material(model_node["material"]);
+  tracer::model model(tf, surface, parse_string(model_node, "model"));
+
+  model.load(shapes);
+}
+
 std::shared_ptr<tracer::camera::camera> parser::parse_camera(
     const YAML::Node& cam_node, const math::vector2i& img_res, math::point3f* eye_position)
 {
@@ -421,6 +432,8 @@ std::shared_ptr<tracer::scene> parser::load_scene(
           if (object["shape"].IsDefined()) {
             std::string shape_name = object["shape"].as<std::string>();
             shapes.push_back(parse_shape(object, shape_name));
+          } else if (object["model"].IsDefined()) {
+            parse_model(shapes, object);
           } else {
             throw parsing_error(
                 object_node.Mark().line,
@@ -433,7 +446,9 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       }
     }
 
+    std::wcout << L"* Building scene containing " << shapes.size() << L" shapes..." << std::flush;
     auto main_scene = std::make_shared<tracer::scene>(shapes);
+    std::wcout << L" done" << std::endl;
 
     if (scene_config["camera"].IsDefined()) {
       main_scene->camera = parse_camera(

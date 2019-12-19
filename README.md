@@ -21,6 +21,7 @@ _This project is currently in progress._
 - C++ compiler with C++14 support (most compilers support this)
 - OpenEXR >= 2.4.0
 - yaml-cpp >= 0.6.3
+- Assimp >= 5.0.0
 
 ## Building
 ```

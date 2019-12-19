@@ -11,6 +11,7 @@ file(GLOB VECTOR_TEST_SOURCES "test/vector/*.cpp")
 
 find_package(yaml-cpp REQUIRED)
 find_package(OpenEXR REQUIRED)
+find_package(ASSIMP REQUIRED)
 
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -std=c++14 -pipe")
@@ -21,6 +22,6 @@ endif()
 
 add_executable(${BINARY} ${SOURCES})
 
-target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS})
+target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIRS})
 
-target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES} ${YAML_CPP_LIBRARIES})
+target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES} ${YAML_CPP_LIBRARIES} ${ASSIMP_LIBRARIES})

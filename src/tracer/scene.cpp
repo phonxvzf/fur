@@ -182,7 +182,7 @@ namespace tracer {
           );
     }
 
-    std::wcout << L"* Created " << params.n_workers << L" render workers" << std::endl;
+    std::wcout << L"  * Created " << params.n_workers << L" render workers" << std::endl;
 
     for (std::thread& worker : workers) {
       worker.join();

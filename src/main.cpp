@@ -185,8 +185,7 @@ int main(int argc, char** argv) {
   render_profile profile;
 
   // render
-  std::wcout << L"* Rendering scene with " << main_scene->shapes.n_shapes()
-    << L" shapes..." << std::endl;
+  std::wcout << L"* Rendering scene..." << std::endl;
 
   auto ird_rgb = main_scene->render(
       params, &profile, verbose ? &update_progress : nullptr
@@ -199,9 +198,9 @@ int main(int argc, char** argv) {
   if (profile.time_elapsed > 0) {
     wchar_t elapsed_str[16];
     format_duration(elapsed_str, profile.time_elapsed);
-    std::wcout << "* Total time of " << elapsed_str + 4 << std::endl;
+    std::wcout << "* Render time " << elapsed_str + 4 << std::endl;
   } else {
-    std::wcout << "* Total time of 0s" << std::endl;
+    std::wcout << "* Render time 0s" << std::endl;
   }
 
   // write to file

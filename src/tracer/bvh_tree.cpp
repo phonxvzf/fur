@@ -2,7 +2,7 @@
 #include "tracer/shapes/de_box.hpp"
 #include "math/util.hpp"
 
-#define MAX_SHAPES_PER_NODE (2)
+#define MAX_SHAPES_PER_NODE (4)
 
 namespace tracer {
   bvh_tree::bvh_tree(std::vector<std::shared_ptr<shape>> shapes) {
