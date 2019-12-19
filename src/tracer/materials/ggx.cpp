@@ -32,10 +32,12 @@ namespace tracer {
     {
       if ((omega_in + omega_out).is_zero()) return rgb_spectrum(lt.transport == REFRACT);
 
-      const normal3f normal = (lt.transport == REFLECT) ? normal3f(0, 1, 0) : normal3f(0, -1, 0);
+      Float eta_i_chk = eta_i, eta_t_chk = eta_t;
+      if (lt.med == INSIDE) std::swap(eta_i_chk, eta_t_chk);
+
+      const normal3f normal(0, 1, 0);
       const normal3f mf_normal = (lt.transport == REFLECT) ? (omega_in + omega_out).normalized()
-        : (lt.med == OUTSIDE) ? (eta_i * omega_in + eta_t * omega_out).normalized()
-        : (eta_t * omega_in + eta_i * omega_out).normalized();
+        : -(eta_i_chk * omega_in + eta_t_chk * omega_out).normalized();
 
       const Float n_dot_m   = absdot(normal, mf_normal);
       const Float in_dot_n  = absdot(omega_out, normal);

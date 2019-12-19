@@ -39,6 +39,10 @@ namespace math {
       normal2(const vector2<T>& v) : vector2<T>(v) {}
       normal2(T x = 0) : vector2<T>(x) {}
       normal2(T x, T y) : vector2<T>(x, y) {}
+
+      normal2 operator-() const {
+        return -1 * (*this);
+      }
   };
 
   template <typename T> class normal3 : public vector3<T> {
@@ -46,6 +50,10 @@ namespace math {
       normal3(const vector3<T>& v) : vector3<T>(v) {}
       normal3(T x = 0) : vector3<T>(x) {}
       normal3(T x, T y, T z) : vector3<T>(x, y, z) {}
+
+      normal3 operator-() const {
+        return -1 * (*this);
+      }
   };
 
   template <typename T> class normal4 : public vector4<T> {
@@ -53,6 +61,10 @@ namespace math {
       normal4(const vector4<T>& v) : vector4<T>(v) {}
       normal4(T x = 0) : vector4<T>(x) {}
       normal4(T x, T y, T z, T w) : vector4<T>(x, y, z, w) {}
+
+      normal4 operator-() const {
+        return -1 * (*this);
+      }
   };
 
   typedef vector2<Float>  vector2f;

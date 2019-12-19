@@ -19,9 +19,9 @@ namespace tracer {
       ) const
   {
     if (ignored_shape) {
-      if (lt.med == INSIDE) {
+      if (r.medium == INSIDE) {
         shape::intersect_result result;
-        ignored_shape->intersect(r, options, lt.med, &result);
+        ignored_shape->intersect(r, options, &result);
         return result;
       }
     }
@@ -60,9 +60,10 @@ namespace tracer {
     random::rng& rng = rngs[params.thread_id];
 
     vector3f u, v;
-    sampler::sample_orthogonals(result.normal, &u, &v, rng);
+    normal3f normal((prev_lt.med == OUTSIDE) ? result.normal : -result.normal);
+    sampler::sample_orthogonals(normal, &u, &v, rng);
 
-    const matrix3f from_tangent_space(u, result.normal, v);
+    const matrix3f from_tangent_space(u, normal, v);
 
     // omegas in tangent space
     const vector3f omega_out(from_tangent_space.t().dot(-r.dir));
@@ -78,9 +79,10 @@ namespace tracer {
           );
 
     const ray r_next(
-        result.hit_point + params.intersect_options.bias_epsilon * result.normal,
+        result.hit_point + params.intersect_options.bias_epsilon * normal,
         from_tangent_space.dot(omega_in),
-        r.t_max
+        r.t_max,
+        next_lt.med
         );
     const rgb_spectrum color = (next_lt.transport == material::REFLECT) ?
       result.object->surface->rgb_refl : result.object->surface->rgb_refr;

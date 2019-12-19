@@ -2,6 +2,7 @@
 #define TRACER_MATERIAL_HPP
 
 #include "spectrum.hpp"
+#include "math/util.hpp"
 
 namespace tracer {
   class material {

@@ -113,7 +113,7 @@ namespace tracer {
     if (node->shapes.size() > 0) {
       for (size_t i = 0; i < node->shapes.size(); ++i) {
         shape::intersect_result inner_result;
-        hit = node->shapes[i]->intersect(r, options, med, &inner_result);
+        hit = node->shapes[i]->intersect(r, options, &inner_result);
         if (hit && (inner_result.t_hit < result->t_hit)) *result = inner_result;
       }
     }

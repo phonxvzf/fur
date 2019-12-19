@@ -38,7 +38,6 @@ namespace tracer {
       virtual bool intersect(
           const ray& r,
           const intersect_opts& options,
-          material::medium med,
           intersect_result* result
           ) const;
 

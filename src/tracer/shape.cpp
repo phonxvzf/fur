@@ -26,15 +26,16 @@ namespace tracer {
   bool shape::intersect(
       const ray& r,
       const intersect_opts& options,
-      material::medium med,
       intersect_result* result) const
   {
     ray sray(tf_world_to_shape(r).normalized());
-    if (med == INSIDE) {
+    if (r.medium == INSIDE) {
       sray.origin = sray(2 * bounds().diagonal().size());
       sray.dir = -r.dir;
     }
-    return intersect_shape(sray, options, result);
+    const bool hit = intersect_shape(sray, options, result);
+    if (r.medium == INSIDE) result->normal = -result->normal;
+    return hit;
   }
 
   destimator::destimator(
