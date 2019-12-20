@@ -82,7 +82,8 @@ namespace math {
       return ray(
           tf::apply(tf_mat, r.origin),
           tf::apply(tf_mat, r.dir),
-          r.t_max * t_max_scale
+          r.t_max * t_max_scale,
+          r.medium
           );
     }
 

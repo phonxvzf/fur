@@ -28,14 +28,8 @@ namespace tracer {
       const intersect_opts& options,
       intersect_result* result) const
   {
-    ray sray(tf_world_to_shape(r).normalized());
-    if (r.medium == INSIDE) {
-      sray.origin = sray(2 * bounds().diagonal().size());
-      sray.dir = -r.dir;
-    }
-    const bool hit = intersect_shape(sray, options, result);
-    if (r.medium == INSIDE) result->normal = -result->normal;
-    return hit;
+    const ray sray(tf_world_to_shape(r).normalized());
+    return intersect_shape(sray, options, result);
   }
 
   destimator::destimator(

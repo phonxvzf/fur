@@ -14,18 +14,9 @@ namespace tracer {
   shape::intersect_result scene::intersect_shapes(
       const ray& r,
       const shape::intersect_opts& options,
-      const shape* ignored_shape,
       const material::light_transport& lt
       ) const
   {
-    if (ignored_shape) {
-      if (r.medium == INSIDE) {
-        shape::intersect_result result;
-        ignored_shape->intersect(r, options, &result);
-        return result;
-      }
-    }
-
     shape::intersect_result result_seen;
     shapes.intersect(r, options, lt.med, &result_seen);
     return result_seen;
@@ -34,15 +25,13 @@ namespace tracer {
   rgb_spectrum scene::trace_path(
       const render_params& params,
       const ray& r,
-      const tracer::shape* last_shape,
       const material::light_transport& prev_lt,
       const point2f& sample,
       int bounce)
   {
     if (bounce > params.max_bounce) return rgb_spectrum(0);
 
-    shape::intersect_result result = 
-      intersect_shapes(r, params.intersect_options, last_shape, prev_lt);
+    shape::intersect_result result = intersect_shapes(r, params.intersect_options, prev_lt);
 
     if (result.object == nullptr) return rgb_spectrum(0);
     if (params.show_normal) return rgb_spectrum(result.normal.x, result.normal.y, result.normal.z);
@@ -60,10 +49,9 @@ namespace tracer {
     random::rng& rng = rngs[params.thread_id];
 
     vector3f u, v;
-    normal3f normal((prev_lt.med == OUTSIDE) ? result.normal : -result.normal);
-    sampler::sample_orthogonals(normal, &u, &v, rng);
+    sampler::sample_orthogonals(result.normal, &u, &v, rng);
 
-    const matrix3f from_tangent_space(u, normal, v);
+    const matrix3f from_tangent_space(u, result.normal, v);
 
     // omegas in tangent space
     const vector3f omega_out(from_tangent_space.t().dot(-r.dir));
@@ -77,9 +65,9 @@ namespace tracer {
           sample,
           rng.next_uf()
           );
-
+    const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
     const ray r_next(
-        result.hit_point + params.intersect_options.bias_epsilon * normal,
+        result.hit_point + params.intersect_options.bias_epsilon * bias,
         from_tangent_space.dot(omega_in),
         r.t_max,
         next_lt.med
@@ -93,7 +81,7 @@ namespace tracer {
 
     return result.object->surface->emittance
       + result.object->surface->weight(omega_in, omega_out, next_lt)
-      * trace_path(params, r_next, result.object, next_lt, sample, bounce + 1) / (1 - rr_prob);
+      * trace_path(params, r_next, next_lt, sample, bounce + 1) / (1 - rr_prob);
   }
 
   void scene::render_routine(const render_params& params, void (*update_callback)(Float, size_t)) {
@@ -117,9 +105,7 @@ namespace tracer {
             const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf()).normalized();
             sampler::sample_stratified_2d(stratified_samples, params.sspp, n_strata, rng);
             for (const point2f& sample : stratified_samples) {
-              rgb += trace_path(
-                  params, r, nullptr, { material::REFLECT, OUTSIDE }, sample, 0
-                  );
+              rgb += trace_path(params, r, { material::REFLECT, OUTSIDE }, sample, 0);
             }
             rgb_pixel += rgb * inv_sspp;
           }

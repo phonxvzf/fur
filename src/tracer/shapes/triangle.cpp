@@ -41,6 +41,7 @@ namespace tracer {
         result->normal = tf_shape_to_world((r.dir.dot(normal) < 0) ? normal : normal3f(-normal))
           .normalized();
         result->object = this;
+        if (r.medium == INSIDE) result->normal = -result->normal;
       }
 
       return true;

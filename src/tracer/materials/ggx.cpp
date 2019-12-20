@@ -52,7 +52,7 @@ namespace tracer {
         * (lt.transport == REFLECT ? rgb_refl : rgb_refr);
     }
 
-    ggx::light_transport ggx::sample(
+    material::light_transport ggx::sample(
         vector3f* omega_in,
         const vector3f& omega_out,
         const light_transport& lt,

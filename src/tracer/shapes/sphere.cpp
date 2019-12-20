@@ -25,7 +25,7 @@ namespace tracer {
       if (delta < 0) return false;
 
       Float sqrt_delta = std::sqrt(delta);
-      Float t = (-b - sqrt_delta) / (2 * a);
+      Float t = (-b + ((r.medium == INSIDE) ? sqrt_delta : -sqrt_delta)) / (2 * a);
 
       if (t < 0 || t >= r.t_max) return false;
 
@@ -40,4 +40,4 @@ namespace tracer {
       return true;
     }
   }
-}        
+}

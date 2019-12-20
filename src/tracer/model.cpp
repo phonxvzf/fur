@@ -27,12 +27,14 @@ namespace tracer {
       const int id0 = mesh->mFaces[i].mIndices[0];
       const int id1 = mesh->mFaces[i].mIndices[1];
       const int id2 = mesh->mFaces[i].mIndices[2];
+      const point3f a(mesh->mVertices[id0].x, mesh->mVertices[id0].y, mesh->mVertices[id0].z);
+      const point3f b(mesh->mVertices[id1].x, mesh->mVertices[id1].y, mesh->mVertices[id1].z);
+      const point3f c(mesh->mVertices[id2].x, mesh->mVertices[id2].y, mesh->mVertices[id2].z);
+      if ((b-a).cross(a-c).is_zero()) continue;
       std::shared_ptr<shape> triangle_mesh(new shapes::triangle(
             tf_shape_to_world,
             surface,
-            { mesh->mVertices[id0].x, mesh->mVertices[id0].y, mesh->mVertices[id0].z },
-            { mesh->mVertices[id1].x, mesh->mVertices[id1].y, mesh->mVertices[id1].z },
-            { mesh->mVertices[id2].x, mesh->mVertices[id2].y, mesh->mVertices[id2].z }
+            a, b, c
             )
           );
       shapes.push_back(triangle_mesh);
