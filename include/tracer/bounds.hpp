@@ -127,6 +127,11 @@ namespace tracer {
         return i;
       }
 
+      T surface_area() const {
+        vector3f dd = diagonal();
+        return 2 * (dd.x * dd.y + dd.y * dd.z + dd.z * dd.x);
+      }
+
       bounds3<T> merge(const bounds3<T>& other) const {
         return bounds3(
             {

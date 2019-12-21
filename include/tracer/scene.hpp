@@ -43,12 +43,6 @@ namespace tracer {
           const render_params& params,
           void (*update_callback)(Float, size_t)
           );
-
-      shape::intersect_result intersect_shapes(
-          const ray& r,
-          const shape::intersect_opts& options,
-          const material::light_transport& lt
-          ) const;
   
       rgb_spectrum trace_path(
           const render_params& params,

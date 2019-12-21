@@ -28,7 +28,6 @@ namespace tracer {
           const std::shared_ptr<bvh_node>& node,
           const ray& r,
           const shape::intersect_opts& options,
-          material::medium med,
           shape::intersect_result* result
           ) const;
 
@@ -40,7 +39,6 @@ namespace tracer {
       bool intersect(
           const ray& r,
           const shape::intersect_opts& options,
-          material::medium med,
           shape::intersect_result* result
           ) const;
   };

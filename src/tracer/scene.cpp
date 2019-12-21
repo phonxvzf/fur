@@ -11,17 +11,6 @@
 
 namespace tracer {
 
-  shape::intersect_result scene::intersect_shapes(
-      const ray& r,
-      const shape::intersect_opts& options,
-      const material::light_transport& lt
-      ) const
-  {
-    shape::intersect_result result_seen;
-    shapes.intersect(r, options, lt.med, &result_seen);
-    return result_seen;
-  }
-
   rgb_spectrum scene::trace_path(
       const render_params& params,
       const ray& r,
@@ -31,7 +20,8 @@ namespace tracer {
   {
     if (bounce > params.max_bounce) return rgb_spectrum(0);
 
-    shape::intersect_result result = intersect_shapes(r, params.intersect_options, prev_lt);
+    shape::intersect_result result;
+    shapes.intersect(r, params.intersect_options, &result);
 
     if (result.object == nullptr) return rgb_spectrum(0);
     if (params.show_normal) return rgb_spectrum(result.normal.x, result.normal.y, result.normal.z);
