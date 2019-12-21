@@ -6,9 +6,9 @@
 #include <signal.h>
 #include <unistd.h>
 
-void ASSERT(bool cond) {
+void ASSERT(bool cond, const char* message) {
   if (cond) return;
-  std::cerr << std::endl << "ASSERTION FAILED:" << std::endl;
+  std::cerr << std::endl << "ASSERTION FAILED: " << (message ? message : "") << std::endl;
   void* frames[32];
   size_t size = backtrace(frames, 32);
   backtrace_symbols_fd(frames, size, STDERR_FILENO);

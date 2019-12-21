@@ -22,10 +22,11 @@ namespace tracer {
           const vector3f& dir,
           Float t_max = std::numeric_limits<Float>::max(),
           material::medium medium = OUTSIDE)
-        : origin(origin), dir(dir), inv_dir(dir.inverse()), t_max(t_max), medium(medium) {}
+        : origin(origin), dir(dir), inv_dir(dir.inverse()),
+        t_max(t_max), medium(medium) {}
       ray(const ray& cpy)
-        : origin(cpy.origin), dir(cpy.dir),
-        inv_dir(cpy.inv_dir), t_max(cpy.t_max), medium(cpy.medium) {}
+        : origin(cpy.origin), dir(cpy.dir), inv_dir(cpy.inv_dir),
+        t_max(cpy.t_max), medium(cpy.medium) {}
 
       ray& operator=(const ray& cpy) {
         origin  = cpy.origin;

@@ -29,7 +29,14 @@ namespace tracer {
       intersect_result* result) const
   {
     const ray sray(tf_world_to_shape(r).normalized());
-    return intersect_shape(sray, options, result);
+    const bool hit = intersect_shape(sray, options, result);
+    if (hit) {
+      const vector3f td = result->hit_point - r.origin;
+      if (!COMPARE_EQ(r.dir.x, 0)) result->t_hit = td.x * r.inv_dir.x;
+      if (!COMPARE_EQ(r.dir.y, 0)) result->t_hit = td.y * r.inv_dir.y;
+      if (!COMPARE_EQ(r.dir.z, 0)) result->t_hit = td.z * r.inv_dir.z;
+    }
+    return hit;
   }
 
   destimator::destimator(

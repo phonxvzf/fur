@@ -7,10 +7,12 @@ namespace tracer {
         const std::shared_ptr<material>& surface,
         const point3f& a,
         const point3f& b,
-        const point3f& c
+        const point3f& c,
+        const normal3f& normal
         )
       : shape(shape_to_world, surface),
-      a(a), b(b), c(c), ab(b-a), bc(c-b), ca(a-c), normal((b-a).cross(a-c).normalized()) {}
+      a(a), b(b), c(c), ab(b-a), bc(c-b), ca(a-c),
+      normal(normal.is_zero() ? normal3f((b-a).cross(a-c).normalized()) : normal) {}
 
     bounds3f triangle::bounds() const {
       return bounds3f(a).merge(bounds3f(b)).merge(bounds3f(c));

@@ -17,7 +17,8 @@ namespace tracer {
             const std::shared_ptr<material>& surface,
             const point3f& a,
             const point3f& b,
-            const point3f& c
+            const point3f& c,
+            const normal3f& normal = 0
             );
 
         bounds3f bounds() const override;
