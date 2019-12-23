@@ -74,7 +74,10 @@ namespace tracer {
       * trace_path(params, r_next, next_lt, sample, bounce + 1) / (1 - rr_prob);
   }
 
-  void scene::render_routine(const render_params& params, void (*update_callback)(Float, size_t)) {
+  void scene::render_routine(
+      const render_params& params,
+      void (*update_callback)(Float, size_t, size_t))
+  {
     random::rng& rng = rngs[params.thread_id];
     job j;
     const Float inv_spp = Float(1) / params.spp;
@@ -119,7 +122,7 @@ namespace tracer {
               size_t remaining = params.img_res.x * params.img_res.y - pixel_counter;
               Float pps = elapsed > 0 ? pixel_counter / elapsed : 0;
               size_t eta = pps ? remaining / pps : 0;
-              update_callback(render_progress(), eta);
+              update_callback(render_progress(), eta, elapsed);
               last_update = system_clock::now();
             }
           }
@@ -131,7 +134,7 @@ namespace tracer {
   std::shared_ptr<std::vector<rgb_spectrum>> scene::render(
       const render_params& params,
       render_profile* profile,
-      void (*update_callback)(Float, size_t)
+      void (*update_callback)(Float, size_t, size_t)
       )
   {
     for (size_t i = 0; i < params.n_workers; ++i) {

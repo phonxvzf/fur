@@ -41,7 +41,7 @@ namespace tracer {
     private:
       void render_routine(
           const render_params& params,
-          void (*update_callback)(Float, size_t)
+          void (*update_callback)(Float, size_t, size_t)
           );
   
       rgb_spectrum trace_path(
@@ -83,7 +83,7 @@ namespace tracer {
       std::shared_ptr<std::vector<rgb_spectrum>> render(
           const render_params& params,
           render_profile* profile = nullptr,
-          void (*update_callback)(Float, size_t) = nullptr
+          void (*update_callback)(Float, size_t, size_t) = nullptr
           );
       float render_progress() const;
       bool rendering() const;

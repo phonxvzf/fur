@@ -40,26 +40,26 @@ wchar_t progress_string[256];
 int format_duration(wchar_t* wstr, size_t s) {
   int n_written;
   if (s == 0) {
-    n_written = 0;
+    n_written = std::swprintf(wstr, 11, L"0s", s);
   } else if (s < 60) {
-    n_written = std::swprintf(wstr, 15, L"eta %lus", s);
+    n_written = std::swprintf(wstr, 11, L"%lus", s);
   } else if (s < 3600) {
     size_t m = s / 60;
     s -= m * 60;
-    n_written = std::swprintf(wstr, 15, L"eta %lum%lus", m, s);
+    n_written = std::swprintf(wstr, 11, L"%lum%lus", m, s);
   } else {
     size_t m = s / 60;
     size_t h = m / 60;
     m -= h * 60;
     s -= (m + h * 60) * 60;
-    n_written = std::swprintf(wstr, 15, L"eta %luh%lum%lus", h, m, s);
+    n_written = std::swprintf(wstr, 11, L"%luh%lum%lus", h, m, s);
   }
   return n_written;
 }
 
-void update_progress(Float progress, size_t eta) {
+void update_progress(Float progress, size_t eta, size_t elapsed) {
   const int n_cols = term_columns();
-  const int bar_width = n_cols * 0.6f - 2;
+  const int bar_width = n_cols * 0.5f - 2;
   const int finished = std::ceil(progress * bar_width);
   int offset = 0;
   if (progress < 1.0f) {
@@ -77,12 +77,15 @@ void update_progress(Float progress, size_t eta) {
   offset += bar_width - finished;
   progress_string[offset++] = L']';
   progress_string[offset++] = L' ';
-  offset += std::swprintf(progress_string + offset, 255 - offset, L"%.0f%%", progress * 100);
-  progress_string[offset++] = L' ';
+  offset += std::swprintf(progress_string + offset, 255 - offset, L"%.0f%% eta ", progress * 100);
 
-  wchar_t eta_str[16];
-  int len = format_duration(eta_str, eta);
-  std::wcscpy(progress_string + offset, eta_str);
+  wchar_t buf[16];
+  int len = format_duration(buf, eta);
+  std::wcscpy(progress_string + offset, buf);
+  offset += len;
+  offset += std::swprintf(progress_string + offset, 255 - offset, L" elapsed ");
+  len = format_duration(buf, elapsed);
+  std::wcscpy(progress_string + offset, buf);
   offset += len;
   while (offset < n_cols) progress_string[offset++] = L' ';
 
@@ -198,7 +201,7 @@ int main(int argc, char** argv) {
   if (profile.time_elapsed > 0) {
     wchar_t elapsed_str[16];
     format_duration(elapsed_str, profile.time_elapsed);
-    std::wcout << "* Render time " << elapsed_str + 4 << std::endl;
+    std::wcout << "* Render time " << elapsed_str << std::endl;
   } else {
     std::wcout << "* Render time 0s" << std::endl;
   }
