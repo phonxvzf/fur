@@ -78,7 +78,7 @@ namespace tracer {
 
       bounds3(const point3<T>& p_min, const point3<T>& p_max) : p_min(p_min), p_max(p_max) {}
       bounds3(const point3<T>& p = 0) : p_min(p), p_max(p) {}
-      
+
       bounds3& operator=(const bounds3& cpy) {
         p_min = cpy.p_min;
         p_max = cpy.p_max;

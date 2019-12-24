@@ -183,6 +183,9 @@ int main(int argc, char** argv) {
   params.n_workers    = n_threads;
   params.show_depth   = show_depth;
   params.show_normal  = show_normal;
+  if (show_normal || show_depth) {
+    params.sspp = params.spp = 1;
+  }
 
   // setup rendering
   render_profile profile;

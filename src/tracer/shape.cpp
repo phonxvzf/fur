@@ -11,16 +11,20 @@ namespace tracer {
       )
     : surface(surface),
     tf_shape_to_world(shape_to_world),
-    tf_world_to_shape(shape_to_world.inverse()) {}
+    tf_world_to_shape(shape_to_world.inverse()),
+    world_bounds_cached(false) {}
 
   shape::shape(const shape& cpy)
     : surface(cpy.surface),
     tf_shape_to_world(cpy.tf_shape_to_world),
-    tf_world_to_shape(cpy.tf_world_to_shape) {}
+    tf_world_to_shape(cpy.tf_world_to_shape),
+    world_bounds_cached(cpy.world_bounds_cached) {}
 
-  bounds3f shape::world_bounds() const {
-    // TODO: cache this
-    return tf_shape_to_world(bounds());
+  bounds3f shape::world_bounds() {
+    if (world_bounds_cached) return world_bounds_cache;
+    world_bounds_cache  = tf_shape_to_world(bounds());
+    world_bounds_cached = true;
+    return world_bounds_cache;
   }
 
   bool shape::intersect(

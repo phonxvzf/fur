@@ -72,7 +72,7 @@ namespace tracer {
     return result.object->surface->emittance
       + result.object->surface->weight(omega_in, omega_out, next_lt)
       * trace_path(params, r_next, next_lt, sample, bounce + 1) / (1 - rr_prob);
-  }
+  } /* trace_path() */
 
   void scene::render_routine(
       const render_params& params,
@@ -129,7 +129,7 @@ namespace tracer {
         } /* for x */
       } /* for y */
     } /* while get_job */
-  }
+  } /* render_routine() */
 
   std::shared_ptr<std::vector<rgb_spectrum>> scene::render(
       const render_params& params,

@@ -5,7 +5,7 @@
 #include <stack>
 
 #define MAX_SHAPES_PER_NODE (4)
-#define N_BUCKETS (12)
+#define N_BUCKETS (16)
 
 namespace tracer {
   bvh_tree::bvh_tree(std::vector<std::shared_ptr<shape>> shapes) {
@@ -74,7 +74,7 @@ namespace tracer {
         }
       }
 
-      const int split = start + best_split * n_shapes_node / N_BUCKETS;
+      const int split = std::max(start + 1, start + best_split * n_shapes_node / N_BUCKETS);
       node->children[0] = construct_tree(shapes, start, split);
       node->children[1] = construct_tree(shapes, split, end);
 

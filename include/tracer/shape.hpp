@@ -33,7 +33,7 @@ namespace tracer {
       shape(const shape& cpy);
 
       virtual bounds3f bounds() const = 0;
-      bounds3f world_bounds() const;
+      bounds3f world_bounds();
 
       virtual bool intersect(
           const ray& r,
@@ -44,6 +44,8 @@ namespace tracer {
     protected:
       const tf::transform tf_shape_to_world;
       const tf::transform tf_world_to_shape;
+      bool world_bounds_cached;
+      bounds3f world_bounds_cache;
 
       virtual bool intersect_shape(
           const ray& r,
