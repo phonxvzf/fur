@@ -13,6 +13,7 @@
 #include "tracer/shapes/quad.hpp"
 #include "tracer/shapes/triangle.hpp"
 #include "tracer/materials/ggx.hpp"
+#include "tracer/materials/sss.hpp"
 #include "tracer/model.hpp"
 
 parser::parser() {}
@@ -184,7 +185,6 @@ tracer::material::transport_type parser::parse_transport_model(
   std::string type = parse_string(node, name);
   if (type == "reflect")  return tracer::material::REFLECT;
   if (type == "refract")  return tracer::material::REFRACT;
-  if (type == "sss")      return tracer::material::SSS;
   if (type == "none")     return tracer::material::NONE;
 
   throw parsing_error(node.Mark().line, "unknown transport model");
@@ -223,9 +223,33 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     } else {
       throw parsing_error(light_node.Mark().line, "specify emittance");
     }
+  } else if (mat_node["sss"].IsDefined()) {
+    YAML::Node sss_node = mat_node["sss"];
+    if (sss_node["rgb_refl"].IsDefined()      && sss_node["emittance"].IsDefined()
+        && sss_node["roughness"].IsDefined()  && sss_node["rgb_refr"].IsDefined()
+        && sss_node["eta_i"].IsDefined()      && sss_node["eta_t"].IsDefined()
+        && sss_node["sigma_a"].IsDefined()    && sss_node["sigma_s"].IsDefined())
+    {
+      return std::shared_ptr<tracer::material>(new tracer::materials::sss(
+            parse_rgb_spectrum(sss_node, "rgb_refl"),
+            parse_rgb_spectrum(sss_node, "rgb_refr"),
+            parse_rgb_spectrum(sss_node, "emittance"),
+            parse_float(sss_node, "roughness"),
+            parse_float(sss_node, "eta_i"),
+            parse_float(sss_node, "eta_t"),
+            parse_rgb_spectrum(sss_node, "sigma_a"),
+            parse_rgb_spectrum(sss_node, "sigma_s"),
+            sss_node["g"].IsDefined() ? parse_float(sss_node, "g") : 0.f
+            ));
+    } else {
+      throw parsing_error(
+          sss_node.Mark().line,
+          "specify rgb_refl, rgb_refr, emittance, roughness, eta_i, eta_t, sigma_a, sigma_s"
+          );
+    }
   }
 
-  throw parsing_error(mat_node.Mark().line, "only ggx and light are available");
+  throw parsing_error(mat_node.Mark().line, "only ggx, sss and light are available");
 }
 
 std::shared_ptr<tracer::shape> parser::parse_shape(

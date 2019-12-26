@@ -27,7 +27,7 @@ namespace tracer {
       Float sqrt_delta = std::sqrt(delta);
       Float t = (-b + ((r.medium == INSIDE) ? sqrt_delta : -sqrt_delta)) / (2 * a);
 
-      if (t < 0 || t >= r.t_max) return false;
+      if (t < 0) return false;
 
       point3f hit_point = r(t);
       if (result != nullptr) {

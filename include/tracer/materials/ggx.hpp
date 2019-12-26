@@ -23,8 +23,7 @@ namespace tracer {
             ) const;
 
       public:
-        ggx(
-            const rgb_spectrum& rgb_refl,
+        ggx(const rgb_spectrum& rgb_refl,
             const rgb_spectrum& rgb_refr,
             const rgb_spectrum& emittance,
             Float roughness,

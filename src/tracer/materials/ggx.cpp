@@ -2,7 +2,6 @@
 
 namespace tracer {
   namespace materials {
-
     Float ggx::geometry(
         const normal3f& normal,
         const normal3f& mf_normal,
@@ -30,7 +29,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
-      if ((omega_in + omega_out).is_zero()) return rgb_spectrum(lt.transport == REFRACT);
+      if ((omega_in + omega_out).is_zero()) return rgb_spectrum(is_refractive(lt.transport));
 
       Float eta_i_chk = eta_i, eta_t_chk = eta_t;
       if (lt.med == INSIDE) std::swap(eta_i_chk, eta_t_chk);
@@ -66,7 +65,7 @@ namespace tracer {
       const Float sin_phi = sin_from_cos_theta(cos_phi, phi);
       const vector3f m(sin_theta * cos_phi, cos_theta, sin_theta * sin_phi);
 
-      if (transport_model == REFRACT) {
+      if (is_refractive(transport_model)) {
         Float eta_i_chk = eta_i, eta_t_chk = eta_t;
         if (lt.med == OUTSIDE) std::swap(eta_i_chk, eta_t_chk);
 

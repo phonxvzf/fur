@@ -29,6 +29,8 @@ namespace tracer {
       nspectrum pow(Float x) const;
       nspectrum exp() const;
       nspectrum clamp(Float min, Float max) const;
+      nspectrum inverse() const;
+      Float average() const;
 
       nspectrum operator+(const nspectrum& sp) const;
       nspectrum operator-(const nspectrum& sp) const;

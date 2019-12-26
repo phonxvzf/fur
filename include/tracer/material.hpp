@@ -58,6 +58,10 @@ namespace tracer {
           const point2f& u,
           Float e
           ) const = 0;
+
+      inline bool is_refractive(transport_type tp) const {
+        return tp == REFRACT || tp == SSS;
+      }
   };
 }
 

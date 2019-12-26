@@ -4,6 +4,7 @@
 #include "tracer/shapes/de_sphere.hpp"
 #include "tracer/shapes/de_quad.hpp"
 #include "tracer/material.hpp"
+#include "tracer/materials/sss.hpp"
 #include "math/random.hpp"
 #include "math/util.hpp"
 #include "math/pdf.hpp"
@@ -56,7 +57,7 @@ namespace tracer {
           rng.next_uf()
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
-    const ray r_next(
+    ray r_next(
         result.hit_point + params.intersect_options.bias_epsilon * bias,
         from_tangent_space.dot(omega_in),
         r.t_max,
@@ -65,13 +66,47 @@ namespace tracer {
     const rgb_spectrum color = (next_lt.transport == material::REFLECT) ?
       result.object->surface->rgb_refl : result.object->surface->rgb_refr;
 
-    // Russian roulette path termination
+    // do volumetric path tracing
+    rgb_spectrum transmittance(1.f);
+    if (result.object->surface->transport_model == material::SSS && next_lt.med == INSIDE) {
+      const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
+      ASSERT(volume != nullptr);
+      ray r_sss(r_next);
+      Float dist = volume->sample_distance(rng);
+      r_sss.t_max = dist;
+      shape::intersect_result sss_result;
+      while (!shapes.intersect(r_sss, params.intersect_options, &sss_result)) {
+        ++bounce;
+        if (bounce > params.max_bounce) return rgb_spectrum(0);
+        if (rng.next_uf() < volume->absorp_prob) return rgb_spectrum(0);
+
+        transmittance *= volume->trasmittance(dist);
+
+        Float new_dist = volume->sample_distance(rng);
+
+        r_sss = ray(
+            r_sss.origin + r_sss.dir * dist,
+            sampler::sample_henyey_greenstein(volume->g, rng.next_2uf()),
+            new_dist,
+            INSIDE);
+        dist = new_dist;
+      }
+
+      transmittance *= volume->trasmittance(dist);
+
+      Float old_t_max = r_next.t_max;
+      r_next = r_sss;
+      r_next.t_max = old_t_max;
+    }
+
+    // russian roulette path termination
     const Float rr_prob = std::min(params.max_rr, 1 - color.max());
     if (rng.next_uf() < rr_prob) return rgb_spectrum(0);
 
-    return result.object->surface->emittance
+    return transmittance * (result.object->surface->emittance
       + result.object->surface->weight(omega_in, omega_out, next_lt)
-      * trace_path(params, r_next, next_lt, sample, bounce + 1) / (1 - rr_prob);
+      * trace_path(params, r_next, next_lt, sample, bounce + 1)
+      / (1 - rr_prob));
   } /* trace_path() */
 
   void scene::render_routine(

@@ -41,6 +41,24 @@ namespace tracer {
     return result;
   }
 
+  nspectrum nspectrum::inverse() const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      ASSERT(!COMPARE_EQ(spd[i], 0));
+      result.spd[i] = 1.f / spd[i];
+    }
+    return result;
+  }
+
+  Float nspectrum::average() const {
+    Float sum = 0;
+    for (size_t i = 0; i < n_samples; ++i) {
+      sum += spd[i];
+    }
+    sum /= n_samples;
+    return sum;
+  }
+
   nspectrum& nspectrum::operator=(const nspectrum& sp) {
     for (size_t i = 0; i < n_samples; ++i) {
       spd[i] = sp.spd[i];
