@@ -103,7 +103,7 @@ namespace math {
   }
 
   inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
-    return 2 * absdot(omega, normal) * normal - omega;
+    return (2 * absdot(omega, normal) * normal - omega).normalized();
   }
 
   inline vector3f refract(

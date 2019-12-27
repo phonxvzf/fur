@@ -41,14 +41,14 @@ namespace tracer {
       const Float n_dot_m   = absdot(normal, mf_normal);
       const Float in_dot_n  = absdot(omega_out, normal);
       const Float denom = n_dot_m * in_dot_n;
-      if (COMPARE_EQ(denom, 0)) return rgb_spectrum(0);
+      if (COMPARE_LEQ(denom, FLOAT_TOLERANT)) return rgb_spectrum(0);
 
       // Smith geometry term G = G1_in * G1_out
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      return (absdot(omega_in, mf_normal) * G / denom)
-        * (lt.transport == REFLECT ? rgb_refl : rgb_refr);
+      return ((absdot(omega_in, mf_normal) * G / denom)
+        * (lt.transport == REFLECT ? rgb_refl : rgb_refr)).clamp(0, 1);
     }
 
     material::light_transport ggx::sample(

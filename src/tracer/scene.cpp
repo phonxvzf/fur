@@ -91,7 +91,7 @@ namespace tracer {
         dist = next_dist;
       }
 
-      volume_weight *= volume->beta(false, dist);
+      volume_weight *= volume->beta(false, sss_result.t_hit);
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;

@@ -32,7 +32,7 @@ namespace tracer {
       rgb_spectrum tr = transmittance(dist);
       rgb_spectrum density = inside ? sigma * tr : tr;
       Float p = pdf(density);
-      if (COMPARE_EQ(p, 0)) return rgb_spectrum(1);
+      if (COMPARE_EQ(p, 0)) return rgb_spectrum(0);
       return inside ? tr * sigma_s / p : tr / p;
     }
 
