@@ -24,8 +24,16 @@ namespace tracer {
       return -std::log(1 - rng.next_uf()) * inv_sigma[channel];
     }
 
-    rgb_spectrum sss::trasmittance(Float dist) const {
+    rgb_spectrum sss::transmittance(Float dist) const {
       return (-1.f * sigma * std::min(dist, std::numeric_limits<Float>::max())).exp();
+    }
+
+    rgb_spectrum sss::beta(bool inside, Float dist) const {
+      rgb_spectrum tr = transmittance(dist);
+      rgb_spectrum density = inside ? sigma * tr : tr;
+      Float p = pdf(density);
+      if (COMPARE_EQ(p, 0)) return rgb_spectrum(1);
+      return inside ? tr * sigma_s / p : tr / p;
     }
 
     Float sss::pdf(const rgb_spectrum& tr) const {

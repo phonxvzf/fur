@@ -67,7 +67,7 @@ namespace tracer {
       result.object->surface->rgb_refl : result.object->surface->rgb_refr;
 
     // do volumetric path tracing
-    rgb_spectrum transmittance(1.f);
+    rgb_spectrum volume_weight(1.f);
     if (result.object->surface->transport_model == material::SSS && next_lt.med == INSIDE) {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
@@ -80,19 +80,18 @@ namespace tracer {
         if (bounce > params.max_bounce) return rgb_spectrum(0);
         if (rng.next_uf() < volume->absorp_prob) return rgb_spectrum(0);
 
-        transmittance *= volume->trasmittance(dist);
+        volume_weight *= volume->beta(true, dist);
 
-        Float new_dist = volume->sample_distance(rng);
-
+        Float next_dist = volume->sample_distance(rng);
         r_sss = ray(
             r_sss.origin + r_sss.dir * dist,
             sampler::sample_henyey_greenstein(volume->g, rng.next_2uf()),
-            new_dist,
+            next_dist,
             INSIDE);
-        dist = new_dist;
+        dist = next_dist;
       }
 
-      transmittance *= volume->trasmittance(dist);
+      volume_weight *= volume->beta(false, dist);
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
@@ -103,7 +102,7 @@ namespace tracer {
     const Float rr_prob = std::min(params.max_rr, 1 - color.max());
     if (rng.next_uf() < rr_prob) return rgb_spectrum(0);
 
-    return transmittance * (result.object->surface->emittance
+    return volume_weight * (result.object->surface->emittance
       + result.object->surface->weight(omega_in, omega_out, next_lt)
       * trace_path(params, r_next, next_lt, sample, bounce + 1)
       / (1 - rr_prob));

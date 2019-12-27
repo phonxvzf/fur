@@ -28,8 +28,10 @@ namespace tracer {
 
         sss(const sss& cpy);
 
+        rgb_spectrum transmittance(Float dist) const;
+        rgb_spectrum beta(bool inside, Float dist) const;
+
         Float sample_distance(random::rng& rng) const;
-        rgb_spectrum trasmittance(Float dist) const;
         Float pdf(const rgb_spectrum& tr) const;
     };
   }

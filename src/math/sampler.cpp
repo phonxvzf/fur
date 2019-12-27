@@ -73,11 +73,12 @@ namespace math {
 
     point3f sample_henyey_greenstein(Float g, const point2f& u) {
       if (COMPARE_EQ(g, 0)) return sample_sphere(u); // g = 0 gives isotropic scattering
+      g = -g;
       Float frac = (1 - pow2(g)) / (1 - g + 2 * g * u.x);
       Float cos_theta = (1 + pow2(g) - pow2(frac)) / (2 * g);
       Float phi = TWO_PI * u.y;
       Float sin_theta = sin_from_cos(cos_theta);
-      return right_to_left({ sin_theta * std::cos(phi), sin_theta * std::sin(phi), cos_theta });
+      return { sin_theta * std::cos(phi), cos_theta, sin_theta * std::sin(phi) };
     }
 
     void sample_orthogonals(const vector3f& n, vector3f* u, vector3f* v, random::rng& rng) {
