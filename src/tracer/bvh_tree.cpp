@@ -96,14 +96,17 @@ namespace tracer {
 
   bool bvh_tree::intersect_bounds(const ray& r, const bounds3f& bounds) const {
     // ray r is in world space
-    Float t1 = (bounds.p_min.x - r.origin.x) * r.inv_dir.x;
-    Float t2 = (bounds.p_max.x - r.origin.x) * r.inv_dir.x;
-    Float t3 = (bounds.p_min.y - r.origin.y) * r.inv_dir.y;
-    Float t4 = (bounds.p_max.y - r.origin.y) * r.inv_dir.y;
-    Float t5 = (bounds.p_min.z - r.origin.z) * r.inv_dir.z;
-    Float t6 = (bounds.p_max.z - r.origin.z) * r.inv_dir.z;
-    Float t_min = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
-    Float t_max = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
+    Float t[8];
+    t[1] = (bounds.p_min.x - r.origin.x) * r.inv_dir.x;
+    t[2] = (bounds.p_max.x - r.origin.x) * r.inv_dir.x;
+    t[3] = (bounds.p_min.y - r.origin.y) * r.inv_dir.y;
+    t[4] = (bounds.p_max.y - r.origin.y) * r.inv_dir.y;
+    t[5] = (bounds.p_min.z - r.origin.z) * r.inv_dir.z;
+    t[6] = (bounds.p_max.z - r.origin.z) * r.inv_dir.z;
+    Float t_min =
+      std::max(std::max(std::min(t[1], t[2]), std::min(t[3], t[4])), std::min(t[5], t[6]));
+    Float t_max =
+      std::min(std::min(std::max(t[1], t[2]), std::max(t[3], t[4])), std::max(t[5], t[6]));
     if (t_max < 0 || t_min > t_max) return false;
     return true;
   }
@@ -138,8 +141,11 @@ namespace tracer {
     bool hit = false;
     for (size_t i = 0; i < node->shapes.size(); ++i) {
       shape::intersect_result inner_result;
-      hit = node->shapes[i]->intersect(r, options, &inner_result);
-      if (hit && (inner_result.t_hit < result->t_hit)) *result = inner_result;
+      bool inner_hit = node->shapes[i]->intersect(r, options, &inner_result);
+      if (inner_hit && (inner_result.t_hit < result->t_hit)) {
+        *result = inner_result;
+        hit = true;
+      }
     }
 
     if (node->children[0])

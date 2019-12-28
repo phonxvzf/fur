@@ -72,11 +72,20 @@ namespace tracer {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
       ray r_sss(r_next);
+
+      shape::intersect_result sss_result;
+      shapes.intersect(r_sss, params.intersect_options, &sss_result);
+
+      bool hit = false;
       Float dist = volume->sample_distance(rng);
       r_sss.t_max = dist;
-      shape::intersect_result sss_result;
-      while (!shapes.intersect(r_sss, params.intersect_options, &sss_result)) {
+      while (!hit) {
+        // reset intersect result
+        sss_result = shape::intersect_result();
+        hit = shapes.intersect(r_sss, params.intersect_options, &sss_result);
+
         ++bounce;
+
         if (bounce > params.max_bounce) return rgb_spectrum(0);
         if (rng.next_uf() < volume->absorp_prob) return rgb_spectrum(0);
 
