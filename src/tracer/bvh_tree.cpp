@@ -2,8 +2,6 @@
 #include "tracer/shapes/de_box.hpp"
 #include "math/util.hpp"
 
-#include <stack>
-
 #define MAX_SHAPES_PER_NODE (4)
 #define N_BUCKETS (16)
 
