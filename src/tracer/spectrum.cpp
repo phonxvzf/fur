@@ -98,7 +98,7 @@ namespace tracer {
     }
     return result;
   }
-      
+
   nspectrum nspectrum::operator*(Float s) const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
@@ -162,7 +162,7 @@ namespace tracer {
       spd[i] = average_spectral_samples(samples, lambda0, lambda1);
     }
   }
-      
+
   math::vector3f sampled_spectrum::xyz() const {
     math::vector3f spectrum(0.0);
     for (int i = 0; i < N_SPECTRAL_SAMPLES; ++i) {

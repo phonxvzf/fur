@@ -5,7 +5,7 @@
 #include "math/matrix.hpp"
 
 namespace tracer {
-  
+
   using namespace math;
 
   class nspectrum {
@@ -88,7 +88,7 @@ namespace tracer {
     public:
       static const int LAMBDA_START = 400;
       static const int LAMBDA_END = 700;
-      static const int N_SPECTRAL_SAMPLES = 60;
+      static const int N_SPECTRAL_SAMPLES = 76;
 
       sampled_spectrum(Float v);
       sampled_spectrum(std::vector<spectral_sample> samples);

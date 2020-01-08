@@ -1,7 +1,7 @@
 # ftracer
 ![Example scene (1024 spp, 4 subpixels)](https://raw.githubusercontent.com/phonxvzf/fur/master/example.jpg)
 
-A physically-based image synthesizer using ray marching methods.
+A physically-based image synthesizer using ray tracing methods.
 
 _This project is currently in progress._
 

@@ -14,6 +14,7 @@
 #include "tracer/shapes/triangle.hpp"
 #include "tracer/materials/ggx.hpp"
 #include "tracer/materials/sss.hpp"
+#include "tracer/materials/lambert.hpp"
 #include "tracer/model.hpp"
 
 parser::parser() {}
@@ -246,6 +247,16 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
           sss_node.Mark().line,
           "specify rgb_refl, rgb_refr, emittance, roughness, eta_i, eta_t, sigma_a, sigma_s"
           );
+    }
+  } else if (mat_node["lambert"].IsDefined()) {
+    YAML::Node lambert_node = mat_node["lambert"];
+    if (lambert_node["rgb_refl"].IsDefined() && lambert_node["emittance"].IsDefined()) {
+      return std::shared_ptr<tracer::material>(new tracer::materials::lambert(
+            parse_rgb_spectrum(lambert_node, "rgb_refl"),
+            parse_rgb_spectrum(lambert_node, "emittance")
+            ));
+    } else {
+      throw parsing_error(lambert_node.Mark().line, "specify rgb_refl, and emittance");
     }
   }
 
