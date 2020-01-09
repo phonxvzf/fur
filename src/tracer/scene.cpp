@@ -92,9 +92,15 @@ namespace tracer {
         volume_weight *= volume->beta(true, dist);
 
         Float next_dist = volume->sample_distance(rng);
+
+        vector3f basis0, basis1;
+        sampler::sample_orthogonals(r_sss.dir, &basis0, &basis1, rng);
+        matrix3f prev_space(basis0, r_sss.dir, basis1);
+        vector3f dir(prev_space.dot(sampler::sample_henyey_greenstein(volume->g, rng.next_2uf())));
+
         r_sss = ray(
             r_sss.origin + r_sss.dir * dist,
-            sampler::sample_henyey_greenstein(volume->g, rng.next_2uf()),
+            -dir,
             next_dist,
             INSIDE);
         dist = next_dist;
