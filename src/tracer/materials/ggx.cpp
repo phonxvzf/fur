@@ -47,8 +47,8 @@ namespace tracer {
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      return ((absdot(omega_in, mf_normal) * G / denom)
-        * (lt.transport == REFLECT ? rgb_refl : rgb_refr)).clamp(0, 1);
+      return clamp((absdot(omega_in, mf_normal) * G / denom), 0.f, 1.f)
+        * (lt.transport == REFLECT ? rgb_refl : rgb_refr);
     }
 
     material::light_transport ggx::sample(

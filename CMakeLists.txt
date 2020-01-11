@@ -15,13 +15,25 @@ find_package(ASSIMP REQUIRED)
 
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -std=c++14 -pipe")
-  set(CMAKE_CXX_FLAGS_RELEASE "-std=c++14 -pipe -flto -O3 -DNDEBUG -march=native -funroll-loops -fopenmp -D_GLIBCXX_PARALLEL")
+  set(CMAKE_CXX_FLAGS_RELEASE
+    "-std=c++14 -pipe -flto -O3 -DNDEBUG -march=native -funroll-loops\
+    -fopenmp -D_GLIBCXX_PARALLEL"
+    )
 else()
-  message(FATAL_ERROR "Unsupported platform (not in { UNIX })")
+  message(FATAL_ERROR "Unsupported platform (GNU/Linux only)")
 endif()
 
 add_executable(${BINARY} ${SOURCES})
 
-target_include_directories(${BINARY} PRIVATE include ${OPENEXR_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIRS})
+target_include_directories(${BINARY} PRIVATE
+  include
+  ${OPENEXR_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
+  ${ASSIMP_INCLUDE_DIRS}
+  )
 
-target_link_libraries(${BINARY} PRIVATE ${OPENEXR_LIBRARIES} ${YAML_CPP_LIBRARIES} ${ASSIMP_LIBRARIES})
+target_link_libraries(${BINARY} PRIVATE
+  ${OPENEXR_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+  ${ASSIMP_LIBRARIES}
+  )

@@ -1,7 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <thread>
-#include <mutex>
 #include <cstring>
 #include <locale>
 #include <OpenEXR/ImfRgbaFile.h>
@@ -9,17 +7,8 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#include "math/transform.hpp"
-#include "math/util.hpp"
-#include "math/random.hpp"
-#include "math/sampler.hpp"
-#include "tracer/camera.hpp"
-#include "tracer/spectrum.hpp"
-#include "tracer/shapes/de_sphere.hpp"
-#include "tracer/shapes/de_inf_spheres.hpp"
-#include "tracer/shapes/de_mandelbulb.hpp"
 #include "tracer/scene.hpp"
-#include "tracer/bvh_tree.hpp"
+#include "tracer/texture.hpp"
 #include "parser.hpp"
 
 using namespace tracer;
@@ -103,9 +92,9 @@ int main(int argc, char** argv) {
   std::string scene_file_name;
 
   int arg_n_threads = 0;
-  bool verbose = true;
-  bool show_depth = false;
-  bool show_normal = false;
+  bool verbose      = true;
+  bool show_depth   = false;
+  bool show_normal  = false;
 
   if (argc > 1) {
     int n_sub_args = 0;
@@ -158,7 +147,7 @@ int main(int argc, char** argv) {
       n_sub_args = 0;
     } /* for i */
   } /* if argc */
-  
+
   int n_threads = arg_n_threads ? arg_n_threads : std::thread::hardware_concurrency();
   std::wcout << "* Detected " << std::thread::hardware_concurrency()
     << " logical cores" << std::endl;

@@ -197,8 +197,8 @@ namespace tracer {
     // init thread scheduler
     master.init(params.img_res, params.tile_size);
 
-    last_update = std::chrono::system_clock::now();
-    render_start = std::chrono::system_clock::now();
+    last_update   = std::chrono::system_clock::now();
+    render_start  = std::chrono::system_clock::now();
 
     // render
     std::vector<std::thread> workers;
