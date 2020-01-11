@@ -17,6 +17,7 @@ namespace tracer {
       ~texture();
 
       rgb_spectrum sample(const point2f& st) const;
+      rgb_spectrum sample(const point3f& sph_coords) const;
   };
 }
 

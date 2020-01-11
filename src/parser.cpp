@@ -16,6 +16,7 @@
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
 #include "tracer/model.hpp"
+#include "tracer/texture.hpp"
 
 parser::parser() {}
 
@@ -349,7 +350,7 @@ void parser::parse_model(
   model.load(shapes);
 }
 
-std::shared_ptr<tracer::camera::camera> parser::parse_camera(
+std::unique_ptr<tracer::camera::camera> parser::parse_camera(
     const YAML::Node& cam_node, const math::vector2i& img_res, math::point3f* eye_position)
 {
   if (cam_node["type"].IsDefined()) {
@@ -373,7 +374,7 @@ std::shared_ptr<tracer::camera::camera> parser::parse_camera(
       if (type == "perspective" || type == "persp") {
         if (cam_node["fov"].IsDefined()) {
           Float fov = math::radians(parse_float(cam_node, "fov"));
-          return std::shared_ptr<tracer::camera::camera>(
+          return std::unique_ptr<tracer::camera::camera>(
               new tracer::camera::persp(
                 tf_lookat, img_res, { 1.0f, 1.0f }, near, far, fov, Float(img_res.x) / img_res.y
                 )
@@ -385,7 +386,7 @@ std::shared_ptr<tracer::camera::camera> parser::parse_camera(
         }
       } else {
         // orthographic
-        return std::shared_ptr<tracer::camera::camera>(
+        return std::unique_ptr<tracer::camera::camera>(
             new tracer::camera::ortho(tf_lookat, img_res, { 1.0f, 1.0f }, near, far)
             );
       }
@@ -491,6 +492,12 @@ std::shared_ptr<tracer::scene> parser::load_scene(
           );
     } else {
       throw parsing_error(scene_config.Mark().line, "`camera' must be specified");
+    }
+
+    if (scene_config["environment"].IsDefined()) {
+      main_scene->environment_texture = std::make_unique<tracer::texture>(
+          parse_string(root["scene"], "environment")
+          );
     }
 
     return main_scene;

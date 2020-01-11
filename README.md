@@ -9,7 +9,6 @@ _This project is currently in progress._
 - Path-traced global illumination (unbiased Monte Carlo)
 - GGX BSDF for both reflection and refraction
 - Importance sampling
-- Stratified sampling
 - Russian roulette path termination
 - Bounding volume hierarchy (BVH) with surface area heuristic (SAH)
 - Anti-aliasing achieved via subpixels with average filter

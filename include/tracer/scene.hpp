@@ -12,6 +12,7 @@
 #include "tracer/light_source.hpp"
 #include "tracer/camera.hpp"
 #include "tracer/bvh_tree.hpp"
+#include "tracer/texture.hpp"
 #include "job_master.hpp"
 
 namespace tracer {
@@ -48,7 +49,6 @@ namespace tracer {
           const render_params& params,
           const ray& r,
           const material::light_transport& lt,
-          const point2f& sample,
           int bounce
           );
 
@@ -74,11 +74,10 @@ namespace tracer {
     public:
       bvh_tree shapes;
 
-      std::shared_ptr<camera::camera> camera;
+      std::unique_ptr<camera::camera> camera = nullptr;
+      std::unique_ptr<texture> environment_texture = nullptr;
 
       scene(const std::vector<std::shared_ptr<shape>>& shapes) : shapes(shapes) {}
-      scene(const scene& cpy)
-        : shapes(cpy.shapes), camera(cpy.camera) {}
 
       std::shared_ptr<std::vector<rgb_spectrum>> render(
           const render_params& params,

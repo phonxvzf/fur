@@ -26,7 +26,7 @@ class parser {
         const YAML::Node& node, const std::string& name);
     std::shared_ptr<tracer::material> parse_material(const YAML::Node& mat_node);
     std::shared_ptr<tracer::shape> parse_shape(const YAML::Node& attr, const std::string& name);
-    std::shared_ptr<tracer::camera::camera> parse_camera(
+    std::unique_ptr<tracer::camera::camera> parse_camera(
         const YAML::Node& cam_node, const math::vector2i& img_res, math::point3f* eye_position);
     void parse_model(
         std::vector<std::shared_ptr<tracer::shape>>& shapes,

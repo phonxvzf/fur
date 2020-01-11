@@ -16,7 +16,6 @@ namespace tracer {
       const render_params& params,
       const ray& r,
       const material::light_transport& prev_lt,
-      const point2f& sample,
       int bounce)
   {
     if (bounce > params.max_bounce) return rgb_spectrum(0);
@@ -24,7 +23,12 @@ namespace tracer {
     shape::intersect_result result;
     shapes.intersect(r, params.intersect_options, &result);
 
-    if (result.object == nullptr) return rgb_spectrum(0);
+    if (result.object == nullptr) {
+      if (environment_texture != nullptr && r.medium == OUTSIDE) {
+        return environment_texture->sample(r.dir);
+      }
+      return rgb_spectrum(0);
+    }
     if (params.show_normal) return rgb_spectrum(result.normal.x, result.normal.y, result.normal.z);
     if (params.show_depth) return rgb_spectrum(result.t_hit);
 
@@ -53,7 +57,7 @@ namespace tracer {
           &omega_in,
           omega_out,
           { result.object->surface->transport_model, prev_lt.med },
-          sample,
+          rng.next_2uf(),
           rng.next_uf()
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
@@ -111,7 +115,7 @@ namespace tracer {
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
       r_next.t_max = old_t_max;
-    }
+    } /* if sss */
 
     // russian roulette path termination
     const Float rr_prob = std::min(params.max_rr, 1 - color.max());
@@ -119,7 +123,7 @@ namespace tracer {
 
     return volume_weight * (result.object->surface->emittance
       + result.object->surface->weight(omega_in, omega_out, next_lt)
-      * trace_path(params, r_next, next_lt, sample, bounce + 1)
+      * trace_path(params, r_next, next_lt, bounce + 1)
       / (1 - rr_prob));
   } /* trace_path() */
 
@@ -130,7 +134,6 @@ namespace tracer {
     random::rng& rng = rngs[params.thread_id];
     job j;
     const Float inv_spp = Float(1) / params.spp;
-    std::vector<point2f> stratified_samples;
     const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.spp;
 
     while (master.get_job(&j)) {
@@ -145,9 +148,8 @@ namespace tracer {
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             rgb_spectrum rgb(0.0f);
             const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf()).normalized();
-            sampler::sample_stratified_2d(stratified_samples, params.sspp, n_strata, rng);
-            for (const point2f& sample : stratified_samples) {
-              rgb += trace_path(params, r, { material::REFLECT, OUTSIDE }, sample, 0);
+            for (size_t s = 0; s < params.sspp; ++s) {
+              rgb += trace_path(params, r, { material::REFLECT, OUTSIDE }, 0);
             }
             rgb_pixel += rgb * inv_sspp;
           }
