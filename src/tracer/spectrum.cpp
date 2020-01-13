@@ -293,7 +293,6 @@ namespace tracer {
       Float lambda_r = std::min(samples[i+1].lambda, lambda1);
       sum += 0.5 * (interp(lambda_l, i) + interp(lambda_r, i)) * (lambda_r - lambda_l);
     }
-
     return sum / (lambda1 - lambda0);
   }
 

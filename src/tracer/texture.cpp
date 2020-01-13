@@ -25,14 +25,12 @@ namespace tracer {
     }
 
     spectrums = new sampled_spectrum[n_pixels];
+    const int n_powers = 3 * n_pixels;
 
-    for (int i = 0; i < 3 * n_pixels; i += 3) {
+    #pragma omp parallel for
+    for (int i = 0; i < n_powers; i += 3) {
       spectrums[i / 3] = sampled_spectrum(
-          rgb_spectrum(
-            pixels[i],
-            pixels[i+1],
-            pixels[i+2]
-            ).clamp(-50000, 50000),
+          rgb_spectrum(pixels[i], pixels[i+1], pixels[i+2]).clamp(0, 1),
           true
           );
     }

@@ -77,16 +77,12 @@ namespace tracer {
       node->children[1] = construct_tree(shapes, split, end);
 
       // merge children bounds
-      int exist = 0;
-      if (node->children[0]) {
+      if (node->children[0] && node->children[1])
+        node->bounds = node->children[0]->bounds.merge(node->children[1]->bounds);
+      else if (node->children[0])
         node->bounds = node->children[0]->bounds;
-        exist = 0;
-      } else if (node->children[1]) {
+      else if (node->children[1])
         node->bounds = node->children[1]->bounds;
-        exist = 1;
-      }
-      node->bounds = node->children[exist ^ 1] ?
-        node->children[exist ^ 1]->bounds.merge(node->bounds) : node->bounds;
     }
 
     return node;

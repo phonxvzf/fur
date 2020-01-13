@@ -402,7 +402,11 @@ namespace math {
         }
 
         vector3 inverse() const {
-          return { 1.f / x, 1.f / y, 1.f / z };
+          return {
+            COMPARE_EQ(x, 0) ? 2e9f : 1.f / x,
+            COMPARE_EQ(y, 0) ? 2e9f : 1.f / y,
+            COMPARE_EQ(z, 0) ? 2e9f : 1.f / z,
+          };
         }
 
         std::string to_string() const {

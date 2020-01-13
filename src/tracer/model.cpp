@@ -18,7 +18,12 @@ namespace tracer {
     std::wcout << L"  * Loading " << wss.str() << L"..." << std::flush;
 
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(fpath, aiProcess_Triangulate | aiProcess_SortByPType);
+    const aiScene* scene = importer.ReadFile(
+        fpath,
+        aiProcess_Triangulate
+        | aiProcess_SortByPType
+        | aiProcess_OptimizeMeshes
+        );
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
       throw std::runtime_error(std::string("unable to load model: ") + importer.GetErrorString());
 
