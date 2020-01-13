@@ -7,9 +7,9 @@
 namespace tracer {
   class material {
     public:
-      const rgb_spectrum rgb_refl;
-      const rgb_spectrum rgb_refr;
-      const rgb_spectrum emittance;
+      const sampled_spectrum refl;
+      const sampled_spectrum refr;
+      const sampled_spectrum emittance;
 
       enum transport_type {
         REFLECT,
@@ -27,21 +27,18 @@ namespace tracer {
       };
 
       material(
-          const rgb_spectrum& rgb_refl = rgb_spectrum(1),
-          const rgb_spectrum& rgb_refr = rgb_spectrum(1),
-          const rgb_spectrum& emittance = rgb_spectrum(0),
+          const sampled_spectrum& refl,
+          const sampled_spectrum& refr,
+          const sampled_spectrum& emittance,
           const transport_type& transport = REFLECT)
-        : rgb_refl(rgb_refl),
-        rgb_refr(rgb_refr),
-        emittance(emittance),
-        transport_model(transport) {}
+        : refl(refl), refr(refr), emittance(emittance), transport_model(transport) {}
 
       /*
        * Evaluate weight term including w.n, BxDF, and PDF
        * Multiply this function's result with incoming radiance can output outgoing radiance.
        * All input vectors are in tangent space (up basis vector (surface normal) is <0,1,0>)
        */
-      virtual rgb_spectrum weight(
+      virtual sampled_spectrum weight(
           const vector3f& omega_in,
           const vector3f& omega_out,
           const light_transport& lt

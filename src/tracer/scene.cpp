@@ -12,22 +12,25 @@
 
 namespace tracer {
 
-  rgb_spectrum scene::trace_path(
+  nspectrum scene::trace_path(
       const render_params& params,
       const ray& r,
       const material::light_transport& prev_lt,
       int bounce)
   {
-    if (bounce > params.max_bounce) return rgb_spectrum(0);
+    if (bounce > params.max_bounce) return sampled_spectrum(0);
 
     shape::intersect_result result;
     shapes.intersect(r, params.intersect_options, &result);
 
     if (result.object == nullptr) {
-      if (environment_texture != nullptr && r.medium == OUTSIDE) {
-        return environment_texture->sample(r.dir);
+      if (r.medium == OUTSIDE) {
+        if (environment_texture != nullptr) {
+          return environment_texture->sample(r.dir);
+        }
+        return environment_color;
       }
-      return rgb_spectrum(0);
+      return sampled_spectrum(0);
     }
     if (params.show_normal) return rgb_spectrum(result.normal.x, result.normal.y, result.normal.z);
     if (params.show_depth) return rgb_spectrum(result.t_hit);
@@ -36,7 +39,7 @@ namespace tracer {
       case material::EMIT:
         return result.object->surface->emittance;
       case material::NONE:
-        return rgb_spectrum(0);
+        return sampled_spectrum(0);
       default:
         break;
     }
@@ -67,11 +70,11 @@ namespace tracer {
         r.t_max,
         next_lt.med
         );
-    const rgb_spectrum color = (next_lt.transport == material::REFLECT) ?
-      result.object->surface->rgb_refl : result.object->surface->rgb_refr;
+    const nspectrum color = (next_lt.transport == material::REFLECT) ?
+      result.object->surface->refl : result.object->surface->refr;
 
     // do volumetric path tracing
-    rgb_spectrum volume_weight(1.f);
+    nspectrum volume_weight(color.get_n_samples(), 1.f);
     if (result.object->surface->transport_model == material::SSS && next_lt.med == INSIDE) {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
@@ -90,8 +93,8 @@ namespace tracer {
 
         ++bounce;
 
-        if (bounce > params.max_bounce) return rgb_spectrum(0);
-        if (rng.next_uf() < volume->absorp_prob) return rgb_spectrum(0);
+        if (bounce > params.max_bounce) return sampled_spectrum(0);
+        if (rng.next_uf() < volume->absorp_prob) return sampled_spectrum(0);
 
         volume_weight *= volume->beta(true, dist);
 
@@ -119,7 +122,7 @@ namespace tracer {
 
     // russian roulette path termination
     const Float rr_prob = std::min(params.max_rr, 1 - color.max());
-    if (rng.next_uf() < rr_prob) return rgb_spectrum(0);
+    if (rng.next_uf() < rr_prob) return sampled_spectrum(0);
 
     return volume_weight * (result.object->surface->emittance
       + result.object->surface->weight(omega_in, omega_out, next_lt)
@@ -133,8 +136,8 @@ namespace tracer {
   {
     random::rng& rng = rngs[params.thread_id];
     job j;
-    const Float inv_spp = Float(1) / params.spp;
-    const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.spp;
+    const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.n_subpixels;
+    const Float inv_subpixels = 1.f / n_subpixels;
 
     while (master.get_job(&j)) {
       const vector2i start = j.start;
@@ -142,22 +145,22 @@ namespace tracer {
       for (int y = start.y; y < end.y; ++y) {
         for (int x = start.x; x < end.x; ++x) {
 
-          rgb_spectrum rgb_pixel(0.0f);
+          sampled_spectrum pixel_color(0.0f);
           const int i = params.img_res.x * y + x;
 
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
-            rgb_spectrum rgb(0.0f);
+            sampled_spectrum color(0.0f);
             const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf()).normalized();
-            for (size_t s = 0; s < params.sspp; ++s) {
-              rgb += trace_path(params, r, { material::REFLECT, OUTSIDE }, 0);
+            for (size_t s = 0; s < params.spp; ++s) {
+              color += trace_path(params, r, { material::REFLECT, OUTSIDE }, 0);
             }
-            rgb_pixel += rgb * inv_sspp;
+            pixel_color += color;
           }
 
-          ird_rgb->at(i) = rgb_pixel;
-
-          if (!params.show_depth && !params.show_normal) {
-            ird_rgb->at(i) = ird_rgb->at(i) * inv_spp;
+          if (params.show_depth || params.show_normal) {
+            ird_rgb->at(i) = rgb_spectrum(pixel_color[0], pixel_color[1], pixel_color[2]);
+          } else {
+            ird_rgb->at(i) = pixel_color.rgb() * (inv_spp * inv_subpixels);
           }
 
           // profile if requested
@@ -193,8 +196,8 @@ namespace tracer {
     }
 
     ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(params.img_res.x * params.img_res.y);
-    inv_sspp = Float(1) / params.sspp;
-    n_strata = point2i(std::max(1, static_cast<int>(std::sqrt(params.sspp))));
+    inv_spp = 1.f / params.spp;
+    n_strata = point2i(std::max(1, static_cast<int>(std::sqrt(params.n_subpixels))));
 
     // init thread scheduler
     master.init(params.img_res, params.tile_size);

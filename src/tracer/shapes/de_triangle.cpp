@@ -33,9 +33,9 @@ namespace tracer {
            sign(ac.cross(normal).dot(pc)) < 2.0)
           ?
           std::min(std::min(
-            dot2(ba*clamp(ba.dot(pa)/dot2(ba),0.0,1.0)-pa),
-            dot2(cb*clamp(cb.dot(pb)/dot2(cb),0.0,1.0)-pb)),
-            dot2(ac*clamp(ac.dot(pc)/dot2(ac),0.0,1.0)-pc))
+            dot2(ba*clamp(ba.dot(pa)/dot2(ba),Float(0),Float(1))-pa),
+            dot2(cb*clamp(cb.dot(pb)/dot2(cb),Float(0),Float(1))-pb)),
+            dot2(ac*clamp(ac.dot(pc)/dot2(ac),Float(0),Float(1))-pc))
           :
           normal.dot(pa)*normal.dot(pa)/dot2(normal) );
     }

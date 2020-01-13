@@ -9,15 +9,20 @@
 namespace tracer {
   class texture {
     private:
-      rgb_spectrum* spectrums = nullptr;
+      sampled_spectrum* spectrums = nullptr;
       int width, height;
+
+      inline sampled_spectrum spectrum_at(const point2i& sti) const {
+        const point2i stc(clamp(sti.x, 0, width - 1), clamp(sti.y, 0, height - 1));
+        return spectrums[width * stc.y + stc.x];
+      }
 
     public:
       texture(const std::string& fpath);
       ~texture();
 
-      rgb_spectrum sample(const point2f& st) const;
-      rgb_spectrum sample(const point3f& sph_coords) const;
+      sampled_spectrum sample(const point2f& st) const;
+      sampled_spectrum sample(const point3f& sph_coords) const;
   };
 }
 

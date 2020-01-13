@@ -4,14 +4,13 @@
 
 namespace tracer {
   namespace materials {
-    rgb_spectrum lambert::weight(
+    sampled_spectrum lambert::weight(
         const vector3f& omega_in,
         const vector3f& omega_out,
         const light_transport& lt
         ) const 
     {
-      const normal3f normal = (omega_in + omega_out).normalized();
-      return rgb_refl * INV_PI * absdot(omega_in, normal);
+      return refl; // this weight is evaluated by importance sampling (cosine-weighted)
     }
 
     material::light_transport lambert::sample(

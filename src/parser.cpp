@@ -128,15 +128,17 @@ math::vector4f parser::parse_vector4f(
   }
 }
 
-tracer::rgb_spectrum parser::parse_rgb_spectrum(
+tracer::sampled_spectrum parser::parse_rgb_spectrum(
     const YAML::Node& node,
-    const std::string& name)
+    const std::string& name,
+    bool illuminant
+    )
 {
   try {
     std::string value = node[name].as<std::string>();
     math::vector3f v;
     std::sscanf(value.c_str(), "%f%f%f", &v.x, &v.y, &v.z);
-    return tracer::rgb_spectrum(v.x, v.y, v.z);
+    return tracer::sampled_spectrum(tracer::rgb_spectrum(v.x, v.y, v.z), illuminant);
   } catch (const std::exception& e) {
     throw parsing_error(node[name].Mark().line, "while parsing " + name + ": " + e.what());
   }
@@ -203,8 +205,8 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
       const bool is_refract = transport == tracer::material::REFRACT;
       return std::shared_ptr<tracer::material>(new tracer::materials::ggx(
             parse_rgb_spectrum(ggx_node, "rgb_refl"),
-            is_refract ? parse_rgb_spectrum(ggx_node, "rgb_refr") : tracer::rgb_spectrum(0),
-            parse_rgb_spectrum(ggx_node, "emittance"),
+            is_refract ? parse_rgb_spectrum(ggx_node, "rgb_refr") : tracer::sampled_spectrum(0),
+            parse_rgb_spectrum(ggx_node, "emittance", true),
             parse_float(ggx_node, "roughness"),
             is_refract ? parse_float(ggx_node, "eta_i") : 1,
             is_refract ? parse_float(ggx_node, "eta_t") : 1,
@@ -220,7 +222,7 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     YAML::Node light_node = mat_node["light"];
     if (light_node["emittance"].IsDefined()) {
       return std::shared_ptr<tracer::material>(new tracer::materials::light(
-            parse_rgb_spectrum(light_node, "emittance")
+            parse_rgb_spectrum(light_node, "emittance", true)
             ));
     } else {
       throw parsing_error(light_node.Mark().line, "specify emittance");
@@ -235,7 +237,7 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
       return std::shared_ptr<tracer::material>(new tracer::materials::sss(
             parse_rgb_spectrum(sss_node, "rgb_refl"),
             parse_rgb_spectrum(sss_node, "rgb_refr"),
-            parse_rgb_spectrum(sss_node, "emittance"),
+            parse_rgb_spectrum(sss_node, "emittance", true),
             parse_float(sss_node, "roughness"),
             parse_float(sss_node, "eta_i"),
             parse_float(sss_node, "eta_t"),
@@ -254,7 +256,7 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     if (lambert_node["rgb_refl"].IsDefined() && lambert_node["emittance"].IsDefined()) {
       return std::shared_ptr<tracer::material>(new tracer::materials::lambert(
             parse_rgb_spectrum(lambert_node, "rgb_refl"),
-            parse_rgb_spectrum(lambert_node, "emittance")
+            parse_rgb_spectrum(lambert_node, "emittance", true)
             ));
     } else {
       throw parsing_error(lambert_node.Mark().line, "specify rgb_refl, and emittance");
@@ -419,10 +421,10 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       params->img_res = img_res;
     }
     if (render_config["subpixels"].IsDefined()) {
-      params->spp = parse_int(render_config, "subpixels");
+      params->n_subpixels = parse_int(render_config, "subpixels");
     }
     if (render_config["spp"].IsDefined()) {
-      params->sspp = parse_int(render_config, "spp");
+      params->spp = parse_int(render_config, "spp");
     }
     if (render_config["seed"].IsDefined()) {
       params->seed = parse_int(render_config, "seed");
@@ -495,9 +497,19 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     }
 
     if (scene_config["environment"].IsDefined()) {
-      main_scene->environment_texture = std::make_unique<tracer::texture>(
-          parse_string(root["scene"], "environment")
-          );
+      YAML::Node env_node = scene_config["environment"];
+      if (env_node["hdr"].IsDefined()) {
+        main_scene->environment_texture = std::make_unique<tracer::texture>(
+            parse_string(env_node, "hdr")
+            );
+      } else if (env_node["uniform"].IsDefined()) {
+        main_scene->environment_color = parse_rgb_spectrum(env_node, "uniform", true);
+      } else {
+        throw parsing_error(
+            scene_config.Mark().line,
+            "`environment` must be supplied with `hdr` or `uniform`"
+            );
+      }
     }
 
     return main_scene;

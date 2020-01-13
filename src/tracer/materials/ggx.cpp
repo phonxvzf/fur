@@ -23,13 +23,14 @@ namespace tracer {
       return alpha2 * INV_PI / pow2(cos2 * (alpha2 - 1) + 1);
     }
 
-    rgb_spectrum ggx::weight(
+    sampled_spectrum ggx::weight(
         const vector3f& omega_in,
         const vector3f& omega_out,
         const light_transport& lt
         ) const
     {
-      if ((omega_in + omega_out).is_zero()) return rgb_spectrum(is_refractive(lt.transport));
+      if ((omega_in + omega_out).is_zero())
+        return sampled_spectrum(is_refractive(lt.transport));
 
       Float eta_i_chk = eta_i, eta_t_chk = eta_t;
       if (lt.med == INSIDE) std::swap(eta_i_chk, eta_t_chk);
@@ -40,15 +41,15 @@ namespace tracer {
 
       const Float n_dot_m   = absdot(normal, mf_normal);
       const Float in_dot_n  = absdot(omega_out, normal);
-      const Float denom = n_dot_m * in_dot_n;
-      if (COMPARE_LEQ(denom, FLOAT_TOLERANT)) return rgb_spectrum(0);
+      const Float prob = n_dot_m * in_dot_n;
+      if (COMPARE_LEQ(prob, FLOAT_TOLERANT)) return sampled_spectrum(0);
 
       // Smith geometry term G = G1_in * G1_out
       const Float G = geometry(normal, mf_normal, omega_in, alpha2)
         * geometry(normal, mf_normal, omega_out, alpha2);
 
-      return clamp((absdot(omega_in, mf_normal) * G / denom), 0.f, 1.f)
-        * (lt.transport == REFLECT ? rgb_refl : rgb_refr);
+      return clamp((absdot(omega_in, mf_normal) * G / prob), Float(0), Float(1))
+        * (lt.transport == REFLECT ? refl : refr);
     }
 
     material::light_transport ggx::sample(

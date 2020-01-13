@@ -84,6 +84,10 @@ void update_progress(Float progress, size_t eta, size_t elapsed) {
 
 int main(int argc, char** argv) {
 
+  //sampled_spectrum white(1.f);
+  //std::cerr << white.average() << " " << white.xyz() << std::endl;
+  //return 0;
+
   setlocale(LC_CTYPE, ""); // assume that LC supports unicode
   std::wcout << L"\r" << std::flush;
   std::srand(time(NULL));
@@ -173,7 +177,7 @@ int main(int argc, char** argv) {
   params.show_depth   = show_depth;
   params.show_normal  = show_normal;
   if (show_normal || show_depth) {
-    params.sspp = params.spp = 1;
+    params.spp = params.n_subpixels = 1;
   }
 
   // setup rendering

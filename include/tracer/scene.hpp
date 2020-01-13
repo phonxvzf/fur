@@ -21,13 +21,13 @@ namespace tracer {
     vector2i  img_res       = { 256, 256 };
     size_t    n_workers     = 1;
     size_t    spp           = 1;
+    size_t    n_subpixels   = 1;
     vector2i  tile_size     = vector2i(64, 64);
     uint64_t  seed          = 0;
     point3f   eye_position  = point3f(0.0f);
     bool      show_depth    = false;
     bool      show_normal   = false;
     int       max_bounce    = 1;
-    size_t    sspp          = 1;
     Float     max_rr        = 0.5;
     int       thread_id;
 
@@ -45,7 +45,7 @@ namespace tracer {
           void (*update_callback)(Float, size_t, size_t)
           );
   
-      rgb_spectrum trace_path(
+      nspectrum trace_path(
           const render_params& params,
           const ray& r,
           const material::light_transport& lt,
@@ -56,7 +56,7 @@ namespace tracer {
       std::vector<light_source::emitter> light_emitters;
       std::vector<random::rng> rngs;
 
-      Float inv_sspp;
+      Float inv_spp;
       point2i n_strata;
 
       std::mutex pixel_counter_mutex;
@@ -73,6 +73,7 @@ namespace tracer {
 
     public:
       bvh_tree shapes;
+      sampled_spectrum environment_color;
 
       std::unique_ptr<camera::camera> camera = nullptr;
       std::unique_ptr<texture> environment_texture = nullptr;

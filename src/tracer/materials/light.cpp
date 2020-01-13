@@ -3,13 +3,13 @@
 
 namespace tracer {
   namespace materials {
-    rgb_spectrum light::weight(
+    sampled_spectrum light::weight(
         const vector3f& omega_in,
         const vector3f& omega_out,
         const light_transport& transport
         ) const
     {
-      return rgb_spectrum(0);
+      return sampled_spectrum();
     }
 
     light::light_transport light::sample(

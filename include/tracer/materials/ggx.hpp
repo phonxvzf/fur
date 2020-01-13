@@ -23,27 +23,27 @@ namespace tracer {
             ) const;
 
       public:
-        ggx(const rgb_spectrum& rgb_refl,
-            const rgb_spectrum& rgb_refr,
-            const rgb_spectrum& emittance,
+        ggx(const sampled_spectrum& refl,
+            const sampled_spectrum& refr,
+            const sampled_spectrum& emittance,
             Float roughness,
             Float eta_i,
             Float eta_t,
             const transport_type& transport = REFLECT)
-          : material(rgb_refl, rgb_refr, emittance, transport),
+          : material(refl, refr, emittance, transport),
           alpha(pow2(roughness)),
           alpha2(pow2(alpha)),
           eta_i(eta_i),
           eta_t(eta_t) {}
 
         ggx(const ggx& cpy)
-          : material(cpy.rgb_refl, cpy.rgb_refr, cpy.emittance),
+          : material(cpy.refl, cpy.refr, cpy.emittance),
           alpha(cpy.alpha),
           alpha2(cpy.alpha2),
           eta_i(cpy.eta_i),
           eta_t(cpy.eta_t) {}
 
-        rgb_spectrum weight(
+        sampled_spectrum weight(
             const vector3f& omega_in,
             const vector3f& omega_out,
             const light_transport& lt

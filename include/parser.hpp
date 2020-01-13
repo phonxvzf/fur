@@ -17,9 +17,10 @@ class parser {
     math::vector2f parse_vector2f(const YAML::Node& node, const std::string& name);
     math::vector3f parse_vector3f(const YAML::Node& node, const std::string& name);
     math::vector4f parse_vector4f(const YAML::Node& node, const std::string& name);
-    tracer::rgb_spectrum parse_rgb_spectrum(
+    tracer::sampled_spectrum parse_rgb_spectrum(
         const YAML::Node& node,
-        const std::string& name
+        const std::string& name,
+        bool illuminant = false
         );
     math::tf::transform parse_transform(const YAML::Node& tf_node);
     tracer::material::transport_type parse_transport_model(

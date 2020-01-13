@@ -13,8 +13,10 @@ namespace tracer {
 
     Float de_box::distance_function(const point3f& p) const {
       const vector3f q = point3f(std::abs(p.x), std::abs(p.y), std::abs(p.z)) - b;
-      const Float qx = std::max(q.x, 0.f), qy = std::max(q.y, 0.f), qz = std::max(q.z, 0.f);
-      return vector3f(qx, qy, qz).size() + std::min(std::max(qx, std::max(qy, qz)), 0.f);
+      const Float qx = std::max(q.x, Float(0));
+      const Float qy = std::max(q.y, Float(0));
+      const Float qz = std::max(q.z, Float(0));
+      return vector3f(qx, qy, qz).size() + std::min(std::max(qx, std::max(qy, qz)), Float(0));
     }
 
     bounds3f de_box::bounds() const {

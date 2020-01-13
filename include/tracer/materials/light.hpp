@@ -7,10 +7,10 @@ namespace tracer {
   namespace materials {
     class light : public material {
       public:
-        light(const rgb_spectrum& emittance)
-          : material(rgb_spectrum(0), rgb_spectrum(0), emittance, EMIT) {}
+        light(const sampled_spectrum& emittance)
+          : material(sampled_spectrum(), sampled_spectrum(), emittance, EMIT) {}
 
-        rgb_spectrum weight(
+        sampled_spectrum weight(
             const vector3f& omega_in,
             const vector3f& omega_out,
             const light_transport& lt

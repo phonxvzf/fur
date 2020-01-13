@@ -8,31 +8,31 @@ namespace tracer {
   namespace materials {
     class sss : public ggx {
       private:
-        const rgb_spectrum sigma_a;
-        const rgb_spectrum sigma_s;
-        const rgb_spectrum sigma, inv_sigma;
+        const sampled_spectrum sigma_a;
+        const sampled_spectrum sigma_s;
+        const sampled_spectrum sigma, inv_sigma;
 
       public:
         const Float g;
         const Float absorp_prob;
 
-        sss(const rgb_spectrum& rgb_refl,
-            const rgb_spectrum& rgb_refr,
-            const rgb_spectrum& emittance,
+        sss(const sampled_spectrum& refl,
+            const sampled_spectrum& refr,
+            const sampled_spectrum& emittance,
             Float roughness,
             Float eta_i,
             Float eta_t,
-            const rgb_spectrum& sigma_a,
-            const rgb_spectrum& sigma_s,
+            const sampled_spectrum& sigma_a,
+            const sampled_spectrum& sigma_s,
             Float g = 0);
 
         sss(const sss& cpy);
 
-        rgb_spectrum transmittance(Float dist) const;
-        rgb_spectrum beta(bool inside, Float dist) const;
+        sampled_spectrum transmittance(Float dist) const;
+        sampled_spectrum beta(bool inside, Float dist) const;
 
         Float sample_distance(random::rng& rng) const;
-        Float pdf(const rgb_spectrum& tr) const;
+        Float pdf(const sampled_spectrum& tr) const;
     };
   }
 }

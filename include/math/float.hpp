@@ -26,13 +26,14 @@ namespace math {
     return COMPARE_EQ(x, y) || (x < y);
   }
 
-  inline Float clamp(Float x, Float min, Float max) {
-    return std::min(max, std::max(min, x));
-  }
-
   inline Float lerp(Float t, Float a, Float b) {
     return (1 - t) * a + t * b;
   }
+
+  template <typename T>
+    inline T clamp(T x, T min, T max) {
+      return std::min(max, std::max(min, x));
+    }
 }
 
 #endif /* MATH_FLOAT_HPP */
