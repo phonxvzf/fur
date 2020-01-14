@@ -378,7 +378,7 @@ std::unique_ptr<tracer::camera::camera> parser::parse_camera(
           Float fov = math::radians(parse_float(cam_node, "fov"));
           return std::unique_ptr<tracer::camera::camera>(
               new tracer::camera::persp(
-                tf_lookat, img_res, { 1.0f, 1.0f }, near, far, fov, Float(img_res.x) / img_res.y
+                tf_lookat, img_res, { 2.0f, 2.0f }, near, far, fov, Float(img_res.x) / img_res.y
                 )
               );
         } else {
