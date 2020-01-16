@@ -6,6 +6,7 @@ namespace tracer {
     sampled_spectrum light::weight(
         const vector3f& omega_in,
         const vector3f& omega_out,
+        const normal3f& mf_normal,
         const light_transport& transport
         ) const
     {
@@ -14,6 +15,7 @@ namespace tracer {
 
     light::light_transport light::sample(
         vector3f* omega_in,
+        normal3f* mf_normal,
         const vector3f& omega_out,
         const light_transport& lt,
         const point2f& u,

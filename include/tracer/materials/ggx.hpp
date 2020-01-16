@@ -18,8 +18,7 @@ namespace tracer {
         Float geometry(
             const normal3f& normal,
             const normal3f& mf_normal,
-            const vector3f& omega,
-            Float alpha2
+            const vector3f& omega
             ) const;
 
       public:
@@ -46,11 +45,13 @@ namespace tracer {
         sampled_spectrum weight(
             const vector3f& omega_in,
             const vector3f& omega_out,
+            const normal3f& mf_normal,
             const light_transport& lt
             ) const override;
 
         light_transport sample(
             vector3f* omega_in,
+            normal3f* mf_normal,
             const vector3f& omega_out,
             const light_transport& lt,
             const point2f& u,

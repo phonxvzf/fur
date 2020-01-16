@@ -186,8 +186,7 @@ namespace tracer {
     : nspectrum(N_SPECTRAL_SAMPLES, 0)
   {
     const Float r = rgb.r(), g = rgb.g(), b = rgb.b();
-    const Float scale = illuminant ? 0.86445f : 0.94f;
-    sampled_spectrum tmp(*this);
+    sampled_spectrum tmp(0.0);
     if (illuminant) {
       if (r <= g && r <= b) {
         tmp += r * RGB_ADAPTER_ILLUM_WHITE;
@@ -248,16 +247,17 @@ namespace tracer {
       }
     }
     for (size_t i = 0; i < this->n_samples; ++i) {
-      spd[i] = tracer::clamp(tmp.spd[i] * scale, Float(0), std::numeric_limits<Float>::max());
+      spd[i] = math::clamp(tmp.spd[i], Float(0), std::numeric_limits<Float>::infinity());
     }
   }
 
   xyz_spectrum sampled_spectrum::xyz() const {
-    xyz_spectrum spectrum(0.0);
+    vector3<double> sum(0.0);
     for (int i = 0; i < N_SPECTRAL_SAMPLES; ++i) {
-      spectrum += xyz_spectrum(spd[i] * SMC_X[i], spd[i] * SMC_Y[i], spd[i] * SMC_Z[i]);
+      sum += vector3<double>{ spd[i] * SMC_X[i], spd[i] * SMC_Y[i], spd[i] * SMC_Z[i] };
     }
-    return spectrum * Float(LAMBDA_END - LAMBDA_START) / (N_SPECTRAL_SAMPLES * 106.856895f);
+    return xyz_spectrum(sum.x, sum.y, sum.z)
+      * Float(LAMBDA_END - LAMBDA_START) / (N_SPECTRAL_SAMPLES * 106.856895);
   }
 
   Float sampled_spectrum::average_spectral_samples(

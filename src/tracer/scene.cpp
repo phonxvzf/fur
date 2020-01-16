@@ -32,6 +32,7 @@ namespace tracer {
       }
       return sampled_spectrum(0);
     }
+
     if (params.show_normal) return rgb_spectrum(result.normal.x, result.normal.y, result.normal.z);
     if (params.show_depth) return rgb_spectrum(result.t_hit);
 
@@ -46,35 +47,40 @@ namespace tracer {
 
     random::rng& rng = rngs[params.thread_id];
 
+    const normal3f normal(result.normal.dot(r.dir) > 0 ? -result.normal : result.normal);
+
     vector3f u, v;
-    sampler::sample_orthogonals(result.normal, &u, &v, rng);
+    sampler::sample_orthogonals(normal, &u, &v, rng);
+    const matrix3f from_tangent_space(u, normal, v);
 
-    const matrix3f from_tangent_space(u, result.normal, v);
-
-    // omegas in tangent space
+    // vectors in tangent space
     const vector3f omega_out(from_tangent_space.t().dot(-r.dir));
     vector3f omega_in;
+    normal3f mf_normal;
 
+    // sample incident direction and microsurface (microfacet) normal
     const material::light_transport next_lt =
       result.object->surface->sample(
           &omega_in,
+          &mf_normal,
           omega_out,
           { result.object->surface->transport_model, prev_lt.med },
           rng.next_2uf(),
           rng.next_uf()
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
+    const sampled_spectrum color = (next_lt.transport == material::REFLECT) ?
+      result.object->surface->refl : result.object->surface->refr;
+
     ray r_next(
         result.hit_point + params.intersect_options.bias_epsilon * bias,
         from_tangent_space.dot(omega_in),
         r.t_max,
         next_lt.med
         );
-    const nspectrum color = (next_lt.transport == material::REFLECT) ?
-      result.object->surface->refl : result.object->surface->refr;
 
     // do volumetric path tracing
-    nspectrum volume_weight(color.get_n_samples(), 1.f);
+    sampled_spectrum volume_weight(1.f);
     if (result.object->surface->transport_model == material::SSS && next_lt.med == INSIDE) {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
@@ -124,10 +130,11 @@ namespace tracer {
     const Float rr_prob = std::min(params.max_rr, 1 - color.max());
     if (rng.next_uf() < rr_prob) return sampled_spectrum(0);
 
+    // recursively trace next incident light
     return volume_weight * (result.object->surface->emittance
-      + result.object->surface->weight(omega_in, omega_out, next_lt)
-      * trace_path(params, r_next, next_lt, bounce + 1)
-      / (1 - rr_prob));
+        + result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt)
+        * trace_path(params, r_next, next_lt, bounce + 1)
+        / (1 - rr_prob));
   } /* trace_path() */
 
   void scene::render_routine(

@@ -54,8 +54,7 @@ namespace math {
   }
 
   inline Float sign(Float x) {
-    if (COMPARE_EQ(x, 0)) return 0;
-    return x > 0 ? 1 : -1;
+    return x < 0 ? -1 : 1;
   }
 
   inline Float chi_plus(Float x) {
@@ -103,29 +102,26 @@ namespace math {
   }
 
   inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
-    return (2 * absdot(omega, normal) * normal - omega).normalized();
+    return (2 * omega.dot(normal) * normal - omega).normalized();
   }
 
   inline vector3f refract(
-      const vector3f& in,
+      const vector3f& omega,
       const normal3f& normal,
-      const normal3f& mf_normal,
-      Float eta)
+      Float eta,
+      bool* tir = nullptr
+      )
   {
-    const Float c = in.dot(mf_normal);
-    const Float dist = 1 + eta * (c * c - 1);
-    if (dist < 0) return reflect(in, mf_normal); // total internal reflection
-    return ((eta * c - sign(in.dot(normal)) * std::sqrt(dist)) * mf_normal - eta * in)
-      .normalized();
-  }
-
-  inline vector3f inv_refract(
-      const vector3f& out,
-      const normal3f& normal,
-      const normal3f& mf_normal,
-      Float eta)
-  {
-    return refract(out, -normal, -mf_normal, 1 / eta);
+    Float cos_theta_i = omega.dot(normal);
+    Float sin2_theta_i = max0(1 - cos_theta_i * cos_theta_i); // in case of floating point error
+    Float sin2_theta_t = eta * eta * sin2_theta_i; // Snell's law
+    if (COMPARE_GEQ(sin2_theta_t, 1)) {
+      if (tir) *tir = true;
+      return reflect(omega, normal);
+    }
+    if (tir) *tir = false;
+    Float cos_theta_t = std::sqrt(1 - sin2_theta_t);
+    return ((-omega * eta) + (eta * cos_theta_i - cos_theta_t) * normal).normalized();
   }
 
   inline Float reduce_angle(Float theta) {

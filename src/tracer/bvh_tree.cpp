@@ -3,7 +3,7 @@
 #include "math/util.hpp"
 
 #define MAX_SHAPES_PER_NODE (4)
-#define N_BUCKETS (16)
+#define N_BUCKETS (12)
 
 namespace tracer {
   bvh_tree::bvh_tree(std::vector<std::shared_ptr<shape>> shapes) {

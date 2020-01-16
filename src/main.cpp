@@ -84,10 +84,6 @@ void update_progress(Float progress, size_t eta, size_t elapsed) {
 
 int main(int argc, char** argv) {
 
-  //sampled_spectrum white(1.f);
-  //std::cerr << white.average() << " " << white.xyz() << std::endl;
-  //return 0;
-
   setlocale(LC_CTYPE, ""); // assume that LC supports unicode
   std::wcout << L"\r" << std::flush;
   std::srand(time(NULL));

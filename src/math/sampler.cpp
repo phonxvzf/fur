@@ -87,7 +87,7 @@ namespace math {
         tmp = rng.next_3uf();
       } while (COMPARE_EQ(pow2(tmp.dot(n)), tmp.size_sq()));
       *u = n.cross(tmp).normalized();
-      *v = n.cross(*u).normalized();
+      *v = u->cross(n).normalized();
     }
 
     void sample_stratified_2d(

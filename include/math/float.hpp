@@ -26,6 +26,10 @@ namespace math {
     return COMPARE_EQ(x, y) || (x < y);
   }
 
+  inline bool COMPARE_GEQ(Float x, Float y) {
+    return COMPARE_EQ(x, y) || (x > y);
+  }
+
   inline Float lerp(Float t, Float a, Float b) {
     return (1 - t) * a + t * b;
   }
