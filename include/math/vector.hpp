@@ -210,7 +210,7 @@ namespace math {
           }
         }
 
-        T dot(const vector2& rhs) const {
+        inline T dot(const vector2& rhs) const {
           return x * rhs.x + y * rhs.y;
         }
 
@@ -222,6 +222,10 @@ namespace math {
           return x * x + y * y;
         }
 
+        T sum() const {
+          return x + y;
+        }
+
         bool is_zero() const {
           return COMPARE_EQ(x, 0.0f) && COMPARE_EQ(y, 0.0f);
         }
@@ -230,7 +234,7 @@ namespace math {
           return vector2(math::clamp(x, min_val, max_val), math::clamp(y, min_val, max_val));
         }
 
-        vector2 normalized() const {
+        inline vector2 normalized() const {
           Float sz = this->size();
           ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
@@ -363,11 +367,11 @@ namespace math {
           }
         }
 
-        T dot(const vector3& rhs) const {
+        inline T dot(const vector3& rhs) const {
           return x * rhs.x + y * rhs.y + z * rhs.z;
         }
 
-        vector3 cross(const vector3& rhs) const {
+        inline vector3 cross(const vector3& rhs) const {
           return vector3(
               y * rhs.z - z * rhs.y,
               rhs.x * z - x * rhs.z,
@@ -383,6 +387,10 @@ namespace math {
           return x * x + y * y + z * z;
         }
 
+        T sum() const {
+          return x + y + z;
+        }
+
         bool is_zero() const {
           return COMPARE_EQ(x, 0.0f) && COMPARE_EQ(y, 0.0f) && COMPARE_EQ(z, 0.0f);
         }
@@ -395,7 +403,7 @@ namespace math {
               );
         }
 
-        vector3 normalized() const {
+        inline vector3 normalized() const {
           Float sz = this->size();
           ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;
@@ -563,7 +571,7 @@ namespace math {
           }
         }
 
-        T dot(const vector4& rhs) const {
+        inline T dot(const vector4& rhs) const {
           return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
         }
 
@@ -573,6 +581,10 @@ namespace math {
 
         Float size_sq() const {
           return x * x + y * y + z * z + w * w;
+        }
+
+        T sum() const {
+          return x + y + z + w;
         }
 
         bool is_zero() const {
@@ -591,7 +603,7 @@ namespace math {
               );
         }
 
-        vector4 normalized() const {
+        inline vector4 normalized() const {
           Float sz = this->size();
           ASSERT(!COMPARE_EQ(sz, 0.0f));
           return *this / sz;

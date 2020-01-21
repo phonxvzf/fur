@@ -5,10 +5,12 @@
 #include <mutex>
 
 #include "math/vector.hpp"
+#include "math/random.hpp"
 
 struct job {
   math::vector2i start;
   math::vector2i end;
+  math::random::rng rng;
 
   job() {}
   job(const math::vector2i& start, const math::vector2i& end) : start(start), end(end) {}

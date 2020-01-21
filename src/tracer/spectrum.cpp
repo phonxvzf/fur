@@ -4,7 +4,7 @@
 namespace tracer {
   bool nspectrum::is_black() const {
     for (size_t i = 0; i < n_samples; ++i) {
-      if (!COMPARE_EQ(spd[i], 0)) return false;
+      if (!COMPARE_EQ(spd.get()[i], 0)) return false;
     }
     return true;
   }
@@ -12,7 +12,7 @@ namespace tracer {
   nspectrum nspectrum::sqrt() const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      result.spd[i] = std::sqrt(spd[i]);
+      result.spd.get()[i] = std::sqrt(spd.get()[i]);
     }
     return result;
   }
@@ -20,7 +20,7 @@ namespace tracer {
   nspectrum nspectrum::pow(Float x) const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      result.spd[i] = std::pow(spd[i], x);
+      result.spd.get()[i] = std::pow(spd.get()[i], x);
     }
     return result;
   }
@@ -28,7 +28,7 @@ namespace tracer {
   nspectrum nspectrum::exp() const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      result.spd[i] = std::exp(spd[i]);
+      result.spd.get()[i] = std::exp(spd.get()[i]);
     }
     return result;
   }
@@ -36,7 +36,7 @@ namespace tracer {
   nspectrum nspectrum::clamp(Float min, Float max) const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      result.spd[i] = math::clamp(spd[i], min, max);
+      result.spd.get()[i] = math::clamp(spd.get()[i], min, max);
     }
     return result;
   }
@@ -44,8 +44,8 @@ namespace tracer {
   nspectrum nspectrum::inverse() const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      ASSERT(!COMPARE_EQ(spd[i], 0));
-      result.spd[i] = 1.f / spd[i];
+      ASSERT(!COMPARE_EQ(spd.get()[i], 0));
+      result.spd.get()[i] = 1.f / spd.get()[i];
     }
     return result;
   }
@@ -53,7 +53,7 @@ namespace tracer {
   Float nspectrum::average() const {
     Float sum = 0;
     for (size_t i = 0; i < n_samples; ++i) {
-      sum += spd[i];
+      sum += spd.get()[i];
     }
     sum /= n_samples;
     return sum;
@@ -62,7 +62,7 @@ namespace tracer {
   Float nspectrum::max() const {
     Float m = std::numeric_limits<Float>::min();
     for (size_t i = 0; i < n_samples; ++i) {
-      if (spd[i] > m) m = spd[i];
+      if (spd.get()[i] > m) m = spd.get()[i];
     }
     return m;
   }
@@ -70,7 +70,7 @@ namespace tracer {
   nspectrum& nspectrum::operator=(const nspectrum& sp) {
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      spd[i] = sp.spd[i];
+      spd.get()[i] = sp.spd.get()[i];
     }
     return *this;
   }
@@ -79,7 +79,7 @@ namespace tracer {
     nspectrum result(*this);
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      result.spd[i] = spd[i] + sp.spd[i];
+      result.spd.get()[i] = spd.get()[i] + sp.spd.get()[i];
     }
     return result;
   }
@@ -88,7 +88,7 @@ namespace tracer {
     nspectrum result(*this);
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      result.spd[i] = spd[i] - sp.spd[i];
+      result.spd.get()[i] = spd.get()[i] - sp.spd.get()[i];
     }
     return result;
   }
@@ -97,7 +97,7 @@ namespace tracer {
     nspectrum result(*this);
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      result.spd[i] = spd[i] * sp.spd[i];
+      result.spd.get()[i] = spd.get()[i] * sp.spd.get()[i];
     }
     return result;
   }
@@ -106,8 +106,8 @@ namespace tracer {
     nspectrum result(*this);
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      ASSERT(!COMPARE_EQ(sp.spd[i], 0));
-      result.spd[i] = spd[i] / sp.spd[i];
+      ASSERT(!COMPARE_EQ(sp.spd.get()[i], 0));
+      result.spd.get()[i] = spd.get()[i] / sp.spd.get()[i];
     }
     return result;
   }
@@ -115,7 +115,7 @@ namespace tracer {
   nspectrum nspectrum::operator*(Float s) const {
     nspectrum result(*this);
     for (size_t i = 0; i < n_samples; ++i) {
-      result.spd[i] *= s;
+      result.spd.get()[i] *= s;
     }
     return result;
   }
@@ -125,7 +125,7 @@ namespace tracer {
     ASSERT(!COMPARE_EQ(s, 0));
     Float inv = 1 / s;
     for (size_t i = 0; i < n_samples; ++i) {
-      result.spd[i] *= inv;
+      result.spd.get()[i] *= inv;
     }
     return result;
   }
@@ -133,7 +133,7 @@ namespace tracer {
   nspectrum& nspectrum::operator+=(const nspectrum& sp) {
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      spd[i] += sp.spd[i];
+      spd.get()[i] += sp.spd.get()[i];
     }
     return *this;
   }
@@ -141,7 +141,7 @@ namespace tracer {
   nspectrum& nspectrum::operator-=(const nspectrum& sp) {
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      spd[i] -= sp.spd[i];
+      spd.get()[i] -= sp.spd.get()[i];
     }
     return *this;
   }
@@ -149,7 +149,7 @@ namespace tracer {
   nspectrum& nspectrum::operator*=(const nspectrum& sp) {
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      spd[i] *= sp.spd[i];
+      spd.get()[i] *= sp.spd.get()[i];
     }
     return *this;
   }
@@ -157,8 +157,8 @@ namespace tracer {
   nspectrum& nspectrum::operator/=(const nspectrum& sp) {
     const size_t n = std::min(n_samples, sp.n_samples);
     for (size_t i = 0; i < n; ++i) {
-      ASSERT(!COMPARE_EQ(sp.spd[i], 0));
-      spd[i] /= sp.spd[i];
+      ASSERT(!COMPARE_EQ(sp.spd.get()[i], 0));
+      spd.get()[i] /= sp.spd.get()[i];
     }
     return *this;
   }
@@ -178,7 +178,7 @@ namespace tracer {
     for (size_t i = 0; i < N_SPECTRAL_SAMPLES; ++i) {
       Float lambda0 = math::lerp(Float(i) / N_SPECTRAL_SAMPLES, LAMBDA_START, LAMBDA_END);
       Float lambda1 = math::lerp(Float(i+1) / N_SPECTRAL_SAMPLES, LAMBDA_START, LAMBDA_END);
-      spd[i] = average_spectral_samples(samples, lambda0, lambda1);
+      spd.get()[i] = average_spectral_samples(samples, lambda0, lambda1);
     }
   }
 
@@ -247,14 +247,22 @@ namespace tracer {
       }
     }
     for (size_t i = 0; i < this->n_samples; ++i) {
-      spd[i] = math::clamp(tmp.spd[i], Float(0), std::numeric_limits<Float>::infinity());
+      spd.get()[i] = math::clamp(
+          tmp.spd.get()[i],
+          Float(0),
+          std::numeric_limits<Float>::infinity()
+          );
     }
   }
 
   xyz_spectrum sampled_spectrum::xyz() const {
     vector3<double> sum(0.0);
     for (int i = 0; i < N_SPECTRAL_SAMPLES; ++i) {
-      sum += vector3<double>{ spd[i] * SMC_X[i], spd[i] * SMC_Y[i], spd[i] * SMC_Z[i] };
+      sum += vector3<double>{
+        spd.get()[i] * SMC_X[i],
+        spd.get()[i] * SMC_Y[i],
+        spd.get()[i] * SMC_Z[i]
+      };
     }
     return xyz_spectrum(sum.x, sum.y, sum.z)
       * Float(LAMBDA_END - LAMBDA_START) / (N_SPECTRAL_SAMPLES * 106.856895);

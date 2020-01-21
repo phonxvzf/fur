@@ -2,27 +2,30 @@
 #define TRACER_SPECTRUM_HPP
 
 #include <vector>
+#include <memory>
+#include <functional>
 #include "math/matrix.hpp"
 
 namespace tracer {
 
   using namespace math;
 
-  class rgb_spectrum;
-  class xyz_spectrum;
-  class sampled_spectrum;
-
   class nspectrum {
     protected:
-      std::vector<Float> spd; // can be real SPD or primary chromaticity (e.g. RGB, XYZ)
+      // can be real SPD or chromaticity coeficients (e.g. RGB, XYZ)
+      std::unique_ptr<Float[]> spd;
       const size_t n_samples;
 
     public:
-      explicit nspectrum(size_t N = 0, Float v = 0) : n_samples(N) {
-        spd.resize(N, v);
+      explicit nspectrum(size_t N = 0, Float v = 6) : n_samples(N) {
+        spd = std::make_unique<Float[]>(N);
+        std::fill_n(spd.get(), N, v);
       }
 
-      nspectrum(const nspectrum& sp) : spd(sp.spd), n_samples(sp.n_samples) {}
+      nspectrum(const nspectrum& sp) : n_samples(sp.n_samples) {
+        spd = std::make_unique<Float[]>(sp.n_samples);
+        std::copy_n(sp.spd.get(), n_samples, spd.get());
+      }
 
       nspectrum& operator=(const nspectrum& sp);
 
@@ -50,8 +53,8 @@ namespace tracer {
       nspectrum& operator*=(const nspectrum& sp);
       nspectrum& operator/=(const nspectrum& sp);
 
-      Float& operator[](int i) { return spd[i]; }
-      Float operator[](int i) const { return spd[i]; }
+      Float& operator[](int i) { return spd.get()[i]; }
+      Float operator[](int i) const { return spd.get()[i]; }
 
       static const enum spectrum_type {
         NONE, RGB, XYZ, SAMPLED
@@ -72,19 +75,23 @@ namespace tracer {
     public:
       explicit rgb_spectrum(Float x = 0) : nspectrum(3, x) {}
       rgb_spectrum(Float r, Float g, Float b) : nspectrum(3) {
-        spd[0] = r;
-        spd[1] = g;
-        spd[2] = b;
+        spd.get()[0] = r;
+        spd.get()[1] = g;
+        spd.get()[2] = b;
       }
       rgb_spectrum(const nspectrum& sp) : nspectrum(sp) {}
       rgb_spectrum(const rgb_spectrum& rgb) : nspectrum(rgb) {}
 
-      Float r() const { return spd[0]; }
-      Float g() const { return spd[1]; }
-      Float b() const { return spd[2]; }
+      Float r() const { return spd.get()[0]; }
+      Float g() const { return spd.get()[1]; }
+      Float b() const { return spd.get()[2]; }
 
       friend std::ostream& operator<<(std::ostream& os, const rgb_spectrum& rgb) {
-        return os << "rgb(" << rgb.spd[0] << ", " << rgb.spd[1] << ", " << rgb.spd[2] << ")";
+        return os
+          << "rgb("
+          << rgb.spd.get()[0] << ", "
+          << rgb.spd.get()[1] << ", "
+          << rgb.spd.get()[2] << ")";
       }
 
       static const spectrum_type type = RGB;
@@ -94,19 +101,23 @@ namespace tracer {
     public:
       explicit xyz_spectrum(Float x = 0) : nspectrum(3, x) {}
       xyz_spectrum(Float x, Float y, Float z) : nspectrum(3) {
-        spd[0] = x;
-        spd[1] = y;
-        spd[2] = z;
+        spd.get()[0] = x;
+        spd.get()[1] = y;
+        spd.get()[2] = z;
       }
       xyz_spectrum(const nspectrum& sp) : nspectrum(sp) {}
       xyz_spectrum(const xyz_spectrum& xyz) : nspectrum(xyz) {}
 
-      Float x() const { return spd[0]; }
-      Float y() const { return spd[1]; }
-      Float z() const { return spd[2]; }
+      Float x() const { return spd.get()[0]; }
+      Float y() const { return spd.get()[1]; }
+      Float z() const { return spd.get()[2]; }
 
       friend std::ostream& operator<<(std::ostream& os, const xyz_spectrum& xyz) {
-        return os << "xyz(" << xyz.spd[0] << ", " << xyz.spd[1] << ", " << xyz.spd[2] << ")";
+        return os
+          << "xyz("
+          << xyz.spd.get()[0] << ", "
+          << xyz.spd.get()[1] << ", "
+          << xyz.spd.get()[2] << ")";
       }
 
       static const spectrum_type type = XYZ;

@@ -49,12 +49,12 @@ namespace tracer {
           const render_params& params,
           const ray& r,
           const material::light_transport& lt,
+          random::rng& rng,
           int bounce
           );
 
       std::shared_ptr<std::vector<rgb_spectrum>> ird_rgb = nullptr;
       std::vector<light_source::emitter> light_emitters;
-      std::vector<random::rng> rngs;
 
       Float inv_spp;
       point2i n_strata;

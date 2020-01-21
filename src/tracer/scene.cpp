@@ -16,6 +16,7 @@ namespace tracer {
       const render_params& params,
       const ray& r,
       const material::light_transport& prev_lt,
+      random::rng& rng,
       int bounce)
   {
     if (bounce > params.max_bounce) return sampled_spectrum(0);
@@ -44,8 +45,6 @@ namespace tracer {
       default:
         break;
     }
-
-    random::rng& rng = rngs[params.thread_id];
 
     const normal3f normal(result.normal.dot(r.dir) > 0 ? -result.normal : result.normal);
 
@@ -133,7 +132,7 @@ namespace tracer {
     // recursively trace next incident light
     return volume_weight * (result.object->surface->emittance
         + result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt)
-        * trace_path(params, r_next, next_lt, bounce + 1)
+        * trace_path(params, r_next, next_lt, rng, bounce + 1)
         / (1 - rr_prob));
   } /* trace_path() */
 
@@ -141,10 +140,8 @@ namespace tracer {
       const render_params& params,
       void (*update_callback)(Float, size_t, size_t))
   {
-    random::rng& rng = rngs[params.thread_id];
     job j;
     const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.n_subpixels;
-    const Float inv_subpixels = 1.f / n_subpixels;
 
     while (master.get_job(&j)) {
       const vector2i start = j.start;
@@ -152,22 +149,51 @@ namespace tracer {
       for (int y = start.y; y < end.y; ++y) {
         for (int x = start.x; x < end.x; ++x) {
 
-          sampled_spectrum pixel_color(0.0f);
           const int i = params.img_res.x * y + x;
+
+          Float total_dist = 0;
+          Float dists[n_subpixels];
+          sampled_spectrum pixel_colors[n_subpixels];
+          std::vector<point2f> img_point_offsets;
+          sampler::sample_stratified_2d(
+              img_point_offsets,
+              n_subpixels,
+              std::max(1ul, n_subpixels >> 1),
+              j.rng
+              );
 
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             sampled_spectrum color(0.0f);
-            const ray r = camera->generate_ray(point2f(x, y) + rng.next_2uf()).normalized();
+            const point2f img_point(point2f(x, y) + img_point_offsets[subpixel]);
+            const point2f img_mid(x + 0.5, y + 0.5);
+            const ray r = camera->generate_ray(img_point).normalized();
+
             for (size_t s = 0; s < params.spp; ++s) {
-              color += trace_path(params, r, { material::REFLECT, OUTSIDE }, 0);
+              color += trace_path(params, r, { material::REFLECT, OUTSIDE }, j.rng, 0);
             }
-            pixel_color += color;
+
+            pixel_colors[subpixel] = color;
+            dists[subpixel] = (img_point - img_mid).size();
+            total_dist += dists[subpixel];
           }
 
           if (params.show_depth || params.show_normal) {
-            ird_rgb->at(i) = rgb_spectrum(pixel_color[0], pixel_color[1], pixel_color[2]);
+            sampled_spectrum debug_value = pixel_colors[0];
+            ird_rgb->at(i) = rgb_spectrum(debug_value[0], debug_value[1], debug_value[2]);
           } else {
-            ird_rgb->at(i) = pixel_color.rgb() * (inv_spp * inv_subpixels);
+            sampled_spectrum pixel_color(pixel_colors[0]);
+            if (n_subpixels > 1) {
+              Float weights[n_subpixels];
+              Float total_weight = 0;
+              for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
+                weights[subpixel] = total_dist - dists[subpixel];
+                total_weight += weights[subpixel];
+                pixel_color += weights[subpixel] * pixel_colors[subpixel];
+              }
+              pixel_color = pixel_color / total_weight;
+            }
+
+            ird_rgb->at(i) = pixel_color.rgb() * inv_spp;
           }
 
           // profile if requested
@@ -198,10 +224,6 @@ namespace tracer {
       void (*update_callback)(Float, size_t, size_t)
       )
   {
-    for (size_t i = 0; i < params.n_workers; ++i) {
-      rngs.push_back(random::rng(params.seed + i));
-    }
-
     ird_rgb = std::make_shared<std::vector<rgb_spectrum>>(params.img_res.x * params.img_res.y);
     inv_spp = 1.f / params.spp;
     n_strata = point2i(std::max(1, static_cast<int>(std::sqrt(params.n_subpixels))));
