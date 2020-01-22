@@ -49,6 +49,7 @@ namespace tracer {
           const render_params& params,
           const ray& r,
           const material::light_transport& lt,
+          const point2f& sample,
           random::rng& rng,
           int bounce
           );

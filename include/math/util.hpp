@@ -188,6 +188,10 @@ namespace math {
         std::max(p1.z, p2.z)
       };
     }
+
+  inline Float sinc(Float x) {
+    return COMPARE_EQ(x, 0) ? 1 : std::sin(x) / x;
+  }
 }
 
 #endif /* MATH_UTIL_HPP */

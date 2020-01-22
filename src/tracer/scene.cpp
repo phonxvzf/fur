@@ -16,6 +16,7 @@ namespace tracer {
       const render_params& params,
       const ray& r,
       const material::light_transport& prev_lt,
+      const point2f& sample,
       random::rng& rng,
       int bounce)
   {
@@ -64,7 +65,7 @@ namespace tracer {
           &mf_normal,
           omega_out,
           { result.object->surface->transport_model, prev_lt.med },
-          rng.next_2uf(),
+          sample,
           rng.next_uf()
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
@@ -132,7 +133,7 @@ namespace tracer {
     // recursively trace next incident light
     return volume_weight * (result.object->surface->emittance
         + result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt)
-        * trace_path(params, r_next, next_lt, rng, bounce + 1)
+        * trace_path(params, r_next, next_lt, sample, rng, bounce + 1)
         / (1 - rr_prob));
   } /* trace_path() */
 
@@ -151,10 +152,9 @@ namespace tracer {
 
           const int i = params.img_res.x * y + x;
 
-          Float total_dist = 0;
-          Float dists[n_subpixels];
-          sampled_spectrum pixel_colors[n_subpixels];
+          sampled_spectrum pixel_color(0);
           std::vector<point2f> img_point_offsets;
+          std::vector<point2f> bsdf_samples;
           sampler::sample_stratified_2d(
               img_point_offsets,
               n_subpixels,
@@ -162,38 +162,47 @@ namespace tracer {
               j.rng
               );
 
+          Float total_weight = 0;
+          sampled_spectrum debug_value;
+
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             sampled_spectrum color(0.0f);
             const point2f img_point(point2f(x, y) + img_point_offsets[subpixel]);
             const point2f img_mid(x + 0.5, y + 0.5);
             const ray r = camera->generate_ray(img_point).normalized();
 
+            sampler::sample_stratified_2d(
+                bsdf_samples,
+                params.spp,
+                std::max(1ul, (size_t) std::sqrt(params.spp)),
+                j.rng
+                );
+
             for (size_t s = 0; s < params.spp; ++s) {
-              color += trace_path(params, r, { material::REFLECT, OUTSIDE }, j.rng, 0);
+              color += trace_path(
+                  params,
+                  r,
+                  { material::REFLECT, OUTSIDE },
+                  bsdf_samples[s],
+                  j.rng,
+                  0
+                  );
             }
 
-            pixel_colors[subpixel] = color;
-            dists[subpixel] = (img_point - img_mid).size();
-            total_dist += dists[subpixel];
+            if (subpixel == 0) debug_value = color;
+
+            //Float weight = sinc(img_point.x) * sinc(img_point.y);
+            Float weight = 1.f;
+            pixel_color += weight * inv_spp * color;
+            total_weight += weight;
           }
 
+          Float inv_n_subpixels = 1.f / n_subpixels;
           if (params.show_depth || params.show_normal) {
-            sampled_spectrum debug_value = pixel_colors[0];
             ird_rgb->at(i) = rgb_spectrum(debug_value[0], debug_value[1], debug_value[2]);
           } else {
-            sampled_spectrum pixel_color(pixel_colors[0]);
-            if (n_subpixels > 1) {
-              Float weights[n_subpixels];
-              Float total_weight = 0;
-              for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
-                weights[subpixel] = total_dist - dists[subpixel];
-                total_weight += weights[subpixel];
-                pixel_color += weights[subpixel] * pixel_colors[subpixel];
-              }
-              pixel_color = pixel_color / total_weight;
-            }
-
-            ird_rgb->at(i) = pixel_color.rgb() * inv_spp;
+            if (!COMPARE_EQ(total_weight, 0)) ird_rgb->at(i) = pixel_color.rgb() / total_weight;
+            else ird_rgb->at(i) = pixel_color.rgb() / inv_n_subpixels;
           }
 
           // profile if requested

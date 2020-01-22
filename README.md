@@ -8,11 +8,14 @@ _This project is currently in progress._
 ## Features
 - Path-traced global illumination (unbiased Monte Carlo)
 - GGX BSDF for both reflection and refraction
-- Importance sampling
+- BSDF importance sampling
+- Stratified uniform samples
 - Russian roulette path termination
 - Bounding volume hierarchy (BVH) with surface area heuristic (SAH)
 - Anti-aliasing achieved via subpixels with average filter
 - Multi-threaded rendering (C++ STL threads)
+- Object loading via Assimp
+- Path-traced subsurface-scattering (experimental)
 - YAML scene file
 
 ## Prerequisites
@@ -69,5 +72,4 @@ $ display output.exr
 Please see `example_scene.yaml` for references.
 
 ## TODOs
-- Path-traced subsurface scattering
-- 2-pass bipole subsurface scattering
+- BSSRDF
