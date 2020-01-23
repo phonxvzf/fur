@@ -3,6 +3,7 @@
 
 #include "vector.hpp"
 #include <iostream>
+#include <immintrin.h>
 
 namespace math {
   template <typename T> class matrix2;
@@ -264,7 +265,11 @@ namespace math {
   template <typename T>
     class matrix4 {
       public:
-        T value[4][4];
+        // align on a 16-byte boundary for SSE compatibility
+        union alignas(16) {
+          T value[4][4];
+          T value_flat[16];
+        };
 
         matrix4(const T** values) {
           for (int i = 0; i < 4; ++i) {
@@ -418,13 +423,35 @@ namespace math {
         }
 
         matrix4 operator*(const matrix4& m) const {
-          const vector4<T> c0(col(0)), c1(col(1)), c2(col(2)), c3(col(3));
-          return matrix4(
-              c0 * m[0][0] + c1 * m[1][0] + c2 * m[2][0] + c3 * m[3][0],
-              c0 * m[0][1] + c1 * m[1][1] + c2 * m[2][1] + c3 * m[3][1],
-              c0 * m[0][2] + c1 * m[1][2] + c2 * m[2][2] + c3 * m[3][2],
-              c0 * m[0][3] + c1 * m[1][3] + c2 * m[2][3] + c3 * m[3][3]
-              );
+          matrix4 ret;
+          __m128 m128[14];
+          for (int row = 0; row < 4; ++row) {
+            m128[0] = _mm_broadcast_ss(&value[row][0]);
+            m128[1] = _mm_broadcast_ss(&value[row][1]);
+            m128[2] = _mm_broadcast_ss(&value[row][2]);
+            m128[3] = _mm_broadcast_ss(&value[row][3]);
+
+            m128[4] = _mm_load_ps(m.value[0]);
+            m128[5] = _mm_load_ps(m.value[1]);
+            m128[6] = _mm_load_ps(m.value[2]);
+            m128[7] = _mm_load_ps(m.value[3]);
+
+            // multiply
+            m128[8]   = _mm_mul_ps(m128[0], m128[4]);
+            m128[9]   = _mm_mul_ps(m128[1], m128[5]);
+            m128[10]  = _mm_mul_ps(m128[2], m128[6]);
+            m128[11]  = _mm_mul_ps(m128[3], m128[7]);
+
+            // partial sums
+            m128[12] = _mm_add_ps(m128[8], m128[9]);
+            m128[13] = _mm_add_ps(m128[10], m128[11]);
+
+            // sum up partial sums
+            m128[12] = _mm_add_ps(m128[12], m128[13]);
+
+            _mm_store_ps(ret.value_flat + (row << 2), m128[12]);
+          }
+          return ret;
         }
 
         T* operator[](int i) {

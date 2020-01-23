@@ -168,7 +168,6 @@ namespace tracer {
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             sampled_spectrum color(0.0f);
             const point2f img_point(point2f(x, y) + img_point_offsets[subpixel]);
-            const point2f img_mid(x + 0.5, y + 0.5);
             const ray r = camera->generate_ray(img_point).normalized();
 
             sampler::sample_stratified_2d(
@@ -191,18 +190,17 @@ namespace tracer {
 
             if (subpixel == 0) debug_value = color;
 
-            //Float weight = sinc(img_point.x) * sinc(img_point.y);
-            Float weight = 1.f;
+            Float weight = sinc(img_point_offsets[subpixel].x)
+              * sinc(img_point_offsets[subpixel].y);
+            //Float weight = 1.f;
             pixel_color += weight * inv_spp * color;
             total_weight += weight;
           }
 
-          Float inv_n_subpixels = 1.f / n_subpixels;
           if (params.show_depth || params.show_normal) {
             ird_rgb->at(i) = rgb_spectrum(debug_value[0], debug_value[1], debug_value[2]);
           } else {
-            if (!COMPARE_EQ(total_weight, 0)) ird_rgb->at(i) = pixel_color.rgb() / total_weight;
-            else ird_rgb->at(i) = pixel_color.rgb() / inv_n_subpixels;
+            ird_rgb->at(i) = pixel_color.rgb() / total_weight;
           }
 
           // profile if requested

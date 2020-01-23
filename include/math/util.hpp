@@ -190,7 +190,10 @@ namespace math {
     }
 
   inline Float sinc(Float x) {
-    return COMPARE_EQ(x, 0) ? 1 : std::sin(x) / x;
+    if (COMPARE_EQ(x, 0)) return 1;
+    Float sine = std::sin(x);
+    if (COMPARE_EQ(x, 0)) return 1;
+    return sine / x;
   }
 }
 

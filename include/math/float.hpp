@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #ifdef USE_DOUBLE_AS_FLOAT
+  #error Using double precision float is not currently supported.
   typedef double Float;
 #else
   typedef float Float;
