@@ -195,6 +195,16 @@ namespace math {
     if (COMPARE_EQ(x, 0)) return 1;
     return sine / x;
   }
+
+  inline Float solve_quadratic(Float* sol0, Float* sol1, Float a, Float b, Float c) {
+    const Float delta = pow2(b) - 4 * a * c;
+    if (delta < 0) return delta;
+    const Float sqrt_delta = std::sqrt(delta);
+    const Float inv_two_a = 1.f / (2 * a);
+    *sol0 = (-b - sqrt_delta) * inv_two_a;
+    *sol1 = (-b + sqrt_delta) * inv_two_a;
+    return delta;
+  }
 }
 
 #endif /* MATH_UTIL_HPP */

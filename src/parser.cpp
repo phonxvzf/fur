@@ -12,6 +12,8 @@
 #include "tracer/shapes/sphere.hpp"
 #include "tracer/shapes/quad.hpp"
 #include "tracer/shapes/triangle.hpp"
+#include "tracer/shapes/funnel.hpp"
+#include "tracer/shapes/tube.hpp"
 #include "tracer/materials/ggx.hpp"
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
@@ -333,6 +335,22 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
         parse_vector3f(attr, "a"),
         parse_vector3f(attr, "b"),
         parse_vector3f(attr, "c")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "funnel") {
+    tracer::shape* shape = new tracer::shapes::funnel(
+        tf,
+        surface,
+        parse_float(attr, "radius"),
+        parse_float(attr, "height")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "tube") {
+    tracer::shape* shape = new tracer::shapes::tube(
+        tf,
+        surface,
+        parse_float(attr, "radius"),
+        parse_float(attr, "height")
         );
     return std::shared_ptr<tracer::shape>(shape);
   }
