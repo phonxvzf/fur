@@ -100,9 +100,14 @@ namespace tracer {
         ++bounce;
 
         if (bounce > params.max_bounce) return sampled_spectrum(0);
-        if (rng.next_uf() < volume->absorp_prob) return sampled_spectrum(0);
 
-        volume_weight *= volume->beta(true, dist);
+        sampled_spectrum tr = volume->transmittance(dist);
+        sampled_spectrum density = volume->density(tr, true);
+        Float p = volume->pdf(density);
+
+        if (rng.next_uf() < (1 - p)) return sampled_spectrum(0);
+
+        volume_weight *= volume->beta(tr, true) / p;
 
         Float next_dist = volume->sample_distance(rng);
 
@@ -113,13 +118,17 @@ namespace tracer {
 
         r_sss = ray(
             r_sss.origin + r_sss.dir * dist,
-            -dir,
+            dir,
             next_dist,
             INSIDE);
         dist = next_dist;
       }
 
-      volume_weight *= volume->beta(false, sss_result.t_hit);
+      sampled_spectrum tr = volume->transmittance(sss_result.t_hit);
+      sampled_spectrum density = volume->density(tr, false);
+      Float p = volume->pdf(density);
+
+      volume_weight *= volume->beta(tr, false) / p;
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;

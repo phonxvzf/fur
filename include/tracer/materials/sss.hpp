@@ -29,10 +29,11 @@ namespace tracer {
         sss(const sss& cpy);
 
         sampled_spectrum transmittance(Float dist) const;
-        sampled_spectrum beta(bool inside, Float dist) const;
+        sampled_spectrum density(const sampled_spectrum& tr, bool inside) const;
+        sampled_spectrum beta(const sampled_spectrum& tr, bool inside) const;
 
         Float sample_distance(random::rng& rng) const;
-        Float pdf(const sampled_spectrum& tr) const;
+        Float pdf(const sampled_spectrum& density_spec) const;
     };
   }
 }

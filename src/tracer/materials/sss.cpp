@@ -28,16 +28,16 @@ namespace tracer {
       return (-1.f * sigma * std::min(dist, std::numeric_limits<Float>::max())).exp();
     }
 
-    sampled_spectrum sss::beta(bool inside, Float dist) const {
-      sampled_spectrum tr = transmittance(dist);
-      sampled_spectrum density = inside ? sigma * tr : tr;
-      Float p = pdf(density);
-      if (COMPARE_EQ(p, 0)) return sampled_spectrum(0);
-      return inside ? tr * sigma_s / p : tr / p;
+    sampled_spectrum sss::density(const sampled_spectrum& tr, bool inside) const {
+      return inside ? static_cast<sampled_spectrum>(sigma * tr) : tr;
     }
 
-    Float sss::pdf(const sampled_spectrum& tr) const {
-      return tr.average();
+    sampled_spectrum sss::beta(const sampled_spectrum& tr, bool inside) const {
+      return inside ? static_cast<sampled_spectrum>(tr * sigma_s) : tr;
+    }
+
+    Float sss::pdf(const sampled_spectrum& density_spec) const {
+      return density_spec.average();
     }
   }
 }
