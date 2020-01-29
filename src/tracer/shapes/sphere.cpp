@@ -10,7 +10,7 @@ namespace tracer {
       : shape(shape_to_world, surface), radius(radius) {}
 
     bounds3f sphere::bounds() const {
-      return bounds3f({ radius, radius, radius }, { radius, radius, radius });
+      return bounds3f({ -radius, -radius, -radius }, { radius, radius, radius });
     }
 
     bool sphere::intersect_shape(

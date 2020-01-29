@@ -48,7 +48,7 @@ int format_duration(wchar_t* wstr, size_t s) {
 
 void update_progress(Float progress, size_t eta, size_t elapsed) {
   const int n_cols = term_columns();
-  const int bar_width = n_cols * 0.5f - 2;
+  const int bar_width = (n_cols >> 1) - 2;
   const int finished = std::ceil(progress * bar_width);
   int offset = 0;
   if (progress < 1.0f) {
@@ -91,10 +91,13 @@ int main(int argc, char** argv) {
   std::string output_file_name("output.exr");
   std::string scene_file_name;
 
-  int arg_n_threads = 0;
-  bool verbose      = true;
-  bool show_depth   = false;
-  bool show_normal  = false;
+  int arg_n_threads   = 0;
+  bool verbose        = true;
+  bool show_depth     = false;
+  bool show_normal    = false;
+  bool override_start = false;
+  bool override_end   = false;
+  bounds2i render_bounds_override;
 
   if (argc > 1) {
     int n_sub_args = 0;
@@ -128,6 +131,26 @@ int main(int argc, char** argv) {
           show_depth = true;
         } else if (!std::strcmp(argv[i], "-n") || !std::strcmp(argv[i], "--normal")) {
           show_normal = true;
+        } else if (!std::strcmp(argv[i], "-s") || !std::strcmp(argv[i], "--start")) {
+          n_sub_args += 2;
+          if (i + 2 < argc) {
+            render_bounds_override.p_min.x = std::atoi(argv[i+1]);
+            render_bounds_override.p_min.y = std::atoi(argv[i+2]);
+            override_start = true;
+          } else {
+            std::cerr << "error: please specify start x and y" << std::endl;
+            return 1;
+          }
+        } else if (!std::strcmp(argv[i], "-e") || !std::strcmp(argv[i], "--end")) {
+          n_sub_args += 2;
+          if (i + 2 < argc) {
+            render_bounds_override.p_max.x = std::atoi(argv[i+1]);
+            render_bounds_override.p_max.y = std::atoi(argv[i+2]);
+            override_end = true;
+          } else {
+            std::cerr << "error: please specify end x and y" << std::endl;
+            return 1;
+          }
         } else if (!std::strcmp(argv[i], "-h") || !std::strcmp(argv[i], "--help")) {
           std::cerr <<
             "usage: ftracer [ -h | -j workers | -d | -n | -o output"
@@ -152,6 +175,7 @@ int main(int argc, char** argv) {
   std::wcout << "* Detected " << std::thread::hardware_concurrency()
     << " logical cores" << std::endl;
 
+  // parse scene file
   parser scene_parser;
   std::shared_ptr<scene> main_scene;
   render_params params;
@@ -174,6 +198,30 @@ int main(int argc, char** argv) {
   params.show_normal  = show_normal;
   if (show_normal || show_depth) {
     params.spp = params.n_subpixels = 1;
+  }
+  if (override_start) {
+    if (render_bounds_override.p_min.x <= 0
+        || render_bounds_override.p_min.y <= 0
+        || render_bounds_override.p_min.x > params.img_res.x
+        || render_bounds_override.p_min.y > params.img_res.y
+        || render_bounds_override.invalid())
+    {
+      std::cerr << "error: invalid overridden render bounds" << std::endl;
+      return 1;
+    }
+    params.render_bounds.p_min = render_bounds_override.p_min;
+  }
+  if (override_end) {
+    if (render_bounds_override.p_max.x <= 0
+        || render_bounds_override.p_max.y <= 0
+        || render_bounds_override.p_max.x > params.img_res.x
+        || render_bounds_override.p_max.y > params.img_res.y
+        || render_bounds_override.invalid())
+    {
+      std::cerr << "error: invalid overridden render bounds" << std::endl;
+      return 1;
+    }
+    params.render_bounds.p_max = render_bounds_override.p_max;
   }
 
   // setup rendering

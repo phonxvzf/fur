@@ -3,7 +3,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <execinfo.h>
-#include <signal.h>
 #include <unistd.h>
 
 void ASSERT(bool cond, const char* message) {

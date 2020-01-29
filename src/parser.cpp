@@ -437,6 +437,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
             "image resolution must be larger than or equal to 64x64");
       }
       params->img_res = img_res;
+      params->render_bounds.p_max = img_res;
     }
     if (render_config["subpixels"].IsDefined()) {
       params->n_subpixels = parse_int(render_config, "subpixels");

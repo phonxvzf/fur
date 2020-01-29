@@ -155,6 +155,8 @@ namespace tracer {
       xyz_spectrum xyz() const;
       inline rgb_spectrum rgb() const { return xyz_to_rgb(xyz()); }
 
+      Float luminance() const;
+
       static Float average_spectral_samples(
           const std::vector<spectral_sample>& samples,
           const Float lambda0,

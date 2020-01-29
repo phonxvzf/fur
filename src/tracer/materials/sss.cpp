@@ -20,7 +20,11 @@ namespace tracer {
       sigma(cpy.sigma), inv_sigma(cpy.inv_sigma), g(cpy.g), absorp_prob(cpy.absorp_prob) {}
 
     Float sss::sample_distance(random::rng& rng) const {
-      const int channel = rng.next_ui() % inv_sigma.get_n_samples();
+      const int channel = clamp(
+          (int) (rng.next_uf() * inv_sigma.get_n_samples()),
+          0,
+          sampled_spectrum::N_SPECTRAL_SAMPLES - 1
+          );
       return -std::log(1 - rng.next_uf()) * inv_sigma[channel];
     }
 
@@ -29,11 +33,11 @@ namespace tracer {
     }
 
     sampled_spectrum sss::density(const sampled_spectrum& tr, bool inside) const {
-      return inside ? static_cast<sampled_spectrum>(sigma * tr) : tr;
+      return inside ? tr : static_cast<sampled_spectrum>(sigma * tr);
     }
 
     sampled_spectrum sss::beta(const sampled_spectrum& tr, bool inside) const {
-      return inside ? static_cast<sampled_spectrum>(tr * sigma_s) : tr;
+      return inside ? tr : static_cast<sampled_spectrum>(tr * sigma_s);
     }
 
     Float sss::pdf(const sampled_spectrum& density_spec) const {

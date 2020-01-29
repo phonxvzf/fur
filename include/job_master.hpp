@@ -4,17 +4,19 @@
 #include <queue>
 #include <mutex>
 
-#include "math/vector.hpp"
+#include "tracer/bounds.hpp"
 #include "math/random.hpp"
 
+using namespace math;
+using namespace tracer;
+
 struct job {
-  math::vector2i start;
-  math::vector2i end;
-  math::random::rng rng;
+  bounds2i bounds;
+  random::rng rng;
 
   job() {}
-  job(const math::vector2i& start, const math::vector2i& end) : start(start), end(end) {}
-  job& operator=(const job& j) { start = j.start; end = j.end; return *this; }
+  job(const bounds2i& bounds) : bounds(bounds) {}
+  job& operator=(const job& j) { bounds = j.bounds; return *this; }
 };
 
 class job_master {
@@ -25,7 +27,7 @@ class job_master {
   public:
     job_master() {}
 
-    void init(const math::vector2i& img_res, const math::vector2i& tile_size);
+    void init(const bounds2i& bounds, const vector2i& tile_size);
     bool get_job(job* j);
 };
 

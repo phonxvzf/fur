@@ -19,6 +19,7 @@ namespace tracer {
 
   struct render_params {
     vector2i  img_res       = { 256, 256 };
+    bounds2i  render_bounds = { { 0, 0 }, { 256, 256 } };
     size_t    n_workers     = 1;
     size_t    spp           = 1;
     size_t    n_subpixels   = 1;
@@ -44,6 +45,19 @@ namespace tracer {
           const render_params& params,
           void (*update_callback)(Float, size_t, size_t)
           );
+
+      material::light_transport trace_bsdf(
+          ray* r_next,
+          vector3f* omega_in,
+          vector3f* omega_out,
+          normal3f* mf_normal,
+          const shape::intersect_result& result,
+          const render_params& params,
+          const ray& r,
+          const material::light_transport& prev_lt,
+          const point2f& sample,
+          random::rng& rng
+          );
   
       nspectrum trace_path(
           const render_params& params,
@@ -65,7 +79,7 @@ namespace tracer {
       job_master master;
 
       // profiling
-      size_t pixel_counter  = 0;
+      size_t pixel_counter = 0;
 
       static const uint32_t UPDATE_PERIOD = 1000; // ms
 
@@ -86,7 +100,6 @@ namespace tracer {
           render_profile* profile = nullptr,
           void (*update_callback)(Float, size_t, size_t) = nullptr
           );
-      float render_progress() const;
       bool rendering() const;
   };
 } /* namespace tracer */

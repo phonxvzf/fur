@@ -12,6 +12,50 @@
 
 namespace tracer {
 
+  material::light_transport scene::trace_bsdf(
+      ray* r_next,
+      vector3f* omega_in,
+      vector3f* omega_out,
+      normal3f* mf_normal,
+      const shape::intersect_result& result,
+      const render_params& params,
+      const ray& r,
+      const material::light_transport& prev_lt,
+      const point2f& sample,
+      random::rng& rng
+      )
+  {
+    const normal3f normal(result.normal.dot(r.dir) > 0 ? -result.normal : result.normal);
+
+    vector3f u, v;
+    sampler::sample_orthogonals(normal, &u, &v, rng);
+    const matrix3f from_tangent_space(u, normal, v);
+
+    // vectors in tangent space
+    *omega_out = from_tangent_space.t().dot(-r.dir);
+
+    // sample incident direction and microsurface (microfacet) normal
+    const material::light_transport next_lt =
+      result.object->surface->sample(
+          omega_in,
+          mf_normal,
+          *omega_out,
+          { result.object->surface->transport_model, prev_lt.med },
+          sample,
+          rng.next_uf()
+          );
+    const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
+
+    *r_next = ray(
+        result.hit_point + params.intersect_options.bias_epsilon * bias,
+        from_tangent_space.dot(*omega_in),
+        r.t_max,
+        next_lt.med
+        );
+
+    return next_lt;
+  }
+
   nspectrum scene::trace_path(
       const render_params& params,
       const ray& r,
@@ -47,37 +91,16 @@ namespace tracer {
         break;
     }
 
-    const normal3f normal(result.normal.dot(r.dir) > 0 ? -result.normal : result.normal);
-
-    vector3f u, v;
-    sampler::sample_orthogonals(normal, &u, &v, rng);
-    const matrix3f from_tangent_space(u, normal, v);
-
-    // vectors in tangent space
-    const vector3f omega_out(from_tangent_space.t().dot(-r.dir));
-    vector3f omega_in;
+    // evaluate bsdf
+    sampled_spectrum weight0(1.), weight1(1.); // bsdf weights
+    ray r_next;
+    vector3f omega_in, omega_out;
     normal3f mf_normal;
-
-    // sample incident direction and microsurface (microfacet) normal
-    const material::light_transport next_lt =
-      result.object->surface->sample(
-          &omega_in,
-          &mf_normal,
-          omega_out,
-          { result.object->surface->transport_model, prev_lt.med },
-          sample,
-          rng.next_uf()
-          );
-    const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
-    const sampled_spectrum color = (next_lt.transport == material::REFLECT) ?
-      result.object->surface->refl : result.object->surface->refr;
-
-    ray r_next(
-        result.hit_point + params.intersect_options.bias_epsilon * bias,
-        from_tangent_space.dot(omega_in),
-        r.t_max,
-        next_lt.med
+    material::light_transport next_lt = trace_bsdf(
+        &r_next, &omega_in, &omega_out, &mf_normal, result, params, r, prev_lt, sample, rng
         );
+    // incoming btdf
+    weight0 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
 
     // do volumetric path tracing
     sampled_spectrum volume_weight(1.f);
@@ -97,15 +120,13 @@ namespace tracer {
         sss_result = shape::intersect_result();
         hit = shapes.intersect(r_sss, params.intersect_options, &sss_result);
 
-        ++bounce;
-
-        if (bounce > params.max_bounce) return sampled_spectrum(0);
+        if (++bounce > params.max_bounce) return sampled_spectrum(0);
 
         sampled_spectrum tr = volume->transmittance(dist);
         sampled_spectrum density = volume->density(tr, true);
         Float p = volume->pdf(density);
 
-        if (rng.next_uf() < (1 - p)) return sampled_spectrum(0);
+        if (COMPARE_EQ(p, 0)) return sampled_spectrum(0);
 
         volume_weight *= volume->beta(tr, true) / p;
 
@@ -114,7 +135,9 @@ namespace tracer {
         vector3f basis0, basis1;
         sampler::sample_orthogonals(r_sss.dir, &basis0, &basis1, rng);
         matrix3f prev_space(basis0, r_sss.dir, basis1);
-        vector3f dir(prev_space.dot(sampler::sample_henyey_greenstein(volume->g, rng.next_2uf())));
+        vector3f dir(
+            prev_space.dot(-sampler::sample_henyey_greenstein(volume->g, rng.next_2uf()))
+            );
 
         r_sss = ray(
             r_sss.origin + r_sss.dir * dist,
@@ -124,26 +147,47 @@ namespace tracer {
         dist = next_dist;
       }
 
+      // ray comes out of medium
+      if (++bounce > params.max_bounce) return sampled_spectrum(0);
+      sss_result = shape::intersect_result();
+      r_sss.t_max = r_next.t_max;
+      hit = shapes.intersect(r_sss, params.intersect_options, &sss_result);
+      if (!hit) return sampled_spectrum(0);
       sampled_spectrum tr = volume->transmittance(sss_result.t_hit);
       sampled_spectrum density = volume->density(tr, false);
       Float p = volume->pdf(density);
 
+      if (COMPARE_EQ(p, 0)) return sampled_spectrum(0);
       volume_weight *= volume->beta(tr, false) / p;
+
+      next_lt = trace_bsdf(
+          &r_sss, &omega_in, &omega_out, &mf_normal, sss_result, params, r_sss,
+          { material::REFRACT, INSIDE }, sample, rng
+          );
+
+      // outgoing btdf
+      weight1 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
       r_next.t_max = old_t_max;
     } /* if sss */
 
+    const sampled_spectrum color = (next_lt.transport == material::REFLECT) ?
+      result.object->surface->refl : result.object->surface->refr;
+
     // russian roulette path termination
-    const Float rr_prob = std::min(params.max_rr, 1 - color.max());
-    if (rng.next_uf() < rr_prob) return sampled_spectrum(0);
+    // only enable when bounce > 3 to reduce noise
+    Float rr_prob = 0;
+    if (bounce > 3) {
+      rr_prob = clamp(1 - color.luminance(), Float(0), params.max_rr);
+      if (rng.next_uf() < rr_prob) return sampled_spectrum(0);
+    }
 
     // recursively trace next incident light
     return volume_weight * (result.object->surface->emittance
-        + result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt)
-        * trace_path(params, r_next, next_lt, sample, rng, bounce + 1)
-        / (1 - rr_prob));
+        + weight0 * weight1 * trace_path(params, r_next, next_lt, sample, rng, bounce + 1))
+        / (1 - rr_prob);
   } /* trace_path() */
 
   void scene::render_routine(
@@ -154,8 +198,8 @@ namespace tracer {
     const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.n_subpixels;
 
     while (master.get_job(&j)) {
-      const vector2i start = j.start;
-      const vector2i end = j.end;
+      const vector2i start = j.bounds.p_min;
+      const vector2i end = j.bounds.p_max;
       for (int y = start.y; y < end.y; ++y) {
         for (int x = start.x; x < end.x; ++x) {
 
@@ -201,7 +245,6 @@ namespace tracer {
 
             Float weight = sinc(img_point_offsets[subpixel].x)
               * sinc(img_point_offsets[subpixel].y);
-            //Float weight = 1.f;
             pixel_color += weight * inv_spp * color;
             total_weight += weight;
           }
@@ -222,10 +265,10 @@ namespace tracer {
                   >= UPDATE_PERIOD) || !rendering())
             {
               size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
-              size_t remaining = params.img_res.x * params.img_res.y - pixel_counter;
+              size_t remaining = params.render_bounds.area() - pixel_counter;
               Float pps = elapsed > 0 ? pixel_counter / elapsed : 0;
               size_t eta = pps ? remaining / pps : 0;
-              update_callback(render_progress(), eta, elapsed);
+              update_callback(Float(pixel_counter) / params.render_bounds.area(), eta, elapsed);
               last_update = system_clock::now();
             }
           }
@@ -245,7 +288,7 @@ namespace tracer {
     n_strata = point2i(std::max(1, static_cast<int>(std::sqrt(params.n_subpixels))));
 
     // init thread scheduler
-    master.init(params.img_res, params.tile_size);
+    master.init(params.render_bounds, params.tile_size);
 
     last_update   = std::chrono::system_clock::now();
     render_start  = std::chrono::system_clock::now();
@@ -267,6 +310,9 @@ namespace tracer {
     }
 
     // render finished
+    using namespace std::chrono;
+    size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
+    update_callback(1., 0, elapsed);
     if (profile) {
       profile->time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(
           (std::chrono::system_clock::now() - render_start)
@@ -276,10 +322,6 @@ namespace tracer {
     return ird_rgb;
   } /* render */
 
-  float scene::render_progress() const {
-    return static_cast<float>(pixel_counter) / ird_rgb->size();
-  }
-      
   bool scene::rendering() const {
     return ird_rgb->size() > pixel_counter;
   }
