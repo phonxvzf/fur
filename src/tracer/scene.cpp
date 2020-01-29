@@ -145,7 +145,7 @@ namespace tracer {
             next_dist,
             INSIDE);
         dist = next_dist;
-      }
+      } /* while !hit */
 
       // ray comes out of medium
       if (++bounce > params.max_bounce) return sampled_spectrum(0);
@@ -196,6 +196,7 @@ namespace tracer {
   {
     job j;
     const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.n_subpixels;
+    size_t sqrt_spp = std::sqrt(params.spp);
 
     while (master.get_job(&j)) {
       const vector2i start = j.bounds.p_min;
@@ -226,7 +227,7 @@ namespace tracer {
             sampler::sample_stratified_2d(
                 bsdf_samples,
                 params.spp,
-                std::max(1ul, (size_t) std::sqrt(params.spp)),
+                std::max(1ul, sqrt_spp),
                 j.rng
                 );
 

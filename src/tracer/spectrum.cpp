@@ -269,11 +269,11 @@ namespace tracer {
   }
 
   Float sampled_spectrum::luminance() const {
-    Float sum = 0;
+    double sum = 0;
     for (int i = 0; i < N_SPECTRAL_SAMPLES; ++i) {
       sum += spd.get()[i] * SMC_Y[i];
     }
-    return sum / N_SPECTRAL_SAMPLES;
+    return sum * Float(LAMBDA_END - LAMBDA_START) / (N_SPECTRAL_SAMPLES * 106.856895);
   }
 
   Float sampled_spectrum::average_spectral_samples(
