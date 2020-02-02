@@ -28,24 +28,19 @@ namespace tracer {
       if (delta < 0) return false;
       if (t_min > t_max) std::swap(t_min, t_max);
 
-      point3f hit_point = r(t_min);
       Float t = r.medium == INSIDE ? t_max : t_min;
-      Float dont_flip_normal = 1;
-      if (hit_point.y > height) {
-        hit_point = r(t_max);
-        t = t_max;
-        if (r.medium == OUTSIDE) dont_flip_normal = -1.f;
-      }
+      point3f hit_point = r(t);
 
       if (t < 0) return false;
       if (hit_point.y < 0 || hit_point.y > height) return false;
 
-      const normal3f grad { hit_point.x, 0, hit_point.z };
+      const normal3f normal { hit_point.x, 0, hit_point.z };
 
       if (result != nullptr) {
         result->t_hit = t;
         result->hit_point = tf_shape_to_world(hit_point);
-        result->normal = tf_shape_to_world(grad).normalized();
+        result->normal = tf_shape_to_world((r.dir.dot(normal) < 0) ? normal : normal3f(-normal))
+          .normalized();
         result->object = this;
       }
 

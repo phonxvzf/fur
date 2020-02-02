@@ -103,7 +103,7 @@ namespace tracer {
     weight0 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
 
     // do volumetric path tracing
-    sampled_spectrum volume_weight(1.f);
+    sampled_spectrum volume_weight(1.);
     if (result.object->surface->transport_model == material::SSS && next_lt.med == INSIDE) {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
@@ -212,7 +212,7 @@ namespace tracer {
           sampler::sample_stratified_2d(
               img_point_offsets,
               n_subpixels,
-              std::max(1ul, n_subpixels >> 1),
+              std::max(1ul, (size_t) std::sqrt(params.n_subpixels)),
               j.rng
               );
 
@@ -244,8 +244,8 @@ namespace tracer {
 
             if (subpixel == 0) debug_value = color;
 
-            Float weight = sinc(img_point_offsets[subpixel].x)
-              * sinc(img_point_offsets[subpixel].y);
+            point2f pixel_ndc(img_point_offsets[subpixel] * 2 - point2f(1, 1));
+            Float weight = sinc(pixel_ndc.x) * sinc(pixel_ndc.y);
             pixel_color += weight * inv_spp * color;
             total_weight += weight;
           }

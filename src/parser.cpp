@@ -14,6 +14,7 @@
 #include "tracer/shapes/triangle.hpp"
 #include "tracer/shapes/funnel.hpp"
 #include "tracer/shapes/tube.hpp"
+#include "tracer/shapes/disk.hpp"
 #include "tracer/materials/ggx.hpp"
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
@@ -351,6 +352,13 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
         surface,
         parse_float(attr, "radius"),
         parse_float(attr, "height")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "disk") {
+    tracer::shape* shape = new tracer::shapes::disk(
+        tf,
+        surface,
+        parse_float(attr, "radius")
         );
     return std::shared_ptr<tracer::shape>(shape);
   }
