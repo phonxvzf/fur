@@ -3,7 +3,10 @@
 
 #include "vector.hpp"
 #include <iostream>
+
+#ifdef __SSE__
 #include <immintrin.h>
+#endif
 
 namespace math {
   template <typename T> class matrix2;
@@ -32,7 +35,7 @@ namespace math {
           }
         }
 
-        matrix2(T x = 1) {
+        explicit matrix2(T x = 1) {
           for (int i = 0; i < 2; ++i) {
             for (int j = 0; j < 2; ++j) {
               if (i == j) value[i][j] = x;
@@ -145,7 +148,7 @@ namespace math {
           }
         }
 
-        matrix3(T x = 1) {
+        explicit matrix3(T x = 1) {
           for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
               if (i == j) value[i][j] = x;
@@ -279,7 +282,7 @@ namespace math {
           }
         }
 
-        matrix4(T x = 1) {
+        explicit matrix4(T x = 1) {
           for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 4; ++j) {
               if (i == j) value[i][j] = x;
@@ -423,6 +426,7 @@ namespace math {
         }
 
         matrix4 operator*(const matrix4& m) const {
+#ifdef __SSE__
           matrix4 ret;
           __m128 m128[14];
           for (int row = 0; row < 4; ++row) {
@@ -452,6 +456,16 @@ namespace math {
             _mm_store_ps(ret.value_flat + (row << 2), m128[12]);
           }
           return ret;
+#else
+#warning Not using SSE to multiply matrix4
+          const vector4<T> c0(col(0)), c1(col(1)), c2(col(2)), c3(col(3));
+          return matrix4(
+              c0 * m[0][0] + c1 * m[1][0] + c2 * m[2][0] + c3 * m[3][0],
+              c0 * m[0][1] + c1 * m[1][1] + c2 * m[2][1] + c3 * m[3][1],
+              c0 * m[0][2] + c1 * m[1][2] + c2 * m[2][2] + c3 * m[3][2],
+              c0 * m[0][3] + c1 * m[1][3] + c2 * m[2][3] + c3 * m[3][3]
+              );
+#endif
         }
 
         T* operator[](int i) {
@@ -497,17 +511,6 @@ namespace math {
     }
 
   template <typename T>
-    matrix2<T> operator*(const matrix2<T>& m, Float s) {
-      matrix2<Float> r;
-      for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-          r[i][j] = m[i][j] * s;
-        }
-      }
-      return r;
-    }
-
-  template <typename T>
     inline matrix2<T> operator*(T s, const matrix2<T>& m) {
       return m * s;
     }
@@ -542,17 +545,6 @@ namespace math {
     }
 
   template <typename T>
-    matrix3<T> operator*(const matrix3<T>& m, Float s) {
-      matrix3<Float> r;
-      for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-          r[i][j] = m[i][j] * s;
-        }
-      }
-      return r;
-    }
-
-  template <typename T>
     inline matrix3<T> operator*(T s, const matrix3<T>& m) {
       return m * s;
     }
@@ -578,17 +570,6 @@ namespace math {
   template <typename T>
     matrix4<T> operator*(const matrix4<T>& m, T s) {
       matrix4<T> r;
-      for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-          r[i][j] = m[i][j] * s;
-        }
-      }
-      return r;
-    }
-
-  template <typename T>
-    matrix4<T> operator*(const matrix4<T>& m, Float s) {
-      matrix4<Float> r;
       for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
           r[i][j] = m[i][j] * s;

@@ -122,8 +122,9 @@ namespace math {
     class vector2 {
       public:
         T x, y;
+
         vector2(T x, T y) : x(x), y(y) {}
-        vector2(T x = 0) : x(x), y(x) {}
+        explicit vector2(T x = 0) : x(x), y(x) {}
         vector2(const vector2& cpy) : x(cpy.x), y(cpy.y) {}
         vector2(const vector3<T>& vec3) : x(vec3.x), y(vec3.y) {}
         vector2(const vector4<T>& vec4) : x(vec4.x), y(vec4.y) {}
@@ -266,7 +267,7 @@ namespace math {
       public:
         T x, y, z;
         vector3(T x, T y, T z) : x(x), y(y), z(z) {}
-        vector3(T x = 0) : x(x), y(x), z(x) {}
+        explicit vector3(T x = 0) : x(x), y(x), z(x) {}
         vector3(const vector3& cpy) : x(cpy.x), y(cpy.y), z(cpy.z) {}
         vector3(const vector2<T>& vec2) : x(vec2.x), y(vec2.y), z(0) {}
         vector3(const vector4<T>& vec4) : x(vec4.x), y(vec4.y), z(vec4.z) {}
@@ -451,7 +452,7 @@ namespace math {
       public:
         T x, y, z, w;
         vector4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
-        vector4(T x = 0) : x(x), y(x), z(x), w(x) {}
+        explicit vector4(T x = 0) : x(x), y(x), z(x), w(x) {}
         vector4(const vector4& cpy) : x(cpy.x), y(cpy.y), z(cpy.z), w(cpy.w) {}
         vector4(const vector2<T>& vec2) : x(vec2.x), y(vec2.y), z(0), w(0) {}
         vector4(const vector3<T>& vec3) : x(vec3.x), y(vec3.y), z(vec3.z), w(0) {}
@@ -645,6 +646,21 @@ namespace math {
           return os << vec.to_wstring();
         }
     };
+
+  template <typename T>
+    inline vector2<T> lerp(Float t, const vector2<T>& a, const vector2<T>& b) {
+      return { lerp(t, a.x, b.x), lerp(t, a.y, b.y ) };
+    }
+
+  template <typename T>
+    inline vector3<T> lerp(Float t, const vector3<T>& a, const vector3<T>& b) {
+      return { lerp(t, a.x, b.x), lerp(t, a.y, b.y ), lerp(t, a.z, b.z) };
+    }
+
+  template <typename T>
+    inline vector4<T> lerp(Float t, const vector4<T>& a, const vector4<T>& b) {
+      return { lerp(t, a.x, b.x), lerp(t, a.y, b.y ), lerp(t, a.z, b.z), lerp(t, a.w, b.w) };
+    }
 } /* namespace math */
 
 #endif /* MATH_VECTOR_HPP */

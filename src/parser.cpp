@@ -266,7 +266,7 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     }
   }
 
-  throw parsing_error(mat_node.Mark().line, "only ggx, sss and light are available");
+  throw parsing_error(mat_node.Mark().line, "only lambert, ggx, sss and light are available");
 }
 
 std::shared_ptr<tracer::shape> parser::parse_shape(

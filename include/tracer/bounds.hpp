@@ -70,6 +70,12 @@ namespace tracer {
             { std::min(p_max.x, other.p_max.x), std::min(p_max.y, other.p_max.y) }
             );
       }
+
+      bounds2<T> scale(Float s) const {
+        point2f c(centroid());
+        vector2f min_dir(c - p_min), max_dir(p_max - c);
+        return { c + s * min_dir, c + s * max_dir };
+      }
   };
 
   template <typename T> class bounds3 {
@@ -160,6 +166,12 @@ namespace tracer {
             std::min(p_max.z, other.p_max.z)
             }
             );
+      }
+
+      bounds3<T> scale(Float s) const {
+        point3f c(centroid());
+        vector3f min_dir(c - p_min), max_dir(p_max - c);
+        return { c + s * min_dir, c + s * max_dir };
       }
   };
 

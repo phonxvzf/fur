@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
             std::cerr << "error: please specify output file name" << std::endl;
             return 1;
           }
-        } else if (!std::strcmp(argv[i], "--quiet")) {
+        } else if (!std::strcmp(argv[i], "-q") || !std::strcmp(argv[i], "--quiet")) {
           verbose = 0;
           std::cout.setstate(std::ios::failbit);
           std::wcout.setstate(std::ios::failbit);
@@ -153,9 +153,18 @@ int main(int argc, char** argv) {
           }
         } else if (!std::strcmp(argv[i], "-h") || !std::strcmp(argv[i], "--help")) {
           std::cerr <<
-            "usage: ftracer [ -h | -j workers | -d | -n | -o output"
-            " | --help | --quiet | --depth | --normal ]"
-            " SCENE"
+            "Usage: ftracer [OPTIONS] SCENE_FILE\n\n"
+            "Available options:\n"
+            "\t-j\t\tSpecify number of rendering threads\n"
+            "\t-o\t\tSpecify output file name. If not specified, output.exr is used.\n"
+            "\t-q, --quiet\tRender quietly\n"
+            "\t-d, --depth\tOutput camera rays' depth instead of color spectrum\n"
+            "\t-n, --normal\tOutput objects' normal vector instead of color spectrum\n"
+            "\t-s, --start\tSpecify start (upper-left)"
+            " x y coordinates of the image to render.\n"
+            "\t-e, --end\tSpecify start (lower-right)"
+            " x y coordinates of the image to render (exclusively).\n"
+            "\t-h, --help\tPrint this help text and exit gracefully\n"
             << std::endl;
           return 0;
         } else {

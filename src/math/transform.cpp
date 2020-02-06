@@ -87,7 +87,7 @@ namespace math {
     }
 
     transform rotate(const vector3f& axis_n, Float rad) {
-      return quat(std::cos(rad / 2), std::sin(rad / 2) * axis_n).to_matrix();
+      return quat(std::cos(rad / 2), std::sin(rad / 2) * axis_n.normalized()).to_matrix();
     }
 
     transform ndc_to_raster(const vector2i& img_res, const vector2f& ndc_res) {
