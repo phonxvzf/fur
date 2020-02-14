@@ -88,23 +88,6 @@ namespace tracer {
     return node;
   }
 
-  bool bvh_tree::intersect_bounds(const ray& r, const bounds3f& bounds) const {
-    // ray r is in world space
-    Float t[8];
-    t[1] = (bounds.p_min.x - r.origin.x) * r.inv_dir.x;
-    t[2] = (bounds.p_max.x - r.origin.x) * r.inv_dir.x;
-    t[3] = (bounds.p_min.y - r.origin.y) * r.inv_dir.y;
-    t[4] = (bounds.p_max.y - r.origin.y) * r.inv_dir.y;
-    t[5] = (bounds.p_min.z - r.origin.z) * r.inv_dir.z;
-    t[6] = (bounds.p_max.z - r.origin.z) * r.inv_dir.z;
-    Float t_min =
-      std::max(std::max(std::min(t[1], t[2]), std::min(t[3], t[4])), std::min(t[5], t[6]));
-    Float t_max =
-      std::min(std::min(std::max(t[1], t[2]), std::max(t[3], t[4])), std::max(t[5], t[6]));
-    if (t_max < 0 || t_min > t_max) return false;
-    return true;
-  }
-
   size_t bvh_tree::n_shapes(const std::shared_ptr<bvh_node>& node) const {
     if (node == nullptr) return 0;
     return node->shapes.size() + n_shapes(node->children[0]) + n_shapes(node->children[1]);
@@ -130,7 +113,7 @@ namespace tracer {
       shape::intersect_result* result
       ) const
   {
-    if (!intersect_bounds(r, node->bounds)) return false;
+    if (!node->bounds.intersect(r)) return false;
 
     bool hit = false;
     for (size_t i = 0; i < node->shapes.size(); ++i) {

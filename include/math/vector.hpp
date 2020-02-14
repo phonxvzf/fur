@@ -73,6 +73,7 @@ namespace math {
   typedef point2<int>     point2i;
   typedef normal2<Float>  normal2f;
   typedef normal2<int>    normal2i;
+  typedef vector2f        Float2;
 
   typedef vector3<Float>  vector3f;
   typedef vector3<int>    vector3i;
@@ -80,6 +81,7 @@ namespace math {
   typedef point3<int>     point3i;
   typedef normal3<Float>  normal3f;
   typedef normal3<int>    normal3i;
+  typedef vector3f        Float3;
 
   typedef vector4<Float>  vector4f;
   typedef vector4<int>    vector4i;
@@ -87,6 +89,7 @@ namespace math {
   typedef point4<int>     point4i;
   typedef normal4<Float>  normal4f;
   typedef normal4<int>    normal4i;
+  typedef vector4f        Float4;
 
   template <typename T, typename U>
     vector2<T> operator*(U s, const vector2<T> vec) {
@@ -559,7 +562,7 @@ namespace math {
         }
 
         T operator[](int i) const {
-          ASSERT(i >= 0 && i < 3);
+          ASSERT(i >= 0 && i < 4);
           switch (i) {
             case 0:
               return x;

@@ -15,6 +15,7 @@
 #include "tracer/shapes/funnel.hpp"
 #include "tracer/shapes/tube.hpp"
 #include "tracer/shapes/disk.hpp"
+#include "tracer/shapes/cubic_bezier.hpp"
 #include "tracer/materials/ggx.hpp"
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
@@ -359,6 +360,22 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
         tf,
         surface,
         parse_float(attr, "radius")
+        );
+    return std::shared_ptr<tracer::shape>(shape);
+  } else if (name == "curve") {
+    const point3f cps[4] = {
+      parse_vector3f(attr, "p0"),
+      parse_vector3f(attr, "p1"),
+      parse_vector3f(attr, "p2"),
+      parse_vector3f(attr, "p3")
+    };
+    tracer::shape* shape = new tracer::shapes::cubic_bezier(
+        tf,
+        surface,
+        cps,
+        parse_float(attr, "thickness0"),
+        parse_float(attr, "thickness1"),
+        tracer::shapes::cubic_bezier::BODY
         );
     return std::shared_ptr<tracer::shape>(shape);
   }

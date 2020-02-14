@@ -82,7 +82,20 @@ void update_progress(Float progress, size_t eta, size_t elapsed) {
   std::wcout << std::flush;
 }
 
+#include "math/sampler.hpp"
+
 int main(int argc, char** argv) {
+
+  /*
+  bounds3f b({2,2,2},{3,3,3});
+  bounds3f rb({0,0,0},{0,0,100});
+  rb = rb.scale(2);
+  bounds3f isect = b.intersect(rb);
+  std::cerr << rb.p_min << rb.p_max << std::endl;
+  std::cerr << isect.p_min << isect.p_max << std::endl;
+  std::cerr << isect.invalid() << std::endl;
+  return 0;
+  */
 
   setlocale(LC_CTYPE, ""); // assume that LC supports unicode
   std::wcout << L"\r" << std::flush;

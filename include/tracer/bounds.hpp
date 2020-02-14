@@ -11,7 +11,17 @@ namespace tracer {
     public:
       point2<T> p_min, p_max;
 
-      bounds2(const point2<T>& p_min, const point2<T>& p_max) : p_min(p_min), p_max(p_max) {}
+      bounds2(const point2<T>& min, const point2<T>& max) {
+        p_min = {
+          std::min(min.x, max.x),
+          std::min(min.y, max.y)
+        };
+        p_max = {
+          std::max(min.x, max.x),
+          std::max(min.y, max.y)
+        };
+      }
+
       bounds2(const point2<T>& p = 0) : p_min(p), p_max(p) {}
 
       bounds2& operator=(const bounds2& cpy) {
@@ -57,6 +67,10 @@ namespace tracer {
         return width() <= 0 || height() <= 0;
       }
 
+      bool contains(const point2<T>& p) const {
+        return in_range(p.x, p_min.x, p_max.x) && in_range(p.y, p_min.y, p_max.y);
+      }
+
       bounds2<T> merge(const bounds2<T>& other) const {
         return bounds2(
             { std::min(p_min.x, other.p_min.x), std::min(p_min.y, other.p_min.y) },
@@ -73,7 +87,7 @@ namespace tracer {
 
       bounds2<T> scale(Float s) const {
         point2f c(centroid());
-        vector2f min_dir(c - p_min), max_dir(p_max - c);
+        vector2f min_dir(p_min - c), max_dir(p_max - c);
         return { c + s * min_dir, c + s * max_dir };
       }
   };
@@ -82,7 +96,19 @@ namespace tracer {
     public:
       point3<T> p_min, p_max;
 
-      bounds3(const point3<T>& p_min, const point3<T>& p_max) : p_min(p_min), p_max(p_max) {}
+      bounds3(const point3<T>& min, const point3<T>& max) {
+        p_min = {
+          std::min(min.x, max.x),
+          std::min(min.y, max.y),
+          std::min(min.z, max.z)
+        };
+        p_max = {
+          std::max(min.x, max.x),
+          std::max(min.y, max.y),
+          std::max(min.z, max.z)
+        };
+      }
+
       bounds3(const point3<T>& p = 0) : p_min(p), p_max(p) {}
 
       bounds3& operator=(const bounds3& cpy) {
@@ -113,6 +139,12 @@ namespace tracer {
 
       bool invalid() const {
         return width_x() <= 0 || width_y() <= 0 || width_z() <= 0;
+      }
+
+      bool contains(const point3<T>& p) const {
+        return in_range(p.x, p_min.x, p_max.x)
+          && in_range(p.y, p_min.y, p_max.y)
+          && in_range(p.z, p_min.z, p_max.z);
       }
 
       vector3f diagonal() const {
@@ -168,9 +200,26 @@ namespace tracer {
             );
       }
 
+      bool intersect(const ray& r) const {
+        // ray r is in world space
+        Float t[8];
+        t[1] = (p_min.x - r.origin.x) * r.inv_dir.x;
+        t[2] = (p_max.x - r.origin.x) * r.inv_dir.x;
+        t[3] = (p_min.y - r.origin.y) * r.inv_dir.y;
+        t[4] = (p_max.y - r.origin.y) * r.inv_dir.y;
+        t[5] = (p_min.z - r.origin.z) * r.inv_dir.z;
+        t[6] = (p_max.z - r.origin.z) * r.inv_dir.z;
+        Float t_min =
+          std::max(std::max(std::min(t[1], t[2]), std::min(t[3], t[4])), std::min(t[5], t[6]));
+        Float t_max =
+          std::min(std::min(std::max(t[1], t[2]), std::max(t[3], t[4])), std::max(t[5], t[6]));
+        if (t_max < 0 || t_min > t_max) return false;
+        return true;
+      }
+
       bounds3<T> scale(Float s) const {
         point3f c(centroid());
-        vector3f min_dir(c - p_min), max_dir(p_max - c);
+        vector3f min_dir(p_min - c), max_dir(p_max - c);
         return { c + s * min_dir, c + s * max_dir };
       }
   };

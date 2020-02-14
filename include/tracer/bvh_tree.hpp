@@ -20,10 +20,8 @@ namespace tracer {
           int end
           );
 
-      bool intersect_bounds(const ray& r, const bounds3f& bounds) const;
-
       size_t n_shapes(const std::shared_ptr<bvh_node>& node) const;
-      
+
       bool intersect(
           const std::shared_ptr<bvh_node>& node,
           const ray& r,

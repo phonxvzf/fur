@@ -9,6 +9,7 @@
 
 namespace math {
 
+  extern const Float PI;
   extern const Float TWO_PI;
   extern const Float FOUR_PI;
   extern const Float INV_PI;
@@ -30,7 +31,7 @@ namespace math {
 
   template <typename T>
     inline bool in_range(T x, T a, T b) {
-      return (a <= x) && (x <= b);
+      return COMPARE_LEQ(a, x) && COMPARE_LEQ(x, b);
     }
 
   inline Float max0(Float x) {
@@ -65,6 +66,10 @@ namespace math {
     return x * x;
   }
 
+  inline Float pow3(Float x) {
+    return x * x * x;
+  }
+
   inline Float pow4(Float x) {
     return (x * x) * (x * x);
   }
@@ -91,6 +96,10 @@ namespace math {
 
   inline Float absdot(const vector3f& u, const vector3f& v) {
     return std::abs(u.dot(v));
+  }
+
+  inline Float dotproj(const vector3f& u, const vector3f& v) {
+    return u.x * v.x + u.y * v.y;
   }
 
   inline vector3f left_to_right(const vector3f& v) {

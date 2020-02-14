@@ -70,17 +70,18 @@ namespace math {
       const vector4f result = tf_mat.dot(vector4f(pt, 1));
       return vector3f(result) / result.w;
     }
-    
+
     normal3f apply_normal(const matrix4f& tf_mat, const vector3f& normal) {
       const vector4f result = tf_mat.inverse().t().dot(vector4f(normal, 0));
       return normal3f(result);
     }
 
     ray apply(const matrix4f& tf_mat, const ray& r) {
-      const Float t_max_scale = vector3f(tf_mat[0][0], tf_mat[1][1], tf_mat[2][2]).size();
+      const vector3f new_dir(tf::apply(tf_mat, r.dir));
+      const Float t_max_scale = new_dir.size() / r.dir.size();
       return ray(
           tf::apply(tf_mat, r.origin),
-          tf::apply(tf_mat, r.dir),
+          new_dir,
           r.t_max * t_max_scale,
           r.medium
           );
@@ -98,7 +99,7 @@ namespace math {
 
     transform look_at(const vector3f& at, const vector3f& cam_pos, const vector3f& world_up) {
       const vector3f dir = (at - cam_pos).normalized();
-      const vector3f right = world_up.cross(dir).normalized();
+      const vector3f right = world_up.normalized().cross(dir).normalized();
       const vector3f up = dir.cross(right).normalized();
       return matrix4f(right, up, dir, vector4f(cam_pos, 1.0));
     }

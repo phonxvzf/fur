@@ -1,6 +1,7 @@
 #include "math/util.hpp"
 
 namespace math {
+  const Float PI            = MATH_PI;
   const Float TWO_PI        = 2.f * MATH_PI;
   const Float FOUR_PI       = 4.f * MATH_PI;
   const Float INV_PI        = 1.f / MATH_PI;
