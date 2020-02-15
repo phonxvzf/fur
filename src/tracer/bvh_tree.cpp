@@ -7,13 +7,18 @@
 
 namespace tracer {
   bvh_tree::bvh_tree(std::vector<std::shared_ptr<shape>> shapes) {
+    n_available_workers = std::thread::hardware_concurrency();
     root = construct_tree(shapes, 0, shapes.size());
+
+    ASSERT(shapes.size() == n_shapes());
   }
 
   std::shared_ptr<bvh_tree::bvh_node> bvh_tree::construct_tree(
       std::vector<std::shared_ptr<shape>>& shapes,
       int start,
-      int end)
+      int end,
+      std::shared_ptr<bvh_node>* ret_node
+      )
   {
     // top-down construction
     if (start >= end) return nullptr;
@@ -73,8 +78,11 @@ namespace tracer {
       }
 
       const int split = std::max(start + 1, start + best_split * n_shapes_node / N_BUCKETS);
-      node->children[0] = construct_tree(shapes, start, split);
-      node->children[1] = construct_tree(shapes, split, end);
+      std::thread *worker0, *worker1;
+      worker0 = dispatch_construction(shapes, start, split, &node->children[0]);
+      worker1 = dispatch_construction(shapes, split, end, &node->children[1]);
+      wait_worker(worker0);
+      wait_worker(worker1);
 
       // merge children bounds
       if (node->children[0] && node->children[1])
@@ -85,6 +93,7 @@ namespace tracer {
         node->bounds = node->children[1]->bounds;
     }
 
+    if (ret_node) *ret_node = node;
     return node;
   }
 
@@ -131,5 +140,37 @@ namespace tracer {
       hit |= intersect(node->children[1], r, options, result);
 
     return hit;
+  }
+
+  std::thread* bvh_tree::dispatch_construction(
+      std::vector<std::shared_ptr<shape>>& shapes,
+      int start,
+      int end,
+      std::shared_ptr<bvh_node>* ret_node
+      )
+  {
+    if (n_available_workers == 0) {
+      construct_tree(shapes, start, end, ret_node);
+      return nullptr;
+    }
+
+    --n_available_workers;
+
+    std::thread *worker = new std::thread(
+        &bvh_tree::construct_tree, this, std::ref(shapes), start, end, ret_node
+        );
+
+    return worker;
+  }
+
+  void bvh_tree::wait_worker(std::thread* worker) {
+    if (worker == nullptr) return;
+    worker->join();
+    ++n_available_workers;
+    delete worker;
+  }
+
+  bool bvh_tree::workers_available() const {
+    return n_available_workers > 0;
   }
 } /* namespace tracer */
