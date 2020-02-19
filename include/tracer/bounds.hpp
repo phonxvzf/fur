@@ -201,18 +201,17 @@ namespace tracer {
       }
 
       bool intersect(const ray& r) const {
-        // ray r is in world space
-        Float t[8];
-        t[1] = (p_min.x - r.origin.x) * r.inv_dir.x;
-        t[2] = (p_max.x - r.origin.x) * r.inv_dir.x;
-        t[3] = (p_min.y - r.origin.y) * r.inv_dir.y;
-        t[4] = (p_max.y - r.origin.y) * r.inv_dir.y;
-        t[5] = (p_min.z - r.origin.z) * r.inv_dir.z;
-        t[6] = (p_max.z - r.origin.z) * r.inv_dir.z;
+        Float t[6];
+        t[0] = (p_min.x - r.origin.x) * r.inv_dir.x;
+        t[1] = (p_max.x - r.origin.x) * r.inv_dir.x;
+        t[2] = (p_min.y - r.origin.y) * r.inv_dir.y;
+        t[3] = (p_max.y - r.origin.y) * r.inv_dir.y;
+        t[4] = (p_min.z - r.origin.z) * r.inv_dir.z;
+        t[5] = (p_max.z - r.origin.z) * r.inv_dir.z;
         Float t_min =
-          std::max(std::max(std::min(t[1], t[2]), std::min(t[3], t[4])), std::min(t[5], t[6]));
+          std::max(std::max(std::min(t[0], t[1]), std::min(t[2], t[3])), std::min(t[4], t[5]));
         Float t_max =
-          std::min(std::min(std::max(t[1], t[2]), std::max(t[3], t[4])), std::max(t[5], t[6]));
+          std::min(std::min(std::max(t[0], t[1]), std::max(t[2], t[3])), std::max(t[4], t[5]));
         if (t_max < 0 || t_min > t_max) return false;
         return true;
       }
@@ -221,6 +220,10 @@ namespace tracer {
         point3f c(centroid());
         vector3f min_dir(p_min - c), max_dir(p_max - c);
         return { c + s * min_dir, c + s * max_dir };
+      }
+
+      bounds3<T> expand(Float dx) const {
+        return { p_min - vector3f(dx), p_max + vector3f(dx) };
       }
   };
 

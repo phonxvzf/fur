@@ -30,7 +30,7 @@ namespace tracer {
     if (n_shapes_node <= MAX_SHAPES_PER_NODE) {
       // merge bounds
       node->bounds = shapes[start]->world_bounds();
-      for (int i = start; i < end; ++i) {
+      for (int i = start + 1; i < end; ++i) {
         node->bounds = node->bounds.merge(shapes[i]->world_bounds());
       }
       for (int i = 0; i < n_shapes_node; ++i) {
@@ -77,7 +77,8 @@ namespace tracer {
         }
       }
 
-      const int split = std::max(start + 1, start + best_split * n_shapes_node / N_BUCKETS);
+      int split = start + (float) (best_split / N_BUCKETS) * n_shapes_node;
+      if (split <= start) split = (start + end) >> 1;
       std::thread *worker0, *worker1;
       worker0 = dispatch_construction(shapes, start, split, &node->children[0]);
       worker1 = dispatch_construction(shapes, split, end, &node->children[1]);
@@ -132,6 +133,10 @@ namespace tracer {
         *result = inner_result;
         hit = true;
       }
+    }
+
+    if (hit) {
+      ASSERT(node->bounds.intersect(r));
     }
 
     if (node->children[0])

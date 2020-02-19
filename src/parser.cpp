@@ -20,6 +20,7 @@
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
 #include "tracer/model.hpp"
+#include "tracer/hair.hpp"
 #include "tracer/texture.hpp"
 
 parser::parser() {}
@@ -395,6 +396,27 @@ void parser::parse_model(
   model.load(shapes);
 }
 
+void parser::parse_hair(
+    std::vector<std::shared_ptr<tracer::shape>>& shapes,
+    const YAML::Node& hair_node
+    )
+{
+  math::tf::transform tf = parse_transform(hair_node["transform"]);
+  std::shared_ptr<tracer::material> surface = parse_material(hair_node["material"]);
+  tracer::hair hair(parse_string(hair_node, "hair"));
+
+  size_t n_strands = 0;
+  Float thickness_scale = 1;
+  if (hair_node["strands"].IsDefined()) {
+    n_strands = parse_int(hair_node, "strands");
+  }
+  if (hair_node["thickness_scale"].IsDefined()) {
+    thickness_scale = parse_float(hair_node, "thickness_scale");
+  }
+
+  hair.to_beziers(shapes, tf, surface, n_strands, thickness_scale);
+}
+
 std::unique_ptr<tracer::camera::camera> parser::parse_camera(
     const YAML::Node& cam_node, const math::vector2i& img_res, math::point3f* eye_position)
 {
@@ -516,6 +538,8 @@ std::shared_ptr<tracer::scene> parser::load_scene(
             shapes.push_back(parse_shape(object, shape_name));
           } else if (object["model"].IsDefined()) {
             parse_model(shapes, object);
+          } else if (object["hair"].IsDefined()) {
+            parse_hair(shapes, object);
           } else {
             throw parsing_error(
                 object_node.Mark().line,

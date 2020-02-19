@@ -101,7 +101,7 @@ namespace tracer {
         .merge(control_points[1])
         .merge(control_points[2])
         .merge(control_points[3])
-        .scale(0.5 * std::max(thickness0, thickness1));
+        .expand(0.5 * std::max(thickness0, thickness1));
     }
 
     bool cubic_bezier::intersect_shape(
@@ -147,7 +147,7 @@ namespace tracer {
         .merge(cps[1])
         .merge(cps[2])
         .merge(cps[3])
-        .scale(half_max_thickness);
+        .expand(half_max_thickness);
       const bounds3f ray_bounds = bounds3f(
           { -half_max_thickness, -half_max_thickness, 0 },
           { half_max_thickness, half_max_thickness, r.t_max }

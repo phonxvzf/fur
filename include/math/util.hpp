@@ -110,6 +110,10 @@ namespace math {
     return { v.y, v.z, -v.x };
   }
 
+  inline vector3f zup_to_yup(const vector3f& v) {
+    return { v.x, v.z, v.y };
+  }
+
   inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
     return (2 * omega.dot(normal) * normal - omega).normalized();
   }

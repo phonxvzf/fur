@@ -37,8 +37,8 @@ namespace tracer {
       if (ab.cross(ap).dot(normal) > 0 ||
           bc.cross(bp).dot(normal) > 0 ||
           cd.cross(cp).dot(normal) > 0 ||
-          da.cross(dp).dot(normal) > 0
-          ) return false;
+          da.cross(dp).dot(normal) > 0)
+        return false;
 
       if (result != nullptr) {
         result->hit_point = tf_shape_to_world(p);
