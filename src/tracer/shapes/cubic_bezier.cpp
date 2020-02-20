@@ -91,7 +91,7 @@ namespace tracer {
           return false;
 
         // calculate t and normal
-        const vector2f tangent(evaluate_differential(w, cps));
+        vector2f tangent(evaluate_differential(w, cps));
         const Float dist = std::sqrt(dist2);
         const Float inv_half_thickness = 1 / half_thickness;
         const vector3f down(-tangent.y, tangent.x, 0);
@@ -104,6 +104,7 @@ namespace tracer {
         const Float t = r.medium == INSIDE ? p.z + offset : p.z - offset;
         if (t < 0) return false;
 
+        if (tangent.is_zero()) tangent = { 1, 0 };
         const normal3f normal(tf::rotate(tangent, radians(math::lerp(v, 0, 180)))(down));
 
         if (t < result->t_hit) {

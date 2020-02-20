@@ -551,7 +551,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       }
     }
 
-    std::wcout << L"* Building scene containing " << shapes.size() << L" shapes..." << std::flush;
+    std::wcout << L"* Building BVH containing " << shapes.size() << L" shapes..." << std::flush;
     auto main_scene = std::make_shared<tracer::scene>(shapes);
     std::wcout << L" done" << std::endl;
 
