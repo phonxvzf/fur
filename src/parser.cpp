@@ -375,8 +375,7 @@ std::shared_ptr<tracer::shape> parser::parse_shape(
         surface,
         cps,
         parse_float(attr, "thickness0"),
-        parse_float(attr, "thickness1"),
-        tracer::shapes::cubic_bezier::BODY
+        parse_float(attr, "thickness1")
         );
     return std::shared_ptr<tracer::shape>(shape);
   }

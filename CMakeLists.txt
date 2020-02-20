@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
-set(CMAKE_VERBOSE_MAKEFILE ON)
 
 project(ftracer)
 set(BINARY ftracer)

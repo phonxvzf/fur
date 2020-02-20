@@ -51,15 +51,6 @@ namespace tracer {
             Float thickness1
             );
 
-        cubic_bezier(
-            const tf::transform& shape_to_world,
-            const std::shared_ptr<material>& surface,
-            const point3f catmullrom_cps[4],
-            Float thickness0,
-            Float thickness1,
-            cps_position position
-            );
-
         bounds3f bounds() const override;
 
         bool intersect_shape(

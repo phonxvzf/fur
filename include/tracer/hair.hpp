@@ -7,6 +7,10 @@
 namespace tracer {
   class hair {
     private:
+      enum cps_position {
+        HEAD, BODY, TAIL
+      };
+
       cyHairFile cyhair;
       cyHairFile::Header cyhair_header;
       unsigned short* segments_count;
@@ -24,6 +28,13 @@ namespace tracer {
         id = 3 * id;
         return { colors[id], colors[id+1], colors[id+2] };
       }
+
+      void catmullrom_to_bezier(
+          point3f bezier_cps[4],
+          const point3f cps[4],
+          cps_position position) const;
+
+      void halve_bezier(point3f left[4], point3f right[4], const point3f cps[4]) const;
 
     public:
       hair(const std::string& fpath);

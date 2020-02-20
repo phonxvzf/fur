@@ -78,7 +78,7 @@ namespace tracer {
       }
 
       int split = start + (float) (best_split / N_BUCKETS) * n_shapes_node;
-      if (split <= start) split = (start + end) >> 1;
+      if (split <= start) split = std::max(start + 1, start + std::rand() % n_shapes_node);
       std::thread *worker0, *worker1;
       worker0 = dispatch_construction(shapes, start, split, &node->children[0]);
       worker1 = dispatch_construction(shapes, split, end, &node->children[1]);

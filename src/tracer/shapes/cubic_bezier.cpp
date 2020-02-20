@@ -3,27 +3,6 @@
 
 namespace tracer {
   namespace shapes {
-    static const matrix4f CATMULLROM_TO_BEZIER{
-      { 0, -1.f / 6, 0, 0   },
-      { 1, 1, 1.f / 6, 0    },
-      { 0, 1.f / 6, 1, 1    },
-      { 0, 0, -1.f / 6, 0   }
-    };
-
-    static const matrix4f CATMULLROM_TO_BEZIER_HEAD{
-      { 0, 0, 0, 0                },
-      { 1.f, 0.5f, 1.f / 6, 0     },
-      { 0, 2.f / 3, 1, 1          },
-      { 0, -1.f / 6, -1.f / 6, 0  }
-    };
-
-    static const matrix4f CATMULLROM_TO_BEZIER_TAIL{
-      { 0, -1.f / 6, -1.f / 6, 0  },
-      { 1, 1, 2.f / 3, 0          },
-      { 0, 1.f / 6, 0.5f, 1       },
-      { 0, 0, 0, 0                }
-    };
-
     cubic_bezier::cubic_bezier(
         const tf::transform& shape_to_world,
         const std::shared_ptr<material>& surface,
@@ -37,64 +16,6 @@ namespace tracer {
       control_points[2] = cps[2];
       control_points[3] = cps[3];
     }
-
-    cubic_bezier::cubic_bezier(
-        const tf::transform& shape_to_world,
-        const std::shared_ptr<material>& surface,
-        const point3f catmullrom_cps[4],
-        Float thickness0,
-        Float thickness1,
-        cps_position position
-        ) : shape(shape_to_world, surface), thickness0(2 * thickness0), thickness1(2 * thickness1)
-    {
-      switch (position) {
-        case HEAD:
-          // catmullrom_cps[0] is invalid
-          for (int i = 0; i < 3; ++i) {
-            const vector4f x = CATMULLROM_TO_BEZIER_HEAD.dot(vector4f(
-                  0,
-                  catmullrom_cps[1][i],
-                  catmullrom_cps[2][i],
-                  catmullrom_cps[3][i]
-                  ));
-            control_points[0][i] = x[0];
-            control_points[1][i] = x[1];
-            control_points[2][i] = x[2];
-            control_points[3][i] = x[3];
-          }
-          break;
-          break;
-        case TAIL:
-          // catmullrom_cps[3] is invalid
-          for (int i = 0; i < 3; ++i) {
-            const vector4f x = CATMULLROM_TO_BEZIER_TAIL.dot(vector4f(
-                  catmullrom_cps[0][i],
-                  catmullrom_cps[1][i],
-                  catmullrom_cps[2][i],
-                  0
-                  ));
-            control_points[0][i] = x[0];
-            control_points[1][i] = x[1];
-            control_points[2][i] = x[2];
-            control_points[3][i] = x[3];
-          }
-          break;
-        default:
-          for (int i = 0; i < 3; ++i) {
-            const vector4f x = CATMULLROM_TO_BEZIER.dot(vector4f(
-                  catmullrom_cps[0][i],
-                  catmullrom_cps[1][i],
-                  catmullrom_cps[2][i],
-                  catmullrom_cps[3][i]
-                  ));
-            control_points[0][i] = x[0];
-            control_points[1][i] = x[1];
-            control_points[2][i] = x[2];
-            control_points[3][i] = x[3];
-          }
-          break;
-      }
-    } /* catmullrom2bezier ctor */
 
     bounds3f cubic_bezier::bounds() const {
       return bounds3f(control_points[0])
