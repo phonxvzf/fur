@@ -15,7 +15,7 @@ find_package(ASSIMP REQUIRED)
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -march=native -std=c++14 -pipe")
   set(CMAKE_CXX_FLAGS_RELEASE
-    "-std=c++14 -pipe -flto -O3 -DNDEBUG -march=native -funroll-loops"
+    "-std=c++14 -pipe -flto -O3 -DNDEBUG -march=native -funroll-loops -rdynamic"
     )
 else()
   message(FATAL_ERROR "Unsupported platform (GNU/Linux only)")
