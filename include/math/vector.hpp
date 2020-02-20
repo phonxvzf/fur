@@ -240,12 +240,15 @@ namespace math {
 
         inline vector2 normalized() const {
           Float sz = this->size();
-          ASSERT(!COMPARE_EQ(sz, 0.0f));
+          ASSERT(!COMPARE_EQ(sz, 0.0f), "normalize zero vector");
           return *this / sz;
         }
 
         vector2 inverse() const {
-          return { 1.f / x, 1.f / y };
+          return {
+            COMPARE_EQ(x, 0) ? 2e9f : 1.f / x,
+            COMPARE_EQ(y, 0) ? 2e9f : 1.f / y
+          };
         }
 
         std::string to_string() const {
@@ -409,7 +412,7 @@ namespace math {
 
         inline vector3 normalized() const {
           Float sz = this->size();
-          ASSERT(!COMPARE_EQ(sz, 0.0f));
+          ASSERT(!COMPARE_EQ(sz, 0.0f), "normalize zero vector");
           return *this / sz;
         }
 
@@ -609,12 +612,17 @@ namespace math {
 
         inline vector4 normalized() const {
           Float sz = this->size();
-          ASSERT(!COMPARE_EQ(sz, 0.0f));
+          ASSERT(!COMPARE_EQ(sz, 0.0f), "normalize zero vector");
           return *this / sz;
         }
 
         vector4 inverse() const {
-          return { 1.f / x, 1.f / y, 1.f / z, 1.f / w };
+          return {
+            COMPARE_EQ(x, 0) ? 2e9f : 1.f / x,
+            COMPARE_EQ(y, 0) ? 2e9f : 1.f / y,
+            COMPARE_EQ(z, 0) ? 2e9f : 1.f / z,
+            COMPARE_EQ(w, 0) ? 2e9f : 1.f / w,
+          };
         }
 
         std::string to_string() const {

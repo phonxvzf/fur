@@ -33,6 +33,10 @@ namespace tracer {
       vector3f basis0, basis1;
       random::rng rng;
       sampler::sample_orthogonals(r.dir, &basis0, &basis1, rng);
+
+      if (COMPARE_EQ(std::abs(r.dir.dot(basis0)), 1)) std::swap(basis0, basis1);
+      if (COMPARE_EQ(std::abs(r.dir.dot(basis0)), 1)) return false;
+
       const tf::transform proj(tf::look_at(r.origin + r.dir, r.origin, basis0).inverse());
       const point3f cps[4] = {
         proj(control_points[0]),
@@ -46,7 +50,8 @@ namespace tracer {
       if (hit) {
         const tf::transform proj_inv = proj.inverse();
         result->hit_point = tf_shape_to_world(result->hit_point);
-        result->normal = tf_shape_to_world(proj_inv(result->normal)).normalized();
+        result->normal = result->normal.is_zero() ?
+          tf_shape_to_world(-r.dir) : tf_shape_to_world(proj_inv(result->normal)).normalized();
       }
       return hit;
     }

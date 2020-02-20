@@ -387,7 +387,7 @@ namespace math {
           }
 
         matrix4f inverse() const {
-          ASSERT(!COMPARE_EQ(det(), 0));
+          ASSERT(!COMPARE_EQ(det(), 0), "inverse singular matrix");
 
           // Reduce the matrix to RREF using Gauss-Jordan algorithm
           vector4f rows[4] = { row(0), row(1), row(2), row(3) };
