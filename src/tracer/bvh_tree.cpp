@@ -135,10 +135,6 @@ namespace tracer {
       }
     }
 
-    if (hit) {
-      ASSERT(node->bounds.intersect(r));
-    }
-
     if (node->children[0])
       hit |= intersect(node->children[0], r, options, result);
     if (node->children[1])
