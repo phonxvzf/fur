@@ -7,9 +7,9 @@
 namespace tracer {
   class material {
     public:
-      const sampled_spectrum refl;
-      const sampled_spectrum refr;
-      const sampled_spectrum emittance;
+      sampled_spectrum refl;
+      sampled_spectrum refr;
+      sampled_spectrum emittance;
 
       enum transport_type {
         REFLECT,

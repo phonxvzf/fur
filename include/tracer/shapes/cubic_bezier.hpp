@@ -33,9 +33,9 @@ namespace tracer {
                   )
                 );
           }
-          const Float max_dist_error = std::max(thickness0, thickness1) * 0.05;
+          const Float max_dist_error = std::max(thickness0, thickness1) * 0.01;
           const Float r0 = std::log(SQRT_TWO * 12.f * L0 / (8.f * max_dist_error)) * 0.7213475108f;
-          return clamp(static_cast<int>(std::round(r0)), 0, 10);
+          return clamp(static_cast<int>(std::round(r0)), 0, 20);
         }
 
       public:

@@ -148,11 +148,7 @@ namespace tracer {
         .merge(cps[2])
         .merge(cps[3])
         .expand(half_max_thickness);
-      const bounds3f ray_bounds = bounds3f(
-          { -half_max_thickness, -half_max_thickness, 0 },
-          { half_max_thickness, half_max_thickness, r.t_max }
-          );
-      if (curve_bounds.intersect(ray_bounds).invalid())
+      if (!curve_bounds.intersect(ray({ 0, 0, 0 }, { 0, 0, 1 }, r.t_max)))
         return false;
 
       if (depth == 0) {

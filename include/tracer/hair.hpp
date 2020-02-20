@@ -20,6 +20,11 @@ namespace tracer {
         return right_to_left({ points[id], points[id+1], points[id+2] });
       }
 
+      inline Float3 color_at(size_t id) const {
+        id = 3 * id;
+        return { colors[id], colors[id+1], colors[id+2] };
+      }
+
     public:
       hair(const std::string& fpath);
       ~hair();
