@@ -73,3 +73,4 @@ Please see `example_scene.yaml` for references.
 
 ## TODOs
 - BSSRDF
+- FXAA

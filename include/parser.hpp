@@ -33,9 +33,10 @@ class parser {
         std::vector<std::shared_ptr<tracer::shape>>& shapes,
         const YAML::Node& model_node
         );
-    void parse_hair(
+    bvh_tree* parse_hair(
         std::vector<std::shared_ptr<tracer::shape>>& shapes,
-        const YAML::Node& hair_node
+        const YAML::Node& hair_node,
+        uintptr_t* hair_id
         );
 
   public:

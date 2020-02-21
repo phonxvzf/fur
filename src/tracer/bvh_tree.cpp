@@ -9,8 +9,6 @@ namespace tracer {
   bvh_tree::bvh_tree(std::vector<std::shared_ptr<shape>> shapes) {
     n_available_workers = std::thread::hardware_concurrency();
     root = construct_tree(shapes, 0, shapes.size());
-
-    ASSERT(shapes.size() == n_shapes());
   }
 
   std::shared_ptr<bvh_tree::bvh_node> bvh_tree::construct_tree(

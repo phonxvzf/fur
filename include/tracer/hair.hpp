@@ -3,6 +3,7 @@
 
 #include "shapes/cubic_bezier.hpp"
 #include "cyHairFile.h"
+#include "bvh_tree.hpp"
 
 namespace tracer {
   class hair {
@@ -11,6 +12,7 @@ namespace tracer {
         HEAD, BODY, TAIL
       };
 
+      std::string file_path;
       cyHairFile cyhair;
       cyHairFile::Header cyhair_header;
       unsigned short* segments_count;
@@ -40,10 +42,11 @@ namespace tracer {
       hair(const std::string& fpath);
       ~hair();
 
-      void to_beziers(
+      bvh_tree* to_beziers(
           std::vector<std::shared_ptr<shape>>& curves,
           const tf::transform& shape_to_world,
           const std::shared_ptr<material>& surface,
+          uintptr_t* hair_id,
           size_t n_strands = 0,
           Float thickness_scale = 1
           ) const;

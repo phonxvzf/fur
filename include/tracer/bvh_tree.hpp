@@ -47,6 +47,7 @@ namespace tracer {
       bool workers_available() const;
 
     public:
+      bvh_tree() {};
       bvh_tree(std::vector<std::shared_ptr<shape>> shapes);
 
       size_t n_shapes() const;

@@ -6,6 +6,7 @@
 #include <mutex>
 #include <thread>
 #include <chrono>
+#include <unordered_map>
 
 #include "math/random.hpp"
 #include "tracer/shape.hpp"
@@ -88,12 +89,14 @@ namespace tracer {
 
     public:
       bvh_tree shapes;
+      std::unordered_map<uintptr_t, bvh_tree*> strand_bvh;
       sampled_spectrum environment_color;
 
       std::unique_ptr<camera::camera> camera = nullptr;
       std::unique_ptr<texture> environment_texture = nullptr;
 
-      scene(const std::vector<std::shared_ptr<shape>>& shapes) : shapes(shapes) {}
+      scene() {}
+      ~scene();
 
       std::shared_ptr<std::vector<rgb_spectrum>> render(
           const render_params& params,

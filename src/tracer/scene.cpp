@@ -3,6 +3,7 @@
 #include "tracer/scene.hpp"
 #include "tracer/shapes/de_sphere.hpp"
 #include "tracer/shapes/de_quad.hpp"
+#include "tracer/shapes/cubic_bezier.hpp"
 #include "tracer/material.hpp"
 #include "tracer/materials/sss.hpp"
 #include "math/random.hpp"
@@ -103,14 +104,25 @@ namespace tracer {
     weight0 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
 
     // do volumetric path tracing
-    sampled_spectrum volume_weight(1.);
+    sampled_spectrum volume_weight(1.f);
     if (result.object->surface->transport_model == material::SSS && next_lt.med == INSIDE) {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
+
+      bvh_tree* bvh = &shapes;
+
+      // if the shape is a part of hair segment, only search in the strand
+      auto curve = dynamic_cast<const shapes::cubic_bezier*>(result.object);
+      if (curve != nullptr) {
+        if (curve->hair_id != 0) {
+          bvh = &strand_bvh[curve->hair_id][curve->strand_id];
+        }
+      }
+
       ray r_sss(r_next);
 
       shape::intersect_result sss_result;
-      shapes.intersect(r_sss, params.intersect_options, &sss_result);
+      bvh->intersect(r_sss, params.intersect_options, &sss_result);
 
       bool hit = false;
       Float dist = volume->sample_distance(rng);
@@ -118,7 +130,8 @@ namespace tracer {
       while (!hit) {
         // reset intersect result
         sss_result = shape::intersect_result();
-        hit = shapes.intersect(r_sss, params.intersect_options, &sss_result);
+
+        hit = bvh->intersect(r_sss, params.intersect_options, &sss_result);
 
         if (++bounce > params.max_bounce) return sampled_spectrum(0);
 
@@ -325,5 +338,11 @@ namespace tracer {
 
   bool scene::rendering() const {
     return ird_rgb->size() > pixel_counter;
+  }
+
+  scene::~scene() {
+    for (auto it = strand_bvh.begin(); it != strand_bvh.end(); ++it) {
+      delete[] it->second;
+    }
   }
 } /* namespace tracer */

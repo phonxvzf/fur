@@ -395,9 +395,10 @@ void parser::parse_model(
   model.load(shapes);
 }
 
-void parser::parse_hair(
+bvh_tree* parser::parse_hair(
     std::vector<std::shared_ptr<tracer::shape>>& shapes,
-    const YAML::Node& hair_node
+    const YAML::Node& hair_node,
+    uintptr_t* hair_id
     )
 {
   math::tf::transform tf = parse_transform(hair_node["transform"]);
@@ -413,7 +414,7 @@ void parser::parse_hair(
     thickness_scale = parse_float(hair_node, "thickness_scale");
   }
 
-  hair.to_beziers(shapes, tf, surface, n_strands, thickness_scale);
+  return hair.to_beziers(shapes, tf, surface, hair_id, n_strands, thickness_scale);
 }
 
 std::unique_ptr<tracer::camera::camera> parser::parse_camera(
@@ -523,6 +524,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
   }
 
   // define scene
+  auto main_scene = std::make_shared<tracer::scene>();
   if (root["scene"].IsDefined()) {
     YAML::Node scene_config = root["scene"];
 
@@ -538,7 +540,9 @@ std::shared_ptr<tracer::scene> parser::load_scene(
           } else if (object["model"].IsDefined()) {
             parse_model(shapes, object);
           } else if (object["hair"].IsDefined()) {
-            parse_hair(shapes, object);
+            uintptr_t hair_id;
+            auto strand_bvh = parse_hair(shapes, object, &hair_id);
+            main_scene->strand_bvh[hair_id] = strand_bvh;
           } else {
             throw parsing_error(
                 object_node.Mark().line,
@@ -552,8 +556,10 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     }
 
     std::wcout << L"* Building BVH containing " << shapes.size() << L" shapes..." << std::flush;
-    auto main_scene = std::make_shared<tracer::scene>(shapes);
+    bvh_tree scene_shapes(shapes);
     std::wcout << L" done" << std::endl;
+
+    main_scene->shapes = scene_shapes;
 
     if (scene_config["camera"].IsDefined()) {
       main_scene->camera = parse_camera(

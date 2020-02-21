@@ -83,6 +83,9 @@ namespace tracer {
             + 6 * u * ou * (cps[2] - cps[1])
             + 3 * pow2(u) * (cps[3] - cps[2]);
         }
+
+        uintptr_t hair_id = 0;
+        size_t strand_id = 0;
     };
   }
 }
