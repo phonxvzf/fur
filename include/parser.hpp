@@ -10,6 +10,7 @@ class parser {
   private:
     Float parse_float(const YAML::Node& node, const std::string& name);
     int parse_int(const YAML::Node& node, const std::string& name);
+    bool parse_bool(const YAML::Node& node, const std::string& name);
     std::string parse_string(const YAML::Node& node, const std::string& name);
     math::vector2i parse_vector2i(const YAML::Node& node, const std::string& name);
     math::vector3i parse_vector3i(const YAML::Node& node, const std::string& name);

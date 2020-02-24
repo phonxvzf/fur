@@ -19,6 +19,7 @@
 #include "tracer/materials/ggx.hpp"
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
+#include "tracer/materials/hairpt.hpp"
 #include "tracer/model.hpp"
 #include "tracer/hair.hpp"
 #include "tracer/texture.hpp"
@@ -44,6 +45,14 @@ int parser::parse_int(const YAML::Node& node, const std::string& name) {
 std::string parser::parse_string(const YAML::Node& node, const std::string& name) {
   try {
     return node[name].as<std::string>();
+  } catch (const std::exception& e) {
+    throw parsing_error(node[name].Mark().line, "while parsing " + name + ": " + e.what());
+  }
+}
+
+bool parser::parse_bool(const YAML::Node& node, const std::string& name) {
+  try {
+    return node[name].as<bool>();
   } catch (const std::exception& e) {
     throw parsing_error(node[name].Mark().line, "while parsing " + name + ": " + e.what());
   }
@@ -136,8 +145,7 @@ math::vector4f parser::parse_vector4f(
 tracer::sampled_spectrum parser::parse_rgb_spectrum(
     const YAML::Node& node,
     const std::string& name,
-    bool illuminant
-    )
+    bool illuminant)
 {
   try {
     std::string value = node[name].as<std::string>();
@@ -266,9 +274,34 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     } else {
       throw parsing_error(lambert_node.Mark().line, "specify rgb_refl, and emittance");
     }
+  } else if (mat_node["hairpt"].IsDefined()) {
+    YAML::Node hairpt_node = mat_node["hairpt"];
+    if (hairpt_node["rgb_refl"].IsDefined()   && hairpt_node["emittance"].IsDefined()
+        && hairpt_node["beta_m"].IsDefined()  && hairpt_node["beta_n"].IsDefined()
+        && hairpt_node["eta_i"].IsDefined()   && hairpt_node["eta_t"].IsDefined()
+        && hairpt_node["alpha"].IsDefined())
+    {
+      return std::shared_ptr<tracer::material>(new tracer::materials::hairpt(
+            parse_rgb_spectrum(hairpt_node, "rgb_refl"),
+            parse_rgb_spectrum(hairpt_node, "emittance"),
+            parse_float(hairpt_node, "eta_i"),
+            parse_float(hairpt_node, "eta_t"),
+            parse_float(hairpt_node, "beta_m"),
+            parse_float(hairpt_node, "beta_n"),
+            parse_float(hairpt_node, "alpha")
+            )
+          );
+    } else {
+      throw parsing_error(hairpt_node.Mark().line,
+          "specify rgb_refl, emittance, beta_m, beta_n, eta_i, eta_t and alpha"
+          );
+    }
   }
 
-  throw parsing_error(mat_node.Mark().line, "only lambert, ggx, sss and light are available");
+  throw parsing_error(
+      mat_node.Mark().line,
+      "only lambert, ggx, sss, hair and light are available"
+      );
 }
 
 std::shared_ptr<tracer::shape> parser::parse_shape(
@@ -407,14 +440,18 @@ bvh_tree* parser::parse_hair(
 
   size_t n_strands = 0;
   Float thickness_scale = 1;
+  bool subbvh = false;
   if (hair_node["strands"].IsDefined()) {
     n_strands = parse_int(hair_node, "strands");
   }
   if (hair_node["thickness_scale"].IsDefined()) {
     thickness_scale = parse_float(hair_node, "thickness_scale");
   }
+  if (hair_node["subbvh"].IsDefined()) {
+    subbvh = parse_bool(hair_node, "subbvh");
+  }
 
-  return hair.to_beziers(shapes, tf, surface, hair_id, n_strands, thickness_scale);
+  return hair.to_beziers(shapes, tf, surface, hair_id, n_strands, thickness_scale, subbvh);
 }
 
 std::unique_ptr<tracer::camera::camera> parser::parse_camera(

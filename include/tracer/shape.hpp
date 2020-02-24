@@ -21,6 +21,8 @@ namespace tracer {
         Float     t_hit = std::numeric_limits<Float>::max();
         point3f   hit_point;
         normal3f  normal;
+        vector3f  xbasis, ybasis;
+        point2f   uv;
         const shape* object = nullptr;
       };
 

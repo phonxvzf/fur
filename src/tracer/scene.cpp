@@ -30,7 +30,16 @@ namespace tracer {
 
     vector3f u, v;
     sampler::sample_orthogonals(normal, &u, &v, rng);
-    const matrix3f from_tangent_space(u, normal, v);
+    matrix3f from_tangent_space(u, normal, v);
+
+    const shapes::cubic_bezier* curve = dynamic_cast<const shapes::cubic_bezier*>(result.object);
+    if (result.object->surface->transport_model == material::HAIR) {
+      if (curve != nullptr) {
+        vector3f zbasis = result.xbasis.cross(normal).normalized();
+        from_tangent_space = matrix3f(result.xbasis, normal, zbasis);
+        *mf_normal = vector3f(result.uv);
+      }
+    }
 
     // vectors in tangent space
     *omega_out = from_tangent_space.t().dot(-r.dir);
@@ -47,12 +56,24 @@ namespace tracer {
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
 
-    *r_next = ray(
-        result.hit_point + params.intersect_options.bias_epsilon * bias,
-        from_tangent_space.dot(*omega_in),
-        r.t_max,
-        next_lt.med
-        );
+    if (curve != nullptr && omega_in->dot(*omega_out) < 0) {
+      Float hair_thickness = math::lerp(result.uv[0], curve->thickness0, curve->thickness1);
+      Float offset = hair_thickness + params.intersect_options.bias_epsilon;
+      vector3f world_omega_in = from_tangent_space.dot(*omega_in);
+      *r_next = ray(
+          result.hit_point + offset * world_omega_in,
+          world_omega_in,
+          r.t_max,
+          next_lt.med
+          );
+    } else {
+      *r_next = ray(
+          result.hit_point + params.intersect_options.bias_epsilon * bias,
+          from_tangent_space.dot(*omega_in),
+          r.t_max,
+          next_lt.med
+          );
+    }
 
     return next_lt;
   }
@@ -65,7 +86,7 @@ namespace tracer {
       random::rng& rng,
       int bounce)
   {
-    if (bounce > params.max_bounce) return sampled_spectrum(0);
+    if (bounce > params.max_bounce) return sampled_spectrum(0.f);
 
     shape::intersect_result result;
     shapes.intersect(r, params.intersect_options, &result);
@@ -100,7 +121,7 @@ namespace tracer {
     material::light_transport next_lt = trace_bsdf(
         &r_next, &omega_in, &omega_out, &mf_normal, result, params, r, prev_lt, sample, rng
         );
-    // incoming btdf
+    // incoming bsdf
     weight0 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
 
     // do volumetric path tracing

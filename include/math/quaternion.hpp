@@ -20,15 +20,11 @@ namespace math {
       quat operator/(Float s) const;
 
       Float size() const;
-
       Float size_sq() const;
 
       quat normalized() const;
-
       quat conjugate() const;
-
       quat t() const;
-
       quat inverse() const;
 
       matrix4f to_matrix() const;

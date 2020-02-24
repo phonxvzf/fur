@@ -78,6 +78,13 @@ namespace math {
     return pow4(x) * x;
   }
 
+  inline Float pow20(Float x) {
+    Float x2 = pow2(x);
+    Float x4 = pow2(x2);
+    Float x8 = pow2(x4);
+    return pow2(x8) * x4;
+  }
+
   inline Float dot2(const vector2f& v) {
     return v.dot(v);
   }
@@ -156,13 +163,20 @@ namespace math {
     return -sin_from_cos(cosine);
   }
 
+  /*
+   * Find cos(x) from sin(x)
+   */
+  inline Float cos_from_sin(Float sine) {
+    return std::sqrt(1 - mintol(pow2(sine)));
+  }
+
+  // Compute Fresnel term (exact version from Cook-Torrance paper)
   inline Float fresnel(
       const vector3f& omega,
       const normal3f& mf_normal,
       Float eta_i,
       Float eta_t)
   {
-    // Exact version from Cook-Torrance paper
     const Float c = absdot(omega, mf_normal);
     const Float g2 = pow2(eta_t / eta_i) - 1 + pow2(c);
 
@@ -170,7 +184,19 @@ namespace math {
 
     const Float g = std::sqrt(g2);
 
-    return Float(0.5) * pow2((g - c) / (g + c))
+    return 0.5f * pow2((g - c) / (g + c))
+      * (1 + pow2((c * (g + c) - 1) / (c * (g - c) + 1)));
+  }
+
+  // Compute Fresnel term (exact version from Cook-Torrance paper), cosine signature
+  inline Float fresnel_cosine(Float c, Float eta_i, Float eta_t) {
+    const Float g2 = pow2(eta_t / eta_i) - 1 + pow2(c);
+
+    if (g2 < 0) return 1; // total internal reflection
+
+    const Float g = std::sqrt(g2);
+
+    return 0.5f * pow2((g - c) / (g + c))
       * (1 + pow2((c * (g + c) - 1) / (c * (g - c) + 1)));
   }
 
@@ -217,6 +243,35 @@ namespace math {
     *sol0 = (-b - sqrt_delta) * inv_two_a;
     *sol1 = (-b + sqrt_delta) * inv_two_a;
     return delta;
+  }
+
+  inline Float asin_clamp(Float x) {
+    return std::asin(math::clamp(x, -1.f, 1.f));
+  }
+
+  // Code below are from pbrt
+  inline uint32_t compact_1by1(uint32_t x) {
+    x &= 0x55555555;
+    x = (x ^ (x >> 1)) & 0x33333333;
+    x = (x ^ (x >> 2)) & 0x0f0f0f0f;
+    x = (x ^ (x >> 4)) & 0x00ff00ff;
+    x = (x ^ (x >> 8)) & 0x0000ffff;
+    return x;
+  }
+
+  inline point2f demux_float(Float x) {
+    uint64_t v = x * (1ULL << 32);
+    uint32_t bits[2] = { compact_1by1(v), compact_1by1(v >> 1) };
+    return { bits[0] / Float(1 << 16), bits[1] / Float(1 << 16) };
+  }
+
+  inline int log2_nearest(Float x) {
+    if (x < 1) return 0;
+    return 32 - __builtin_clz(static_cast<uint32_t>(x));
+  }
+
+  inline int log4_nearest(Float x) {
+    return log2_nearest(x) >> 1;
   }
 }
 

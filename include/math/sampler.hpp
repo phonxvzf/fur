@@ -23,6 +23,7 @@ namespace math {
     point3f sample_cosine_hemisphere(const point2f& u);
     point3f sample_sphere(const point2f& u);
     point3f sample_henyey_greenstein(Float g, const point2f& u);
+    Float   sample_finite_norm_logistic(Float s, Float u, Float a, Float b);
 
     void sample_orthogonals(const vector3f& n, vector3f* u, vector3f* v, random::rng& rng);
 

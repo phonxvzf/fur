@@ -8,8 +8,13 @@ namespace tracer {
         const std::shared_ptr<material>& surface,
         const point3f cps[4],
         Float thickness0,
-        Float thickness1
-        ) : shape(shape_to_world, surface), thickness0(2 * thickness0), thickness1(2 * thickness1)
+        Float thickness1,
+        const normal3f& normal
+        ) :
+      shape(shape_to_world, surface),
+      thickness0(2 * thickness0),
+      thickness1(2 * thickness1),
+      curve_normal(normal)
     {
       control_points[0] = cps[0];
       control_points[1] = cps[1];
@@ -51,7 +56,10 @@ namespace tracer {
         const tf::transform proj_inv = proj.inverse();
         result->hit_point = tf_shape_to_world(result->hit_point);
         result->normal = result->normal.is_zero() ?
-          tf_shape_to_world(-r.dir) : tf_shape_to_world(proj_inv(result->normal)).normalized();
+          tf_shape_to_world(-r.dir)
+          : tf_shape_to_world(r.medium == INSIDE ? curve_normal : -curve_normal).normalized();
+        result->xbasis = result->xbasis.is_zero() ?
+          vector3f(1, 0, 0) : tf_shape_to_world(proj_inv(result->xbasis)).normalized();
       }
       return hit;
     }
@@ -79,8 +87,10 @@ namespace tracer {
 
       if (depth == 0) {
         const vector3f dir = cps[3] - cps[0];
-        const vector3f dp0 = cps[1] - cps[0];
-        const vector3f dp3 = cps[3] - cps[2];
+        vector3f dp0 = cps[1] - cps[0];
+        vector3f dp3 = cps[3] - cps[2];
+        if (dp0.dot(dir) < 0) dp0 = -dp0;
+        if (dp3.dot(dir) < 0) dp3 = -dp3;
         if (dotproj(dp0, -cps[0]) < 0) return false;
         if (dotproj(dp3, cps[3]) < 0) return false;
 
@@ -92,7 +102,7 @@ namespace tracer {
         const Float u = math::lerp(w, u_min, u_max);
         const Float half_thickness = 0.5 * math::lerp(u, thickness0, thickness1);
         const Float dist2 = pow2(p.x) + pow2(p.y);
-        if (dist2 > pow2(half_thickness) * 0.25)
+        if (dist2 > pow2(half_thickness) * 0.1)
           return false;
 
         // calculate t and normal
@@ -117,6 +127,8 @@ namespace tracer {
           result->object = this;
           result->hit_point = r(t);
           result->normal = r.medium == INSIDE ? normal : -normal;
+          result->xbasis = vector3f(tangent);
+          result->uv = { u, v };
           return true;
         }
 

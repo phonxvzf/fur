@@ -20,6 +20,7 @@ namespace tracer {
       float* colors;
       float* points;
       float* thickness;
+      float* normal = nullptr;
 
       inline point3f point_at(size_t id) const {
         id = 3 * id;
@@ -29,6 +30,11 @@ namespace tracer {
       inline Float3 color_at(size_t id) const {
         id = 3 * id;
         return { colors[id], colors[id+1], colors[id+2] };
+      }
+
+      inline normal3f normal_at(size_t id) const {
+        id = 3 * id;
+        return { normal[id], normal[id+1], normal[id+2] };
       }
 
       void catmullrom_to_bezier(
@@ -48,7 +54,8 @@ namespace tracer {
           const std::shared_ptr<material>& surface,
           uintptr_t* hair_id,
           size_t n_strands = 0,
-          Float thickness_scale = 1
+          Float thickness_scale = 1,
+          bool subbvh = false
           ) const;
   };
 }

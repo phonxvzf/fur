@@ -16,6 +16,7 @@ namespace tracer {
         REFRACT,
         SSS,
         EMIT,
+        HAIR,
         NONE
       } transport_model;
 

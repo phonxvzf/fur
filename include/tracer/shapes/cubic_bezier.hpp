@@ -6,39 +6,9 @@
 namespace tracer {
   namespace shapes {
     class cubic_bezier : public shape {
-      private:
-        point3f control_points[4];
+      public:
         const Float thickness0, thickness1;
 
-        bool intersect_recursive(
-            const ray& r,
-            intersect_result* result,
-            const point3f cps[4],
-            Float u_min,
-            Float u_max,
-            int depth
-            ) const;
-
-        inline Float wang_term(const Float3& x) const {
-          return std::abs(x[0] - 2 * x[1] + x[2]);
-        }
-
-        inline int wang_depth(const point3f cps[4]) const {
-          Float L0 = 0;
-          for (int i = 0; i < 2; ++i) {
-            L0 = std::max(L0, max3(
-                  wang_term({ cps[i].x, cps[i+1].x, cps[i+2].x }),
-                  wang_term({ cps[i].y, cps[i+1].y, cps[i+2].y }),
-                  wang_term({ cps[i].z, cps[i+1].z, cps[i+2].z })
-                  )
-                );
-          }
-          const Float max_dist_error = std::max(thickness0, thickness1) * 0.05;
-          const Float r0 = std::log(SQRT_TWO * 12.f * L0 / (8.f * max_dist_error)) * 0.7213475108f;
-          return clamp(static_cast<int>(std::round(r0)), 0, 10);
-        }
-
-      public:
         enum cps_position {
           HEAD, BODY, TAIL
         };
@@ -48,7 +18,8 @@ namespace tracer {
             const std::shared_ptr<material>& surface,
             const point3f cps[4],
             Float thickness0,
-            Float thickness1
+            Float thickness1,
+            const normal3f& normal = normal3f(0.f)
             );
 
         bounds3f bounds() const override;
@@ -86,6 +57,38 @@ namespace tracer {
 
         uintptr_t hair_id = 0;
         size_t strand_id = 0;
+
+      private:
+        point3f control_points[4];
+        normal3f curve_normal = normal3f(0.f);
+
+        bool intersect_recursive(
+            const ray& r,
+            intersect_result* result,
+            const point3f cps[4],
+            Float u_min,
+            Float u_max,
+            int depth
+            ) const;
+
+        inline Float wang_term(const Float3& x) const {
+          return std::abs(x[0] - 2 * x[1] + x[2]);
+        }
+
+        inline int wang_depth(const point3f cps[4]) const {
+          Float L0 = 0;
+          for (int i = 0; i < 2; ++i) {
+            L0 = std::max(L0, max3(
+                  wang_term({ cps[i].x, cps[i+1].x, cps[i+2].x }),
+                  wang_term({ cps[i].y, cps[i+1].y, cps[i+2].y }),
+                  wang_term({ cps[i].z, cps[i+1].z, cps[i+2].z })
+                  )
+                );
+          }
+          const Float max_dist_error = std::max(thickness0, thickness1) * 0.05f;
+          const int r0 = log4_nearest(SQRT_TWO * 6.f * L0 / (8.f * max_dist_error));
+          return clamp(r0, 0, 10);
+        }
     };
   }
 }

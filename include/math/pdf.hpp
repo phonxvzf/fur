@@ -45,6 +45,20 @@ namespace math {
   inline Float pdf_uniform_cosine_hemisphere_cos(Float cos_theta) {
     return cos_theta * INV_PI;
   }
-}
+
+  inline Float logistic_pdf(Float s, Float x) {
+    Float inv_s = 1.f / s;
+    Float ex = std::exp(-std::abs(x) * inv_s);
+    return ex / (pow2(1 + ex)) * inv_s;
+  }
+
+  inline Float logistic_cdf(Float s, Float x) {
+    return 1 / (1 + std::exp(-x / s));
+  }
+
+  inline Float logistic_pdf_finite_norm(Float s, Float x, Float a, Float b) {
+    return logistic_pdf(s, x) / (logistic_cdf(s, b) - logistic_cdf(s, a));
+  }
+} /* namespace math */
 
 #endif /* MATH_PDF_HPP */

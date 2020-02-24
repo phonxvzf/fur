@@ -25,7 +25,7 @@ namespace tracer {
 
   hair::hair(const std::string& fpath) {
     int result = cyhair.LoadFromFile(fpath.c_str());
-    switch( result ) {
+    switch (result) {
       case CY_HAIR_FILE_ERROR_CANT_OPEN_FILE:
         throw std::runtime_error("cannot open hair file");
       case CY_HAIR_FILE_ERROR_CANT_READ_HEADER:
@@ -61,10 +61,16 @@ namespace tracer {
       const uint16_t n_segments = segments_count ? segments_count[i-1] : cyhair_header.d_segments;
       segments_offset[i] = segments_offset[i-1] + n_segments + 1; // we skip trailing point
     }
+
+    normal = new float[3 * cyhair_header.point_count];
+    if (cyhair.FillDirectionArray(normal) == 0) {
+      throw std::runtime_error("cannot precompute hair directions");
+    }
   }
 
   hair::~hair() {
     delete[] segments_offset;
+    delete[] normal;
   }
 
   void hair::catmullrom_to_bezier(
@@ -137,7 +143,8 @@ namespace tracer {
       const std::shared_ptr<material>& surface,
       uintptr_t* hair_id,
       size_t n_strands,
-      Float thickness_scale
+      Float thickness_scale,
+      bool subbvh
       ) const
   {
     if (n_strands == 0) n_strands = cyhair_header.hair_count;
@@ -219,7 +226,7 @@ namespace tracer {
           math::lerp(5 * one_eighth, thickness0, thickness1),
           math::lerp(6 * one_eighth, thickness0, thickness1),
           math::lerp(7 * one_eighth, thickness0, thickness1),
-          thickness1
+          local_segment_id + 1 == n_segments ? 0.f : thickness1
         };
 
         for (size_t j = 0; j < 8; ++j) {
@@ -228,26 +235,33 @@ namespace tracer {
                 surface,
                 sub_curve[j],
                 thickness_scale * sub_thickness[j],
-                thickness_scale * sub_thickness[j+1]
+                thickness_scale * sub_thickness[j+1],
+                (normal_at(head_id) + normal_at(tail_id)).normalized()
                 );
-          bezier->strand_id = i;
-          bezier->hair_id = (uintptr_t) this;
+          if (subbvh) {
+            bezier->strand_id = i;
+            bezier->hair_id = (uintptr_t) this;
+          }
           curves.push_back(bezier);
           ++n_curves;
         }
       } /* for local_segment_id */
 
-      std::wcout << L"\r  * Constructing sub BVH for strand "
-        << i+1 << L"/" << n_strands << std::flush;
-      strand_bvh[i] = bvh_tree(std::vector<std::shared_ptr<shape>>(
-            curves.begin() + n_total_curves,
-            curves.begin() + n_total_curves + n_curves
-            ));
-      n_total_curves += n_curves;
+      if (subbvh) {
+        std::wcout << L"\r  * Constructing sub BVH for strand "
+          << i+1 << L"/" << n_strands << std::flush;
+        strand_bvh[i] = bvh_tree(std::vector<std::shared_ptr<shape>>(
+              curves.begin() + n_total_curves,
+              curves.begin() + n_total_curves + n_curves
+              ));
+        n_total_curves += n_curves;
+      }
     } /* for i */
 
-    *hair_id = (uintptr_t) this;
-    std::wcout << std::endl;
+    if (subbvh) {
+      *hair_id = (uintptr_t) this;
+      std::wcout << std::endl;
+    }
     return strand_bvh;
   } /* to_beziers() */
 
