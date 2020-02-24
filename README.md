@@ -64,7 +64,7 @@ $ ./ftracer -n -o scene_normal.exr scene.yaml
 $ display scene_normal.exr
 
 $ ./ftracer scene.yaml -s 320 0 -e 640 480
-$ display output.exr # Half left of the image will be black.
+$ display output.exr # Left half of the image will be black.
 
 $ ./ftracer -j 8 -o scene.exr scene.yaml
 $ display scene.exr
@@ -77,5 +77,6 @@ $ display output.exr
 Please see `example_scene.yaml` for references.
 
 ## TODOs
+- Dual scattering for hair
 - BSSRDF
 - FXAA
