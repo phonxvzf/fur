@@ -18,6 +18,13 @@ namespace tracer {
       return bounds3f(a).merge(bounds3f(b)).merge(bounds3f(c));
     }
 
+    bounds3f triangle::world_bounds_explicit() const {
+      point3f ta = tf_shape_to_world(a);
+      point3f tb = tf_shape_to_world(b);
+      point3f tc = tf_shape_to_world(c);
+      return bounds3f(ta).merge(bounds3f(tb)).merge(bounds3f(tc));
+    }
+
     bool triangle::intersect_shape(
         const ray& r,
         const intersect_opts& options,

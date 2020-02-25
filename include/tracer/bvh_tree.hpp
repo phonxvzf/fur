@@ -4,7 +4,6 @@
 #include "shape.hpp"
 #include <thread>
 #include <mutex>
-#include <condition_variable>
 
 namespace tracer {
   class bvh_tree {
@@ -13,6 +12,7 @@ namespace tracer {
         bounds3f bounds;
         std::shared_ptr<bvh_node> children[2] = { nullptr, nullptr };
         std::vector<std::shared_ptr<shape>> shapes;
+        int split_dim = -1;
       };
 
       int n_available_workers;

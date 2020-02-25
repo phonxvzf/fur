@@ -20,9 +20,13 @@ namespace tracer {
     tf_world_to_shape(cpy.tf_world_to_shape),
     world_bounds_cached(cpy.world_bounds_cached) {}
 
+  bounds3f shape::world_bounds_explicit() const {
+    return tf_shape_to_world(bounds());
+  }
+
   bounds3f shape::world_bounds() {
     if (world_bounds_cached) return world_bounds_cache;
-    world_bounds_cache  = tf_shape_to_world(bounds());
+    world_bounds_cache  = world_bounds_explicit();
     world_bounds_cached = true;
     return world_bounds_cache;
   }

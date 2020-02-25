@@ -35,7 +35,8 @@ namespace tracer {
       shape(const shape& cpy);
 
       virtual bounds3f bounds() const = 0;
-      bounds3f world_bounds();
+      virtual bounds3f world_bounds_explicit() const;
+      virtual bounds3f world_bounds();
 
       virtual bool intersect(
           const ray& r,

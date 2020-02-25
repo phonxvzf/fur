@@ -22,6 +22,18 @@ namespace tracer {
       control_points[3] = cps[3];
     }
 
+    bounds3f cubic_bezier::world_bounds_explicit() const {
+      point3f t_cps[4];
+      for (int i = 0; i < 4; ++i) {
+        t_cps[i] = tf_shape_to_world(control_points[i]);
+      }
+      return bounds3f(t_cps[0])
+        .merge(t_cps[1])
+        .merge(t_cps[2])
+        .merge(t_cps[3])
+        .expand(0.5 * std::max(thickness0, thickness1));
+    }
+
     bounds3f cubic_bezier::bounds() const {
       return bounds3f(control_points[0])
         .merge(control_points[1])
@@ -57,9 +69,10 @@ namespace tracer {
         result->hit_point = tf_shape_to_world(result->hit_point);
         result->normal = result->normal.is_zero() ?
           tf_shape_to_world(-r.dir)
-          : tf_shape_to_world(r.medium == INSIDE ? curve_normal : -curve_normal).normalized();
+          : tf_shape_to_world(proj_inv(result->normal)).normalized();
         result->xbasis = result->xbasis.is_zero() ?
-          vector3f(1, 0, 0) : tf_shape_to_world(proj_inv(result->xbasis)).normalized();
+          vector3f(1, 0, 0)
+          : tf_shape_to_world(proj_inv(result->xbasis)).normalized();
       }
       return hit;
     }
@@ -127,7 +140,7 @@ namespace tracer {
           result->object = this;
           result->hit_point = r(t);
           result->normal = r.medium == INSIDE ? normal : -normal;
-          result->xbasis = vector3f(tangent);
+          result->xbasis = tangent;
           result->uv = { u, v };
           return true;
         }

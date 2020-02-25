@@ -1,4 +1,5 @@
 #include "tracer/materials/ggx.hpp"
+#include "math/sampler.hpp"
 
 namespace tracer {
   namespace materials {
@@ -30,7 +31,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
-      if ((omega_in + omega_out).is_zero()) return sampled_spectrum(is_refractive(lt.transport));
+      if ((omega_in + omega_out).is_zero()) return sampled_spectrum(1.f);
 
       const normal3f normal(0, 1, 0);
 
@@ -38,10 +39,10 @@ namespace tracer {
       const Float G = geometry(normal, mf_normal, omega_in)
         * geometry(normal, mf_normal, omega_out);
 
-      const Float prob = absdot(omega_in, normal) * absdot(mf_normal, normal);
+      const Float sample_weight = absdot(omega_in, normal) * absdot(mf_normal, normal)
+        / (absdot(omega_in, mf_normal) * G);
 
-      return clamp((absdot(omega_in, mf_normal) * G / prob), Float(0), Float(1))
-        * (lt.transport == REFLECT ? refl : refr);
+      return clamp(sample_weight, Float(0), Float(1)) * (lt.transport == REFLECT ? refl : refr);
     }
 
     material::light_transport ggx::sample(
@@ -53,7 +54,7 @@ namespace tracer {
         Float xi
         ) const
     {
-      const Float theta = std::atan(alpha * std::sqrt(u.x / (1 - u.x)));
+      const Float theta = std::atan2(alpha * std::sqrt(u.x) , std::sqrt(1 - u.x));
       const Float phi = TWO_PI * u.y;
       const Float sin_theta = std::sin(theta);
       const normal3f m(right_to_left(
@@ -80,6 +81,7 @@ namespace tracer {
       }
 
       *omega_in = reflect(omega_out, m);
+      if (omega_in->y < 0) *omega_in = sampler::sample_cosine_hemisphere(u);
       return { REFLECT, OUTSIDE };
     }
   }

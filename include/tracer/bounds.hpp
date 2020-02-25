@@ -201,18 +201,16 @@ namespace tracer {
       }
 
       bool intersect(const ray& r) const {
-        Float t[6];
-        t[0] = (p_min.x - r.origin.x) * r.inv_dir.x;
-        t[1] = (p_max.x - r.origin.x) * r.inv_dir.x;
-        t[2] = (p_min.y - r.origin.y) * r.inv_dir.y;
-        t[3] = (p_max.y - r.origin.y) * r.inv_dir.y;
-        t[4] = (p_min.z - r.origin.z) * r.inv_dir.z;
-        t[5] = (p_max.z - r.origin.z) * r.inv_dir.z;
-        Float t_min =
-          std::max(std::max(std::min(t[0], t[1]), std::min(t[2], t[3])), std::min(t[4], t[5]));
-        Float t_max =
-          std::min(std::min(std::max(t[0], t[1]), std::max(t[2], t[3])), std::max(t[4], t[5]));
-        if (t_max < 0 || t_min > t_max) return false;
+        Float t_near, t_far;
+        Float t0 = 0, t1 = r.t_max;
+        for (int dim = 0; dim < 3; ++dim) {
+          t_near  = (p_min[dim] - r.origin[dim]) * r.inv_dir[dim];
+          t_far   = (p_max[dim] - r.origin[dim]) * r.inv_dir[dim];
+          if (t_near > t_far) std::swap(t_near, t_far);
+          t0 = std::max(t0, t_near);
+          t1 = std::min(t1, t_far);
+          if (t0 > t1) return false;
+        }
         return true;
       }
 

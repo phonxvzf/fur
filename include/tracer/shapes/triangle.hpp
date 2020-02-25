@@ -22,6 +22,7 @@ namespace tracer {
             );
 
         bounds3f bounds() const override;
+        bounds3f world_bounds_explicit() const override;
 
         bool intersect_shape(
             const ray& r,

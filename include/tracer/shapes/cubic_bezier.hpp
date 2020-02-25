@@ -22,6 +22,7 @@ namespace tracer {
             const normal3f& normal = normal3f(0.f)
             );
 
+        bounds3f world_bounds_explicit() const override;
         bounds3f bounds() const override;
 
         bool intersect_shape(

@@ -139,6 +139,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
+      //std::cerr << omega_in << omega_out << std::endl;
       Float sin_theta_out = omega_out.x;
       Float cos_theta_out = cos_from_sin(sin_theta_out);
       Float phi_out = std::atan2(omega_out.y, omega_out.z);
@@ -179,13 +180,13 @@ namespace tracer {
         D[i] = gaussian_detector(i, phi, gamma_o, gamma_t, logistic_s);
       }
 
-      sampled_spectrum bcsdf(0.f);
-      for (int i = 0; i < 4; ++i) {
+      sampled_spectrum bcsdf(M[3] * A[3] * INV_TWO_PI);
+      for (int i = 0; i < 3; ++i) {
         bcsdf += M[i] * D[i] * A[i]; // TODO: hair cuticle (tilt by alpha)
       }
 
-      Float pdf = 0.f;
-      for (int i = 0; i < 4; ++i) {
+      Float pdf = M[3] * A_prob[3] * INV_TWO_PI;
+      for (int i = 0; i < 3; ++i) {
         pdf += M[i] * A_prob[i] * D[i];
       }
 
@@ -259,7 +260,7 @@ namespace tracer {
       const Float cos_phi_in = std::cos(phi_in);
       const Float sin_phi_in = std::sin(phi_in);
 
-      *omega_in = right_to_left(vector3f(
+      *omega_in = zup_to_yup(vector3f(
             sin_theta_in, cos_theta_in * cos_phi_in, cos_theta_in * sin_phi_in
             ));
 

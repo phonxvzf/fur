@@ -144,7 +144,8 @@ namespace tracer {
       uintptr_t* hair_id,
       size_t n_strands,
       Float thickness_scale,
-      bool subbvh
+      bool subbvh,
+      bool subdivide
       ) const
   {
     if (n_strands == 0) n_strands = cyhair_header.hair_count;
@@ -154,7 +155,7 @@ namespace tracer {
 
     std::wstringstream wss;
     wss << file_path.c_str();
-    std::wcout << L"* Processing hair file " << wss.str() << std::endl;
+    std::wcout << L"  * Processing hair file " << wss.str() << std::endl;
 
     size_t n_total_curves = 0;
     for (size_t i = 0; i < n_strands; ++i) {
@@ -229,8 +230,10 @@ namespace tracer {
           local_segment_id + 1 == n_segments ? 0.f : thickness1
         };
 
-        for (size_t j = 0; j < 8; ++j) {
-          auto bezier = std::make_shared<shapes::cubic_bezier>(
+        for (size_t j = 0; j < (subdivide ? 8 : 1); ++j) {
+          shapes::cubic_bezier* bezier;
+          if (subdivide) {
+            bezier = new shapes::cubic_bezier(
                 shape_to_world,
                 surface,
                 sub_curve[j],
@@ -238,17 +241,27 @@ namespace tracer {
                 thickness_scale * sub_thickness[j+1],
                 (normal_at(head_id) + normal_at(tail_id)).normalized()
                 );
+          } else {
+            bezier = new shapes::cubic_bezier(
+                shape_to_world,
+                surface,
+                bezier_cps,
+                thickness_scale * thickness0,
+                thickness_scale * thickness1,
+                (normal_at(head_id) + normal_at(tail_id)).normalized()
+                );
+          }
           if (subbvh) {
             bezier->strand_id = i;
             bezier->hair_id = (uintptr_t) this;
           }
-          curves.push_back(bezier);
+          curves.push_back(std::shared_ptr<shape>(bezier));
           ++n_curves;
         }
       } /* for local_segment_id */
 
       if (subbvh) {
-        std::wcout << L"\r  * Constructing sub BVH for strand "
+        std::wcout << L"\r    * Constructing sub BVH for strand "
           << i+1 << L"/" << n_strands << std::flush;
         strand_bvh[i] = bvh_tree(std::vector<std::shared_ptr<shape>>(
               curves.begin() + n_total_curves,

@@ -32,8 +32,9 @@ namespace tracer {
     sampler::sample_orthogonals(normal, &u, &v, rng);
     matrix3f from_tangent_space(u, normal, v);
 
-    const shapes::cubic_bezier* curve = dynamic_cast<const shapes::cubic_bezier*>(result.object);
+    const shapes::cubic_bezier* curve = nullptr;
     if (result.object->surface->transport_model == material::HAIR) {
+      curve = dynamic_cast<const shapes::cubic_bezier*>(result.object);
       if (curve != nullptr) {
         vector3f zbasis = result.xbasis.cross(normal).normalized();
         from_tangent_space = matrix3f(result.xbasis, normal, zbasis);
@@ -56,7 +57,7 @@ namespace tracer {
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
 
-    if (curve != nullptr && omega_in->dot(*omega_out) < 0) {
+    if (curve != nullptr && omega_in->y < 0) {
       Float hair_thickness = math::lerp(result.uv[0], curve->thickness0, curve->thickness1);
       Float offset = hair_thickness + params.intersect_options.bias_epsilon;
       vector3f world_omega_in = from_tangent_space.dot(*omega_in);

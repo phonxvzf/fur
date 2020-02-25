@@ -441,6 +441,7 @@ bvh_tree* parser::parse_hair(
   size_t n_strands = 0;
   Float thickness_scale = 1;
   bool subbvh = false;
+  bool subdivide = false;
   if (hair_node["strands"].IsDefined()) {
     n_strands = parse_int(hair_node, "strands");
   }
@@ -450,8 +451,13 @@ bvh_tree* parser::parse_hair(
   if (hair_node["subbvh"].IsDefined()) {
     subbvh = parse_bool(hair_node, "subbvh");
   }
+  if (hair_node["subdivide"].IsDefined()) {
+    subdivide = parse_bool(hair_node, "subdivide");
+  }
 
-  return hair.to_beziers(shapes, tf, surface, hair_id, n_strands, thickness_scale, subbvh);
+  return hair.to_beziers(
+      shapes, tf, surface, hair_id, n_strands, thickness_scale, subbvh, subdivide
+      );
 }
 
 std::unique_ptr<tracer::camera::camera> parser::parse_camera(

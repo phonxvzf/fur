@@ -3,7 +3,7 @@
 #include "math/util.hpp"
 
 #define MAX_SHAPES_PER_NODE (4)
-#define N_BUCKETS (12)
+#define N_BUCKETS (16)
 
 namespace tracer {
   bvh_tree::bvh_tree(std::vector<std::shared_ptr<shape>> shapes) {
@@ -42,6 +42,7 @@ namespace tracer {
       }
 
       int dim = centroid_bounds.which_longest();
+      node->split_dim = dim;
 
       // partition shapes
       Float cost[N_BUCKETS];
@@ -133,16 +134,23 @@ namespace tracer {
     for (size_t i = 0; i < node->shapes.size(); ++i) {
       shape::intersect_result inner_result;
       bool inner_hit = node->shapes[i]->intersect(r, options, &inner_result);
-      if (inner_hit && (inner_result.t_hit < result->t_hit)) {
-        *result = inner_result;
+      if (inner_hit) {
         hit = true;
+        if (inner_result.t_hit < result->t_hit) {
+          *result = inner_result;
+        }
       }
     }
 
-    if (node->children[0])
-      hit |= intersect(node->children[0], r, options, result);
-    if (node->children[1])
-      hit |= intersect(node->children[1], r, options, result);
+    int left = 0, right = 1;
+    point3i negative_dir(r.dir.x < 0, r.dir.y < 0, r.dir.z < 0);
+    if (node->split_dim >= 0) {
+      if (negative_dir[node->split_dim]) std::swap(left, right);
+      if (node->children[left])
+        hit |= intersect(node->children[left], r, options, result);
+      if (node->children[right])
+        hit |= intersect(node->children[right], r, options, result);
+    }
 
     return hit;
   }

@@ -55,7 +55,8 @@ namespace tracer {
           uintptr_t* hair_id,
           size_t n_strands = 0,
           Float thickness_scale = 1,
-          bool subbvh = false
+          bool subbvh = false,
+          bool subdivide = false
           ) const;
   };
 }
