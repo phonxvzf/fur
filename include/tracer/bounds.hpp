@@ -225,6 +225,15 @@ namespace tracer {
       bounds3<T> expand(Float dx) const {
         return { p_min - vector3f(dx), p_max + vector3f(dx) };
       }
+
+      point3f uvw(const point3f& p) const {
+        vector3f d(diagonal());
+        return {
+          (p.x - p_min.x) / d.x,
+          (p.y - p_min.y) / d.y,
+          (p.z - p_min.z) / d.z
+        };
+      }
   };
 
   typedef bounds2<int> bounds2i;

@@ -40,14 +40,8 @@ namespace tracer {
       for (int i = start; i < end; ++i) {
         centroid_bounds = centroid_bounds.merge(shapes[i]->world_bounds().centroid());
       }
-      int dim = centroid_bounds.which_longest();
 
-      // sort shapes by the selected axis
-      std::sort(shapes.begin() + start, shapes.begin() + end,
-          [dim](const std::shared_ptr<shape>& a, const std::shared_ptr<shape>& b) -> bool {
-            return a->world_bounds().centroid()[dim] < b->world_bounds().centroid()[dim];
-          }
-          );
+      int dim = centroid_bounds.which_longest();
 
       // partition shapes
       Float cost[N_BUCKETS];
@@ -75,8 +69,20 @@ namespace tracer {
         }
       }
 
-      int split = start + (float) (best_split / N_BUCKETS) * n_shapes_node;
+      // partiion shapes by the selected axis
+      auto pivot = std::partition(shapes.begin() + start, shapes.begin() + end,
+          [&](const std::shared_ptr<shape>& s) -> bool {
+            // find bucket position
+            Float bucket_i = centroid_bounds.uvw(
+                s->world_bounds().centroid()
+                )[dim] * N_BUCKETS;
+            return bucket_i < best_split;
+          }
+          );
+
+      int split = pivot - shapes.begin();
       if (split <= start) split = std::max(start + 1, start + std::rand() % n_shapes_node);
+
       std::thread *worker0, *worker1;
       worker0 = dispatch_construction(shapes, start, split, &node->children[0]);
       worker1 = dispatch_construction(shapes, split, end, &node->children[1]);
