@@ -80,7 +80,7 @@ namespace tracer {
       static constexpr Float ln2 = 0.6931471805f;
       return v < 0.1f ?
         std::exp(logI0 - sin_term - inv_v + ln2 + std::log(0.5f * inv_v))
-        : (0.5f * inv_v / std::sinh(inv_v)) * std::exp(-sin_term) * I0 / cos_theta_out;
+        : (0.5f * inv_v / std::sinh(inv_v)) * std::exp(-sin_term) * I0;
     }
 
     Float hairpt::gaussian_detector(
@@ -186,7 +186,7 @@ namespace tracer {
 
       Float pdf = 0.f;
       for (int i = 0; i < 4; ++i) {
-        pdf += (M[i] * pow2(cos_theta_out)) * A_prob[i] * D[i];
+        pdf += M[i] * A_prob[i] * D[i];
       }
 
       if (COMPARE_EQ(pdf, 0)) return sampled_spectrum(1.f);
