@@ -9,17 +9,23 @@ namespace tracer {
         const point3f cps[4],
         Float thickness0,
         Float thickness1,
-        const normal3f& normal
+        const normal3f normal[4]
         ) :
       shape(shape_to_world, surface),
-      thickness0(2 * thickness0),
-      thickness1(2 * thickness1),
-      curve_normal(normal)
+      thickness0(thickness0),
+      thickness1(thickness1)
     {
       control_points[0] = cps[0];
       control_points[1] = cps[1];
       control_points[2] = cps[2];
       control_points[3] = cps[3];
+      if (normal) {
+        vertex_normal = std::make_unique<normal3f[]>(4);
+        vertex_normal[0] = normal[0];
+        vertex_normal[1] = normal[1];
+        vertex_normal[2] = normal[2];
+        vertex_normal[3] = normal[3];
+      }
     }
 
     bounds3f cubic_bezier::world_bounds_explicit() const {
@@ -62,17 +68,33 @@ namespace tracer {
         proj(control_points[3])
       };
 
+      normal3f normals[4];
+      if (vertex_normal != nullptr) {
+        normals[0] = proj(vertex_normal[0]);
+        normals[1] = proj(vertex_normal[1]);
+        normals[2] = proj(vertex_normal[2]);
+        normals[3] = proj(vertex_normal[3]);
+      }
+
       result->t_hit = std::numeric_limits<Float>::max();
-      const bool hit = intersect_recursive(r, result, cps, 0, 1, wang_depth(cps));
+      const bool hit = intersect_recursive(r, result, cps, normals, 0, 1, wang_depth(cps));
       if (hit) {
         const tf::transform proj_inv = proj.inverse();
         result->hit_point = tf_shape_to_world(result->hit_point);
-        result->normal = result->normal.is_zero() ?
-          tf_shape_to_world(-r.dir)
-          : tf_shape_to_world(proj_inv(result->normal)).normalized();
         result->xbasis = result->xbasis.is_zero() ?
           vector3f(1, 0, 0)
           : tf_shape_to_world(proj_inv(result->xbasis)).normalized();
+        result->normal = result->normal.is_zero() ?
+          tf_shape_to_world(normal3f(-result->xbasis.y, result->xbasis.x, 0)).normalized()
+          : tf_shape_to_world(proj_inv(result->normal)).normalized();
+        result->normal = result->normal.cross(result->xbasis).normalized();
+        /*
+        result->normal = tf::rotate(
+            result->xbasis,
+            math::lerp(result->uv[1], -PI_OVER_TWO, PI_OVER_TWO)
+            )(result->normal);
+        */
+        if (r.medium == INSIDE) result->normal = -result->normal;
       }
       return hit;
     }
@@ -81,6 +103,7 @@ namespace tracer {
         const ray& r,
         intersect_result* result,
         const point3f cps[4],
+        const normal3f normals[4],
         Float u_min,
         Float u_max,
         int depth
@@ -112,34 +135,32 @@ namespace tracer {
         w = math::clamp(-dotproj(cps[0], dir) / w, Float(0), Float(1));
 
         const point3f p = evaluate(w, cps);
-        const Float u = math::lerp(w, u_min, u_max);
+        const Float u = math::clamp(math::lerp(w, u_min, u_max), Float(0), Float(1));
         const Float half_thickness = 0.5 * math::lerp(u, thickness0, thickness1);
         const Float dist2 = pow2(p.x) + pow2(p.y);
-        if (dist2 > pow2(half_thickness) * 0.1)
-          return false;
+        if (dist2 > pow2(half_thickness) * 0.25) return false;
 
         // calculate t and normal
-        vector2f tangent(evaluate_differential(w, cps));
+        vector2f tangent(evaluate_differential(u, cps));
+        vector3f down(-tangent.y, tangent.x, 0);
         const Float dist = std::sqrt(dist2);
         const Float inv_half_thickness = 1 / half_thickness;
-        const vector3f down(-tangent.y, tangent.x, 0);
         Float v = tangent.x * -p.y + tangent.y * p.x > 0 ?
           0.5f + dist * inv_half_thickness     // upper
           : 0.5f - dist * inv_half_thickness;  // lower
         v = math::clamp(v, Float(0), Float(1));
 
-        const Float offset = half_thickness * std::sin(math::lerp(v, 0, PI));
+        const Float offset = half_thickness; // * std::sin(math::lerp(v, 0, PI));
         const Float t = r.medium == INSIDE ? p.z + offset : p.z - offset;
         if (t < 0) return false;
 
         if (tangent.is_zero()) tangent = { 1, 0 };
-        const normal3f normal(tf::rotate(tangent, radians(math::lerp(v, 0, 180)))(down));
 
         if (t < result->t_hit) {
           result->t_hit = t;
           result->object = this;
           result->hit_point = r(t);
-          result->normal = r.medium == INSIDE ? normal : -normal;
+          result->normal = down;
           result->xbasis = tangent;
           result->uv = { u, v };
           return true;
@@ -159,8 +180,9 @@ namespace tracer {
         blossom({ 0.5, 1, 1 }, cps),
         blossom({ 1, 1, 1 }, cps)
       };
-      return intersect_recursive(r, result, &cp_split[0], u_min, u_mid, depth - 1)
-        || intersect_recursive(r, result, &cp_split[3], u_mid, u_max, depth - 1);
+
+      return intersect_recursive(r, result, &cp_split[0], normals, u_min, u_mid, depth - 1)
+        || intersect_recursive(r, result, &cp_split[3], normals, u_mid, u_max, depth - 1);
     } /* intersect_recursive() */
 
   } /* namespace shapes */

@@ -8,6 +8,7 @@ namespace tracer {
     class cubic_bezier : public shape {
       public:
         const Float thickness0, thickness1;
+        std::unique_ptr<normal3f[]> vertex_normal = nullptr;
 
         enum cps_position {
           HEAD, BODY, TAIL
@@ -19,7 +20,7 @@ namespace tracer {
             const point3f cps[4],
             Float thickness0,
             Float thickness1,
-            const normal3f& normal = normal3f(0.f)
+            const normal3f normal[4] = nullptr
             );
 
         bounds3f world_bounds_explicit() const override;
@@ -61,12 +62,12 @@ namespace tracer {
 
       private:
         point3f control_points[4];
-        normal3f curve_normal = normal3f(0.f);
 
         bool intersect_recursive(
             const ray& r,
             intersect_result* result,
             const point3f cps[4],
+            const normal3f normals[4],
             Float u_min,
             Float u_max,
             int depth

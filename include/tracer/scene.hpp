@@ -52,6 +52,7 @@ namespace tracer {
           vector3f* omega_in,
           vector3f* omega_out,
           normal3f* mf_normal,
+          Float* pdf,
           const shape::intersect_result& result,
           const render_params& params,
           const ray& r,
@@ -75,7 +76,7 @@ namespace tracer {
       Float inv_spp;
       point2i n_strata;
 
-      std::mutex pixel_counter_mutex;
+      std::mutex update_mutex;
 
       job_master master;
 

@@ -42,7 +42,7 @@ namespace tracer {
           eta_i(cpy.eta_i),
           eta_t(cpy.eta_t) {}
 
-        sampled_spectrum weight(
+        sampled_spectrum bxdf(
             const vector3f& omega_in,
             const vector3f& omega_out,
             const normal3f& mf_normal,
@@ -52,10 +52,10 @@ namespace tracer {
         light_transport sample(
             vector3f* omega_in,
             normal3f* mf_normal,
+            Float* pdf,
             const vector3f& omega_out,
             const light_transport& lt,
-            const point2f& u,
-            Float xi
+            const point3f& u
             ) const override;
     };
   }

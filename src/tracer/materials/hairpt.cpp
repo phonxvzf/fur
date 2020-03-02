@@ -73,7 +73,7 @@ namespace tracer {
       Float inv_v = 1.f / v;
       Float sin_term = sin_theta_in * sin_theta_out * inv_v;
       Float cos_term = cos_theta_in * cos_theta_out * inv_v;
-      Float I0 = std::cyl_bessel_i(0.f, cos_term);
+      Float I0 = COMPARE_EQ(cos_term, 0) ? 1.f : std::cyl_bessel_i(0.f, cos_term);
       Float logI0 = cos_term > 12.f ?
         cos_term + 0.5f * (-std::log(TWO_PI) + std::log(1 / cos_term) + 1 / (8 * cos_term))
         : std::log(I0);
@@ -132,14 +132,13 @@ namespace tracer {
       return -theta;
     }
 
-    sampled_spectrum hairpt::weight(
+    sampled_spectrum hairpt::bxdf(
         const vector3f& omega_in,
         const vector3f& omega_out,
         const normal3f& uvw,
         const light_transport& lt
         ) const
     {
-      //std::cerr << omega_in << omega_out << std::endl;
       Float sin_theta_out = omega_out.x;
       Float cos_theta_out = cos_from_sin(sin_theta_out);
       Float phi_out = std::atan2(omega_out.y, omega_out.z);
@@ -170,8 +169,6 @@ namespace tracer {
       sampled_spectrum A[4];
       Float f = fresnel_cosine(cos_theta_out * cos_gamma_o, eta_t, eta_i);
       attenuation(A, f, T);
-      Float A_prob[4];
-      attenuation_prob(A_prob, A);
 
       Float D[4];
       Float gamma_o = asin_clamp(sin_gamma_o);
@@ -182,33 +179,27 @@ namespace tracer {
 
       sampled_spectrum bcsdf(M[3] * A[3] * INV_TWO_PI);
       for (int i = 0; i < 3; ++i) {
-        bcsdf += M[i] * D[i] * A[i]; // TODO: hair cuticle (tilt by alpha)
+        bcsdf += M[i] * A[i] * D[i]; // TODO: hair cuticle (tilt by alpha)
       }
 
-      Float pdf = M[3] * A_prob[3] * INV_TWO_PI;
-      for (int i = 0; i < 3; ++i) {
-        pdf += M[i] * A_prob[i] * D[i];
-      }
-
-      if (COMPARE_EQ(pdf, 0)) return sampled_spectrum(1.f);
-
-      return bcsdf / pdf;
+      Float dot = absdot(omega_in, { 0, 1, 0 });
+      return bcsdf / (COMPARE_EQ(dot, 0) ? 1.f : dot);
     } /* weight() */
 
     material::light_transport hairpt::sample(
         vector3f* omega_in,
         normal3f* mf_normal, // this value is exceptionally valid (bad practice, though)
+        Float* pdf,
         const vector3f& omega_out,
         const light_transport& lt,
-        const point2f& u,
-        Float xi
+        const point3f& u
         ) const
     {
       point2f u_demux[2] = { demux_float(u[0]), demux_float(u[1]) };
       const vector3f uvw = *mf_normal;
       Float sin_theta_out = omega_out.x;
       Float cos_theta_out = cos_from_sin(sin_theta_out);
-      Float theta_out = asin_clamp(sin_theta_out);
+      Float theta_out = std::acos(cos_theta_out);
       Float phi_out = std::atan2(omega_out.y, omega_out.z);
 
       Float h = 2.f * uvw[1] - 1; // offset from surface to central medulla in range [-1,1]
@@ -236,8 +227,7 @@ namespace tracer {
         u_demux[0][0] -= A_prob[lobe];
       }
 
-      // sample longitudinal angle according to Mp (LSDF)
-      // taken from d'Eon's paper
+      // sample longitudinal scattering function
       Float modified_theta = PI_OVER_TWO - specular_cone_angle(theta_out, lobe);
       Float inv_v = 1.f / v[lobe];
       Float uxi = v[lobe] < 0.3f ? // exp may reach inf when variance is too low
@@ -248,7 +238,7 @@ namespace tracer {
       const Float cos_theta_in = std::cos(theta_in);
       const Float sin_theta_in = sine;
 
-      // sample azimuthal according to Np (ASDF)
+      // sample azimuthal scattering function
       Float dphi = TWO_PI * u_demux[1][1];
       if (lobe < 3) dphi = net_deflection(lobe, gamma_o, gamma_t)
         + sampler::sample_finite_norm_logistic(
@@ -264,11 +254,31 @@ namespace tracer {
             sin_theta_in, cos_theta_in * cos_phi_in, cos_theta_in * sin_phi_in
             ));
 
+      // Calculate sampling PDF
+      Float M[4];
+      for (int i = 0; i < 4; ++i) {
+        M[i] = lsdf(sin_theta_in, sin_theta_out, cos_theta_in, cos_theta_out, v[i]);
+      }
+
+      Float D[4];
+      for (int i = 0; i < 4; ++i) {
+        D[i] = gaussian_detector(i, phi_in - phi_out, gamma_o, gamma_t, logistic_s);
+      }
+
+      *pdf = M[3] * A_prob[3] * INV_TWO_PI;
+      for (int i = 0; i < 3; ++i) {
+        *pdf += M[i] * A_prob[i] * D[i];
+      }
+
       // FIXME
       //if (lobe < 3) {
       //  fprintf(stderr, "lobe %d: yo = %f yi = %f\n", lobe, omega_out.y, omega_in->y);
       //  ASSERT((sign(omega_in->y) != sign(omega_out.y)) == lobe % 2);
       //}
+      //if (lobe % 2 == 0 && omega_in->y < 0) // light reflect out to the same incoming side
+      //  *omega_in = sampler::sample_cosine_hemisphere(point2f(u));
+
+      //std::cerr << *omega_in << omega_out << std::endl;
       return { REFLECT, OUTSIDE };
     }
   } /* namespace materials */

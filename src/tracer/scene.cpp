@@ -18,6 +18,7 @@ namespace tracer {
       vector3f* omega_in,
       vector3f* omega_out,
       normal3f* mf_normal,
+      Float* pdf,
       const shape::intersect_result& result,
       const render_params& params,
       const ray& r,
@@ -46,14 +47,15 @@ namespace tracer {
     *omega_out = from_tangent_space.t().dot(-r.dir);
 
     // sample incident direction and microsurface (microfacet) normal
+    Float xi = rng.next_uf();
     const material::light_transport next_lt =
       result.object->surface->sample(
           omega_in,
           mf_normal,
+          pdf,
           *omega_out,
           { result.object->surface->transport_model, prev_lt.med },
-          sample,
-          rng.next_uf()
+          { sample.x, sample.y, xi }
           );
     const vector3f bias(next_lt.med == INSIDE ? -result.normal : result.normal);
 
@@ -119,11 +121,16 @@ namespace tracer {
     ray r_next;
     vector3f omega_in, omega_out;
     normal3f mf_normal;
+    Float pdf;
+
     material::light_transport next_lt = trace_bsdf(
-        &r_next, &omega_in, &omega_out, &mf_normal, result, params, r, prev_lt, sample, rng
+        &r_next, &omega_in, &omega_out, &mf_normal, &pdf, result, params, r, prev_lt, sample, rng
         );
+
     // incoming bsdf
-    weight0 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
+    weight0 = COMPARE_EQ(pdf, 0) ? sampled_spectrum(1.f)
+      : result.object->surface->bxdf(omega_in, omega_out, mf_normal, next_lt)
+      * std::abs(omega_in.y) / pdf;
 
     // do volumetric path tracing
     sampled_spectrum volume_weight(1.f);
@@ -196,12 +203,14 @@ namespace tracer {
       volume_weight *= volume->beta(tr, false) / p;
 
       next_lt = trace_bsdf(
-          &r_sss, &omega_in, &omega_out, &mf_normal, sss_result, params, r_sss,
+          &r_sss, &omega_in, &omega_out, &mf_normal, &pdf, sss_result, params, r_sss,
           { material::REFRACT, INSIDE }, sample, rng
           );
 
       // outgoing btdf
-      weight1 = result.object->surface->weight(omega_in, omega_out, mf_normal, next_lt);
+      weight1 = COMPARE_EQ(pdf, 0) ? sampled_spectrum(1.f)
+        : result.object->surface->bxdf(omega_in, omega_out, mf_normal, next_lt)
+        * std::abs(omega_in.y) / pdf;
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
@@ -280,7 +289,10 @@ namespace tracer {
             if (subpixel == 0) debug_value = color;
 
             point2f pixel_ndc(img_point_offsets[subpixel] * 2 - point2f(1, 1));
-            Float weight = sinc(pixel_ndc.x) * sinc(pixel_ndc.y);
+
+            // Use Catmull-Rom parameters for Mitchell filter
+            Float weight = mitchell(0.f, 0.5f, pixel_ndc.x)
+              * mitchell(0.f, 0.5f, pixel_ndc.y);
             pixel_color += weight * inv_spp * color;
             total_weight += weight;
           }
@@ -288,12 +300,13 @@ namespace tracer {
           if (params.show_depth || params.show_normal) {
             ird_rgb->at(i) = rgb_spectrum(debug_value[0], debug_value[1], debug_value[2]);
           } else {
-            ird_rgb->at(i) = pixel_color.rgb() / total_weight;
+            ird_rgb->at(i) = pixel_color.rgb()
+              / (COMPARE_EQ(total_weight, 0) ? params.n_subpixels : total_weight);
           }
 
           // profile if requested
           if (update_callback != nullptr) {
-            std::lock_guard<std::mutex> lock(pixel_counter_mutex);
+            std::lock_guard<std::mutex> lock(update_mutex);
             ++pixel_counter;
 
             using namespace std::chrono;

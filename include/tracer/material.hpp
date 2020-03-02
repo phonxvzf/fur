@@ -35,11 +35,10 @@ namespace tracer {
         : refl(refl), refr(refr), emittance(emittance), transport_model(transport) {}
 
       /*
-       * Evaluate weight term including wi.n, BxDF, and PDF
-       * Multiply this function's result with incoming radiance can output outgoing radiance.
+       * Evaluate BxDF 
        * All input vectors are in tangent space (up basis vector (macrosurface normal) is <0,1,0>)
        */
-      virtual sampled_spectrum weight(
+      virtual sampled_spectrum bxdf(
           const vector3f& omega_in,
           const vector3f& omega_out,
           const normal3f& mf_normal,
@@ -53,10 +52,10 @@ namespace tracer {
       virtual light_transport sample(
           vector3f* omega_in,
           normal3f* mf_normal,
+          Float* pdf,
           const vector3f& omega_out,
           const light_transport& lt,
-          const point2f& u,
-          Float e
+          const point3f& u
           ) const = 0;
 
       inline bool is_refractive(transport_type tp) const {

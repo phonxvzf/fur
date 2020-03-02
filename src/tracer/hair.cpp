@@ -62,15 +62,15 @@ namespace tracer {
       segments_offset[i] = segments_offset[i-1] + n_segments + 1; // we skip trailing point
     }
 
-    normal = new float[3 * cyhair_header.point_count];
-    if (cyhair.FillDirectionArray(normal) == 0) {
-      throw std::runtime_error("cannot precompute hair directions");
+    tangents = new float[3 * cyhair_header.point_count];
+    if (cyhair.FillDirectionArray(tangents) == 0) {
+      throw std::runtime_error("cannot precompute hair tangents");
     }
   }
 
   hair::~hair() {
     delete[] segments_offset;
-    delete[] normal;
+    delete[] tangents;
   }
 
   void hair::catmullrom_to_bezier(
@@ -239,7 +239,7 @@ namespace tracer {
                 sub_curve[j],
                 thickness_scale * sub_thickness[j],
                 thickness_scale * sub_thickness[j+1],
-                (normal_at(head_id) + normal_at(tail_id)).normalized()
+                nullptr
                 );
           } else {
             bezier = new shapes::cubic_bezier(
@@ -248,7 +248,7 @@ namespace tracer {
                 bezier_cps,
                 thickness_scale * thickness0,
                 thickness_scale * thickness1,
-                (normal_at(head_id) + normal_at(tail_id)).normalized()
+                nullptr
                 );
           }
           if (subbvh) {

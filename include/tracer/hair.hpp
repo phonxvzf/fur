@@ -20,7 +20,7 @@ namespace tracer {
       float* colors;
       float* points;
       float* thickness;
-      float* normal = nullptr;
+      float* tangents = nullptr;
 
       inline point3f point_at(size_t id) const {
         id = 3 * id;
@@ -32,9 +32,9 @@ namespace tracer {
         return { colors[id], colors[id+1], colors[id+2] };
       }
 
-      inline normal3f normal_at(size_t id) const {
+      inline vector3f tangent_at(size_t id) const {
         id = 3 * id;
-        return { normal[id], normal[id+1], normal[id+2] };
+        return right_to_left({ tangents[id], tangents[id+1], tangents[id+2] });
       }
 
       void catmullrom_to_bezier(

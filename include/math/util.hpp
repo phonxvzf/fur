@@ -18,6 +18,7 @@ namespace math {
   extern const Float PI_OVER_TWO;
   extern const Float PI_OVER_FOUR;
   extern const Float SQRT_TWO;
+  extern const Float ONE_OVER_THREE;
 
   template <typename T>
     inline T max3(T a, T b, T c) {
@@ -117,8 +118,23 @@ namespace math {
     return { v.y, v.z, -v.x };
   }
 
+  inline vector3f spherical_coords(Float theta, Float phi) {
+    Float sin_theta = std::sin(theta);
+    return right_to_left(
+        { sin_theta * std::cos(phi), sin_theta * std::sin(phi), std::cos(theta) }
+        );
+  }
+
   inline vector3f zup_to_yup(const vector3f& v) {
     return { v.x, v.z, v.y };
+  }
+
+  inline vector3f clear_neg_zero(const vector3f& v) {
+    return {
+      COMPARE_EQ(v.x, 0) ? Float(0) : v.x,
+      COMPARE_EQ(v.y, 0) ? Float(0) : v.y,
+      COMPARE_EQ(v.z, 0) ? Float(0) : v.z,
+    };
   }
 
   inline vector3f reflect(const vector3f& omega, const normal3f& normal) {
@@ -247,6 +263,18 @@ namespace math {
 
   inline Float asin_clamp(Float x) {
     return std::asin(math::clamp(x, -1.f, 1.f));
+  }
+
+  inline Float mitchell(Float B, Float C, Float x) {
+    Float ax = std::abs(x);
+    Float f = 0;
+    if (ax < 1) {
+      f = (12 - 9 * B - 6 * C) * pow3(ax) + (-18 + 12 * B + 6 * C) * pow2(ax) + (6 - 2 * B);
+    } else if (ax < 2) {
+      f = (-B - 6 * C) * pow3(ax) + (6 * B + 30 * C) * pow2(ax) + (-12 * B - 48 * C) * ax
+        + (8 * B + 24 * C);
+    }
+    return 1.f / 6 * f;
   }
 
   // Code below are from pbrt
