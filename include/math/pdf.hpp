@@ -53,7 +53,7 @@ namespace math {
   }
 
   inline Float logistic_cdf(Float s, Float x) {
-    return 1 / (1 + std::exp(-x / s));
+    return 1.f / (1 + std::exp(-x / s));
   }
 
   inline Float logistic_pdf_finite_norm(Float s, Float x, Float a, Float b) {

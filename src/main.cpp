@@ -84,12 +84,6 @@ void update_progress(Float progress, size_t eta, size_t elapsed) {
 
 int main(int argc, char** argv) {
 
-  /*
-  tf::transform rot(tf::rotate({ 0, -1, 0 }, -PI_OVER_TWO));
-  std::cerr << rot(normal3f(0, 0, 1)) << std::endl;
-  return 0;
-  */
-
   setlocale(LC_CTYPE, ""); // assume that LC supports unicode
   std::wcout << L"\r" << std::flush;
   std::srand(time(NULL));

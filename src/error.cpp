@@ -15,5 +15,5 @@ void ASSERT(bool cond, const char* message) {
   void* frames[32];
   size_t size = backtrace(frames, 32);
   backtrace_symbols_fd(frames, size, STDERR_FILENO);
-  std::exit(1);
+  std::abort();
 }

@@ -78,7 +78,7 @@ namespace tracer {
         cos_term + 0.5f * (-std::log(TWO_PI) + std::log(1 / cos_term) + 1 / (8 * cos_term))
         : std::log(I0);
       static constexpr Float ln2 = 0.6931471805f;
-      return v < 0.1f ?
+      return v <= 0.1f ?
         std::exp(logI0 - sin_term - inv_v + ln2 + std::log(0.5f * inv_v))
         : (0.5f * inv_v / std::sinh(inv_v)) * std::exp(-sin_term) * I0;
     }
@@ -139,15 +139,15 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
-      Float sin_theta_out = omega_out.x;
-      Float cos_theta_out = cos_from_sin(sin_theta_out);
-      Float phi_out = std::atan2(omega_out.y, omega_out.z);
+      const Float sin_theta_out = omega_out.x;
+      const Float cos_theta_out = cos_from_sin(sin_theta_out);
+      const Float phi_out = std::atan2(omega_out.y, omega_out.z);
 
-      Float sin_theta_in = omega_in.x;
-      Float cos_theta_in = cos_from_sin(sin_theta_in);
-      Float phi_in = std::atan2(omega_in.y, omega_in.z);
+      const Float sin_theta_in = omega_in.x;
+      const Float cos_theta_in = cos_from_sin(sin_theta_in);
+      const Float phi_in = std::atan2(omega_in.y, omega_in.z);
 
-      Float phi = phi_in - phi_out;
+      const Float phi = phi_in - phi_out;
 
       // longitudinal scattering for each lobe
       Float M[4];
@@ -173,6 +173,7 @@ namespace tracer {
       Float D[4];
       Float gamma_o = asin_clamp(sin_gamma_o);
       Float gamma_t = asin_clamp(sin_gamma_t);
+
       for (int i = 0; i < 4; ++i) {
         D[i] = gaussian_detector(i, phi, gamma_o, gamma_t, logistic_s);
       }
@@ -182,7 +183,7 @@ namespace tracer {
         bcsdf += M[i] * A[i] * D[i]; // TODO: hair cuticle (tilt by alpha)
       }
 
-      Float dot = absdot(omega_in, { 0, 1, 0 });
+      Float dot = std::abs(omega_in.y);
       return bcsdf / (COMPARE_EQ(dot, 0) ? 1.f : dot);
     } /* weight() */
 
@@ -195,14 +196,13 @@ namespace tracer {
         const point3f& u
         ) const
     {
-      point2f u_demux[2] = { demux_float(u[0]), demux_float(u[1]) };
       const vector3f uvw = *mf_normal;
+      Float h = 2.f * uvw[1] - 1; // offset from surface to central medulla in range [-1,1]
+
+      point2f u_demux[2] = { demux_float(u[0]), demux_float(u[1]) };
       Float sin_theta_out = omega_out.x;
       Float cos_theta_out = cos_from_sin(sin_theta_out);
-      Float theta_out = std::acos(cos_theta_out);
       Float phi_out = std::atan2(omega_out.y, omega_out.z);
-
-      Float h = 2.f * uvw[1] - 1; // offset from surface to central medulla in range [-1,1]
       Float sin_gamma_o, sin_gamma_t;
       sampled_spectrum T = transmittance(
           sin_theta_out,
@@ -213,6 +213,7 @@ namespace tracer {
           );
       Float cos_gamma_o = cos_from_sin(sin_gamma_o);
       sampled_spectrum A[4];
+
       Float f = fresnel_cosine(cos_theta_out * cos_gamma_o, eta_t, eta_i);
       attenuation(A, f, T);
       Float A_prob[4];
@@ -220,7 +221,7 @@ namespace tracer {
       Float gamma_o = asin_clamp(sin_gamma_o);
       Float gamma_t = asin_clamp(sin_gamma_t);
 
-      // determine lobe, next ray offset will be determined by omega_out.dot(omega_in)
+      // determine lobe, next ray offset will be determined by omega_in.y
       int lobe = 0;
       for (; lobe < 4; ++lobe) {
         if (u_demux[0][0] < A_prob[lobe]) break;
@@ -228,15 +229,26 @@ namespace tracer {
       }
 
       // sample longitudinal scattering function
-      Float modified_theta = PI_OVER_TWO - specular_cone_angle(theta_out, lobe);
-      Float inv_v = 1.f / v[lobe];
-      Float uxi = v[lobe] < 0.3f ? // exp may reach inf when variance is too low
-        1.f : v[lobe] * std::log(std::exp(inv_v) - 2.f * u_demux[0][1] * std::sinh(inv_v));
-      const Float sine = uxi * std::cos(modified_theta)
-          + std::sqrt(1 - pow2(uxi)) * std::cos(TWO_PI * u_demux[1][0]) * std::sin(modified_theta);
-      const Float theta_in = asin_clamp(sine);
-      const Float cos_theta_in = std::cos(theta_in);
-      const Float sin_theta_in = sine;
+      // d'Eon's exact version
+      //Float theta_out = std::acos(cos_theta_out);
+      //Float modified_theta = PI_OVER_TWO - specular_cone_angle(theta_out, lobe);
+      //Float inv_v = 1.f / v[lobe];
+      //Float uxi = v[lobe] < 0.3f ? // exp may reach inf when variance is too low
+      //  1.f : v[lobe] * std::log(std::exp(inv_v) - 2.f * u_demux[0][1] * std::sinh(inv_v));
+      //const Float sine = uxi * std::cos(modified_theta)
+      //    + std::sqrt(1 - pow2(uxi)) * std::cos(TWO_PI * u_demux[1][0]) * std::sin(modified_theta);
+      //const Float theta_in = asin_clamp(sine);
+      //const Float cos_theta_in = std::cos(theta_in);
+      //const Float sin_theta_in = sine;
+
+      // pbrt version
+      Float cos_theta = 1 + v[lobe] * std::log(
+          u_demux[0][1] + (1 - u_demux[0][1]) * std::exp(-2.f / v[lobe])
+          );
+      Float sin_theta = sin_from_cos(cos_theta);
+      Float cos_phi = std::cos(TWO_PI * u_demux[1][0]);
+      Float sin_theta_in = -cos_theta * sin_theta_out + sin_theta * cos_phi * cos_theta_out;
+      Float cos_theta_in = cos_from_sin(sin_theta_in);
 
       // sample azimuthal scattering function
       Float dphi = TWO_PI * u_demux[1][1];
@@ -278,7 +290,6 @@ namespace tracer {
       //if (lobe % 2 == 0 && omega_in->y < 0) // light reflect out to the same incoming side
       //  *omega_in = sampler::sample_cosine_hemisphere(point2f(u));
 
-      //std::cerr << *omega_in << omega_out << std::endl;
       return { REFLECT, OUTSIDE };
     }
   } /* namespace materials */

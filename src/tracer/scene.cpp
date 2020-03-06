@@ -169,7 +169,6 @@ namespace tracer {
         Float p = volume->pdf(density);
 
         if (COMPARE_EQ(p, 0)) return sampled_spectrum(0);
-
         volume_weight *= volume->beta(tr, true) / p;
 
         Float next_dist = volume->sample_distance(rng);
@@ -291,8 +290,7 @@ namespace tracer {
             point2f pixel_ndc(img_point_offsets[subpixel] * 2 - point2f(1, 1));
 
             // Use Catmull-Rom parameters for Mitchell filter
-            Float weight = mitchell(0.f, 0.5f, pixel_ndc.x)
-              * mitchell(0.f, 0.5f, pixel_ndc.y);
+            Float weight = mitchell(0.f, 0.5f, pixel_ndc.x) * mitchell(0.f, 0.5f, pixel_ndc.y);
             pixel_color += weight * inv_spp * color;
             total_weight += weight;
           }

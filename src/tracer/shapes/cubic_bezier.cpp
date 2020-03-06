@@ -37,7 +37,7 @@ namespace tracer {
         .merge(t_cps[1])
         .merge(t_cps[2])
         .merge(t_cps[3])
-        .expand(0.5 * std::max(thickness0, thickness1));
+        .expand(0.22 * std::max(thickness0, thickness1));
     }
 
     bounds3f cubic_bezier::bounds() const {
@@ -45,7 +45,7 @@ namespace tracer {
         .merge(control_points[1])
         .merge(control_points[2])
         .merge(control_points[3])
-        .expand(0.5 * std::max(thickness0, thickness1));
+        .expand(0.22 * std::max(thickness0, thickness1));
     }
 
     bool cubic_bezier::intersect_shape(
@@ -79,21 +79,20 @@ namespace tracer {
       result->t_hit = std::numeric_limits<Float>::max();
       const bool hit = intersect_recursive(r, result, cps, normals, 0, 1, wang_depth(cps));
       if (hit) {
-        const tf::transform proj_inv = proj.inverse();
-        result->hit_point = tf_shape_to_world(result->hit_point);
-        result->xbasis = result->xbasis.is_zero() ?
+        point3f shape_hit_point = result->hit_point;
+        vector3f shape_xbasis   = evaluate_differential(result->uv[0], control_points);
+
+        result->hit_point = tf_shape_to_world(shape_hit_point);
+        result->xbasis = shape_xbasis.is_zero() ?
           vector3f(1, 0, 0)
-          : tf_shape_to_world(proj_inv(result->xbasis)).normalized();
-        result->normal = result->normal.is_zero() ?
-          tf_shape_to_world(normal3f(-result->xbasis.y, result->xbasis.x, 0)).normalized()
-          : tf_shape_to_world(proj_inv(result->normal)).normalized();
-        result->normal = result->normal.cross(result->xbasis).normalized();
-        /*
-        result->normal = tf::rotate(
-            result->xbasis,
-            math::lerp(result->uv[1], -PI_OVER_TWO, PI_OVER_TWO)
-            )(result->normal);
-        */
+          : tf_shape_to_world(shape_xbasis).normalized();
+
+        vector3f left = shape_hit_point.cross(shape_xbasis);
+        result->normal = tf_shape_to_world(
+            tf::rotate(shape_xbasis, PI_OVER_TWO)
+            (left.normalized())
+            );
+
         if (r.medium == INSIDE) result->normal = -result->normal;
       }
       return hit;
@@ -125,8 +124,8 @@ namespace tracer {
         const vector3f dir = cps[3] - cps[0];
         vector3f dp0 = cps[1] - cps[0];
         vector3f dp3 = cps[3] - cps[2];
-        if (dp0.dot(dir) < 0) dp0 = -dp0;
-        if (dp3.dot(dir) < 0) dp3 = -dp3;
+        if (dotproj(dp0, dir) < 0) dp0 = -dp0;
+        if (dotproj(dp3, dir) < 0) dp3 = -dp3;
         if (dotproj(dp0, -cps[0]) < 0) return false;
         if (dotproj(dp3, cps[3]) < 0) return false;
 
@@ -136,9 +135,9 @@ namespace tracer {
 
         const point3f p = evaluate(w, cps);
         const Float u = math::clamp(math::lerp(w, u_min, u_max), Float(0), Float(1));
-        const Float half_thickness = 0.5 * math::lerp(u, thickness0, thickness1);
+        const Float half_thickness = 0.5f * math::lerp(u, thickness0, thickness1);
         const Float dist2 = pow2(p.x) + pow2(p.y);
-        if (dist2 > pow2(half_thickness) * 0.25) return false;
+        if (dist2 > pow2(half_thickness) * 0.05f) return false;
 
         // calculate t and normal
         vector2f tangent(evaluate_differential(u, cps));
@@ -156,21 +155,16 @@ namespace tracer {
 
         if (tangent.is_zero()) tangent = { 1, 0 };
 
-        if (t < result->t_hit) {
-          result->t_hit = t;
-          result->object = this;
-          result->hit_point = r(t);
-          result->normal = down;
-          result->xbasis = tangent;
-          result->uv = { u, v };
-          return true;
-        }
-
-        return false;
+        result->object = this;
+        result->hit_point = r(t);
+        result->normal = down;
+        result->xbasis = tangent;
+        result->uv = { u, v };
+        return true;
       }
 
       // recursively split the curve
-      const Float u_mid = (u_min + u_max) * 0.5;
+      const Float u_mid = (u_min + u_max) * 0.5f;
       const point3f cp_split[7] = {
         blossom({ 0, 0, 0 }, cps),
         blossom({ 0, 0, 0.5 }, cps),
