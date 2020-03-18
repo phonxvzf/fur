@@ -35,11 +35,12 @@ namespace tracer {
       nspectrum sqrt() const;
       nspectrum pow(Float x) const;
       nspectrum exp() const;
-      nspectrum clamp(Float min, Float max) const;
+      nspectrum clamp(Float min = 0.f, Float max = std::numeric_limits<Float>::infinity()) const;
       nspectrum inverse() const;
       Float average() const;
       Float max() const;
 
+      nspectrum operator-() const;
       nspectrum operator+(const nspectrum& sp) const;
       nspectrum operator-(const nspectrum& sp) const;
       nspectrum operator*(const nspectrum& sp) const;

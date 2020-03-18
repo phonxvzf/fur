@@ -14,7 +14,7 @@ namespace math {
 
     class normal1d : public pdf1d {
       public:
-        normal1d(int n_samples, Float mean, Float var);
+        normal1d(int n_samples = 1024, Float mean = 0, Float var = 1);
     };
 
     point2f sample_disk(const point2f& u);

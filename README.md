@@ -22,7 +22,7 @@ _This project is currently in progress._
 ## Prerequisites
 - CMake >= 3.7
 - A sane GNU/Linux environment
-- GNU C++ compiler with C++17 support (Since it uses `__builtin_clz`.)
+- GNU C++ compiler with C++17 support (Since it uses `__builtin_clz` and Bessel function I0.)
 - OpenEXR >= 2.4.0
 - yaml-cpp >= 0.6.3
 - Assimp >= 5.0.0
@@ -78,5 +78,4 @@ Please see `example_scene.yaml` for references.
 
 ## TODOs
 - Dual scattering for hair
-- BSSRDF
-- FXAA
+- Bipole BSSRDF

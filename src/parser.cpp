@@ -20,6 +20,7 @@
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
 #include "tracer/materials/hairpt.hpp"
+#include "tracer/materials/dipole.hpp"
 #include "tracer/model.hpp"
 #include "tracer/hair.hpp"
 #include "tracer/texture.hpp"
@@ -294,6 +295,26 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     } else {
       throw parsing_error(hairpt_node.Mark().line,
           "specify rgb_refl, emittance, beta_m, beta_n, eta_i, eta_t and alpha"
+          );
+    }
+  } else if (mat_node["dipole"].IsDefined()) {
+    YAML::Node dipole_node = mat_node["dipole"];
+    if (dipole_node["rgb_refl"].IsDefined()   && dipole_node["emittance"].IsDefined()
+        && dipole_node["eta_i"].IsDefined()   && dipole_node["eta_t"].IsDefined()
+        && dipole_node["sigma_s"].IsDefined() && dipole_node["beta_n"].IsDefined()) {
+      return std::shared_ptr<tracer::material>(new tracer::materials::dipole(
+            parse_rgb_spectrum(dipole_node, "rgb_refl"),
+            parse_rgb_spectrum(dipole_node, "emittance"),
+            parse_rgb_spectrum(dipole_node, "sigma_s"),
+            parse_float(dipole_node, "beta_n"),
+            1.f,
+            parse_float(dipole_node, "eta_i"),
+            parse_float(dipole_node, "eta_t")
+            )
+          );
+    } else {
+      throw parsing_error(dipole_node.Mark().line,
+          "specify rgb_refl, emittance, sigma_s, eta_i and eta_t"
           );
     }
   }

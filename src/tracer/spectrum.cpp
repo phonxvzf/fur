@@ -75,6 +75,14 @@ namespace tracer {
     return *this;
   }
 
+  nspectrum nspectrum::operator-() const {
+    nspectrum result(*this);
+    for (size_t i = 0; i < n_samples; ++i) {
+      result.spd[i] = -result.spd[i];
+    }
+    return result;
+  }
+
   nspectrum nspectrum::operator+(const nspectrum& sp) const {
     nspectrum result(*this);
     const size_t n = std::min(n_samples, sp.n_samples);

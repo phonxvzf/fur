@@ -15,6 +15,7 @@ namespace math {
   extern const Float INV_PI;
   extern const Float INV_TWO_PI;
   extern const Float INV_FOUR_PI;
+  extern const Float INV_EIGHT_PI;
   extern const Float PI_OVER_TWO;
   extern const Float PI_OVER_FOUR;
   extern const Float SQRT_TWO;
@@ -224,6 +225,12 @@ namespace math {
   {
     const Float r0 = pow2((eta_i - eta_t) / (eta_i + eta_t));
     return r0 + (1 - r0) * pow5(1 - absdot(omega, mf_normal));
+  }
+
+  // Compute average diffuse Fresnel reflectance Fdr
+  // eta is relative index of refraction
+  inline Float fresnel_diffuse(Float eta) {
+    return -1.440f / pow2(eta) + 0.710f / eta + 0.668f + 0.0636f * eta;
   }
 
   template <typename T>

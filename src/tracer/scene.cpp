@@ -262,6 +262,7 @@ namespace tracer {
           Float total_weight = 0;
           sampled_spectrum debug_value;
 
+          // TODO: support multiple integrals
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             sampled_spectrum color(0.0f);
             const point2f img_point(point2f(x, y) + img_point_offsets[subpixel]);
