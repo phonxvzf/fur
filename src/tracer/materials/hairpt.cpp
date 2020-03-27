@@ -139,6 +139,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
+      if (COMPARE_EQ(omega_in.y, 0)) return 0.f;
       const Float sin_theta_out = omega_out.x;
       const Float cos_theta_out = cos_from_sin(sin_theta_out);
       const Float phi_out = std::atan2(omega_out.y, omega_out.z);
@@ -178,13 +179,13 @@ namespace tracer {
         D[i] = gaussian_detector(i, phi, gamma_o, gamma_t, logistic_s);
       }
 
-      sampled_spectrum bcsdf(M[3] * A[3] * INV_TWO_PI);
-      for (int i = 0; i < 3; ++i) {
-        bcsdf += M[i] * A[i] * D[i]; // TODO: hair cuticle (tilt by alpha)
+      //sampled_spectrum bcsdf(M[3] * A[3] * INV_TWO_PI);
+      sampled_spectrum bcsdf(0.f);
+      for (int i = 0; i < 4; ++i) {
+        bcsdf += M[i] * A[i] * D[i];
       }
 
-      Float dot = std::abs(omega_in.y);
-      return bcsdf / (COMPARE_EQ(dot, 0) ? 1.f : dot);
+      return bcsdf / std::abs(omega_in.y);
     } /* weight() */
 
     material::light_transport hairpt::sample(
@@ -228,19 +229,6 @@ namespace tracer {
         u_demux[0][0] -= A_prob[lobe];
       }
 
-      // sample longitudinal scattering function
-      // d'Eon's exact version
-      //Float theta_out = std::acos(cos_theta_out);
-      //Float modified_theta = PI_OVER_TWO - specular_cone_angle(theta_out, lobe);
-      //Float inv_v = 1.f / v[lobe];
-      //Float uxi = v[lobe] < 0.3f ? // exp may reach inf when variance is too low
-      //  1.f : v[lobe] * std::log(std::exp(inv_v) - 2.f * u_demux[0][1] * std::sinh(inv_v));
-      //const Float sine = uxi * std::cos(modified_theta)
-      //    + std::sqrt(1 - pow2(uxi)) * std::cos(TWO_PI * u_demux[1][0]) * std::sin(modified_theta);
-      //const Float theta_in = asin_clamp(sine);
-      //const Float cos_theta_in = std::cos(theta_in);
-      //const Float sin_theta_in = sine;
-
       // pbrt version
       Float cos_theta = 1 + v[lobe] * std::log(
           u_demux[0][1] + (1 - u_demux[0][1]) * std::exp(-2.f / v[lobe])
@@ -277,8 +265,8 @@ namespace tracer {
         D[i] = gaussian_detector(i, phi_in - phi_out, gamma_o, gamma_t, logistic_s);
       }
 
-      *pdf = M[3] * A_prob[3] * INV_TWO_PI;
-      for (int i = 0; i < 3; ++i) {
+      *pdf = 0;
+      for (int i = 0; i < 4; ++i) {
         *pdf += M[i] * A_prob[i] * D[i];
       }
 

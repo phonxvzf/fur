@@ -284,6 +284,21 @@ namespace math {
     return 1.f / 6 * f;
   }
 
+  inline int log2_nearest(Float x) {
+    if (x < 1) return 0;
+    return 32 - __builtin_clz(static_cast<uint32_t>(x));
+  }
+
+  inline int log4_nearest(Float x) {
+    return log2_nearest(x) >> 1;
+  }
+
+  inline Float balance_heuristic(size_t n0, Float p0, size_t n1, Float p1) {
+    Float w0 = n0 * p0;
+    Float w1 = n1 * p1;
+    return pow2(w0) / (pow2(w0) + pow2(w1));
+  }
+
   // Code below are from pbrt
   inline uint32_t compact_1by1(uint32_t x) {
     x &= 0x55555555;
@@ -298,15 +313,6 @@ namespace math {
     uint64_t v = x * (1ULL << 32);
     uint32_t bits[2] = { compact_1by1(v), compact_1by1(v >> 1) };
     return { bits[0] / Float(1 << 16), bits[1] / Float(1 << 16) };
-  }
-
-  inline int log2_nearest(Float x) {
-    if (x < 1) return 0;
-    return 32 - __builtin_clz(static_cast<uint32_t>(x));
-  }
-
-  inline int log4_nearest(Float x) {
-    return log2_nearest(x) >> 1;
   }
 }
 

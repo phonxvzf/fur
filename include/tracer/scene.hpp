@@ -31,6 +31,7 @@ namespace tracer {
     bool      show_normal   = false;
     int       max_bounce    = 1;
     Float     max_rr        = 0.5;
+    bool      mis           = true;
     int       thread_id;
 
     shape::intersect_opts intersect_options = shape::intersect_opts();
@@ -52,7 +53,10 @@ namespace tracer {
           vector3f* omega_in,
           vector3f* omega_out,
           normal3f* mf_normal,
+          vector3f* omega_in_dl,
           Float* pdf,
+          Float* pdf_dl,
+          sampled_spectrum* direct_light,
           const shape::intersect_result& result,
           const render_params& params,
           const ray& r,
@@ -69,6 +73,19 @@ namespace tracer {
           random::rng& rng,
           int bounce
           );
+
+      sampled_spectrum estimate_radiance(
+          const render_params& params,
+          const vector3f& omega_in,
+          const vector3f& omega_out,
+          const normal3f& mf_normal,
+          const normal3f& omega_in_dl,
+          const material::light_transport& next_lt,
+          const shape::intersect_result& result,
+          const sampled_spectrum& direct_light,
+          Float pdf,
+          Float pdf_dl
+          ) const;
 
       std::shared_ptr<std::vector<rgb_spectrum>> ird_rgb = nullptr;
       std::vector<light_source::emitter> light_emitters;
@@ -95,6 +112,7 @@ namespace tracer {
 
       std::unique_ptr<camera::camera> camera = nullptr;
       std::unique_ptr<texture> environment_texture = nullptr;
+      std::shared_ptr<shape> direct_light_shape = nullptr;
 
       scene() {}
       ~scene();

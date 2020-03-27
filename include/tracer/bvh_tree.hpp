@@ -35,6 +35,12 @@ namespace tracer {
           shape::intersect_result* result
           ) const;
 
+      bool occluded(
+          const std::shared_ptr<bvh_node>& node,
+          const ray& r, 
+          const shape::intersect_opts& options
+          ) const;
+
       std::thread* dispatch_construction(
           std::vector<std::shared_ptr<shape>>& shapes,
           int start,
@@ -56,6 +62,11 @@ namespace tracer {
           const ray& r,
           const shape::intersect_opts& options,
           shape::intersect_result* result
+          ) const;
+
+      bool occluded(
+          const ray& r, 
+          const shape::intersect_opts& options
           ) const;
   };
 }

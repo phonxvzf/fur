@@ -18,7 +18,10 @@ namespace tracer {
       vector3f* omega_in,
       vector3f* omega_out,
       normal3f* mf_normal,
+      vector3f* omega_in_dl,
       Float* pdf,
+      Float* pdf_dl,
+      sampled_spectrum* direct_light,
       const shape::intersect_result& result,
       const render_params& params,
       const ray& r,
@@ -43,8 +46,10 @@ namespace tracer {
       }
     }
 
+    matrix3f to_tangent_space(from_tangent_space.t());
+
     // vectors in tangent space
-    *omega_out = from_tangent_space.t().dot(-r.dir);
+    *omega_out = to_tangent_space.dot(-r.dir);
 
     // sample incident direction and microsurface (microfacet) normal
     Float xi = rng.next_uf();
@@ -78,7 +83,55 @@ namespace tracer {
           );
     }
 
+    // sample direct lighting
+    if (params.mis) {
+      const point3f light_position = direct_light_shape->sample(sample);
+      const ray r_dl(
+          r_next->origin,
+          (light_position - result.hit_point).normalized(),
+          r.t_max
+          );
+      if (shapes.occluded(r_dl, params.intersect_options)) {
+        *pdf_dl = 0;
+      } else {
+        *pdf_dl = direct_light_shape->pdf();
+        *omega_in_dl = to_tangent_space.dot(r_dl.dir);
+        *direct_light = direct_light_shape->surface->emittance
+          / (light_position - result.hit_point).size_sq();
+      }
+    }
+
     return next_lt;
+  }
+
+  sampled_spectrum scene::estimate_radiance(
+      const render_params& params,
+      const vector3f& omega_in,
+      const vector3f& omega_out,
+      const normal3f& mf_normal,
+      const normal3f& omega_in_dl,
+      const material::light_transport& next_lt,
+      const shape::intersect_result& result,
+      const sampled_spectrum& direct_light,
+      Float pdf,
+      Float pdf_dl
+      ) const
+  {
+    sampled_spectrum bxdf_radiance = result.object->surface->bxdf(
+        omega_in, omega_out, mf_normal, next_lt
+        );
+    sampled_spectrum direct_radiance = result.object->surface->bxdf(
+        omega_in_dl, omega_out, mf_normal, next_lt
+        );
+    Float bxdf_weight = balance_heuristic(params.spp, pdf, params.spp, pdf_dl);
+    Float direct_weight = balance_heuristic(params.spp, pdf_dl, params.spp, pdf);
+    sampled_spectrum bxdf_estimator = COMPARE_EQ(pdf, 0) ?
+      sampled_spectrum(0.f)
+      : (bxdf_weight * std::abs(omega_in.y)) * bxdf_radiance / pdf;
+    sampled_spectrum direct_estimator = COMPARE_EQ(pdf_dl, 0) ?
+      sampled_spectrum(0.f)
+      : (direct_weight * std::abs(omega_in_dl.y)) * direct_radiance * direct_light / pdf_dl;
+    return bxdf_estimator + direct_estimator;
   }
 
   nspectrum scene::trace_path(
@@ -118,19 +171,21 @@ namespace tracer {
 
     // evaluate bsdf
     sampled_spectrum weight0(1.), weight1(1.); // bsdf weights
+    sampled_spectrum direct_light(1.f);
     ray r_next;
     vector3f omega_in, omega_out;
+    vector3f omega_in_dl;
     normal3f mf_normal;
-    Float pdf;
+    Float pdf = 1.f, pdf_dl = 0.f;
 
     material::light_transport next_lt = trace_bsdf(
-        &r_next, &omega_in, &omega_out, &mf_normal, &pdf, result, params, r, prev_lt, sample, rng
+        &r_next, &omega_in, &omega_out, &mf_normal, &omega_in_dl,
+        &pdf, &pdf_dl, &direct_light, result, params, r, prev_lt, sample, rng
         );
 
     // incoming bsdf
-    weight0 = COMPARE_EQ(pdf, 0) ? sampled_spectrum(1.f)
-      : result.object->surface->bxdf(omega_in, omega_out, mf_normal, next_lt)
-      * std::abs(omega_in.y) / pdf;
+    weight0 = estimate_radiance(params, omega_in, omega_out, mf_normal, omega_in_dl,
+        next_lt, result, direct_light, pdf, pdf_dl);
 
     // do volumetric path tracing
     sampled_spectrum volume_weight(1.f);
@@ -202,14 +257,13 @@ namespace tracer {
       volume_weight *= volume->beta(tr, false) / p;
 
       next_lt = trace_bsdf(
-          &r_sss, &omega_in, &omega_out, &mf_normal, &pdf, sss_result, params, r_sss,
-          { material::REFRACT, INSIDE }, sample, rng
+          &r_sss, &omega_in, &omega_out, &mf_normal, &omega_in_dl, &pdf, &pdf_dl, &direct_light,
+          sss_result, params, r_sss, { material::REFRACT, INSIDE }, sample, rng
           );
 
       // outgoing btdf
-      weight1 = COMPARE_EQ(pdf, 0) ? sampled_spectrum(1.f)
-        : result.object->surface->bxdf(omega_in, omega_out, mf_normal, next_lt)
-        * std::abs(omega_in.y) / pdf;
+      weight1 = estimate_radiance(params, omega_in, omega_out, mf_normal, omega_in_dl,
+          next_lt, result, direct_light, pdf, pdf_dl);
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
@@ -262,7 +316,6 @@ namespace tracer {
           Float total_weight = 0;
           sampled_spectrum debug_value;
 
-          // TODO: support multiple integrals
           for (size_t subpixel = 0; subpixel < n_subpixels; ++subpixel) {
             sampled_spectrum color(0.0f);
             const point2f img_point(point2f(x, y) + img_point_offsets[subpixel]);

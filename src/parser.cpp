@@ -1,8 +1,5 @@
 #include "parser.hpp"
 #include "math/util.hpp"
-#include "tracer/point_light.hpp"
-#include "tracer/rect_light.hpp"
-#include "tracer/sphere_light.hpp"
 #include "tracer/shapes/de_sphere.hpp"
 #include "tracer/shapes/de_inf_spheres.hpp"
 #include "tracer/shapes/de_mandelbulb.hpp"
@@ -16,6 +13,7 @@
 #include "tracer/shapes/tube.hpp"
 #include "tracer/shapes/disk.hpp"
 #include "tracer/shapes/cubic_bezier.hpp"
+#include "tracer/materials/light.hpp"
 #include "tracer/materials/ggx.hpp"
 #include "tracer/materials/sss.hpp"
 #include "tracer/materials/lambert.hpp"
@@ -568,6 +566,9 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     if (render_config["max_rr"].IsDefined()) {
       params->max_rr = parse_float(render_config, "max_rr");
     }
+    if (render_config["mis"].IsDefined()) {
+      params->mis = parse_bool(render_config, "mis");
+    }
   }
 
   // intersect options
@@ -624,6 +625,16 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     std::wcout << L" done" << std::endl;
 
     main_scene->shapes = scene_shapes;
+
+    bool light_found = false;
+    for (const std::shared_ptr<tracer::shape>& s : shapes) {
+      if (s->surface->transport_model == tracer::material::EMIT) {
+        main_scene->direct_light_shape = s;
+        light_found = true;
+      }
+    }
+
+    if (!light_found) std::cerr << "warning: rendering without any light source" << std::endl;
 
     if (scene_config["camera"].IsDefined()) {
       main_scene->camera = parse_camera(

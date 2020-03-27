@@ -1,4 +1,5 @@
 #include "tracer/materials/dipole.hpp"
+#include "math/util.hpp"
 
 namespace tracer {
   namespace materials {
@@ -51,7 +52,6 @@ namespace tracer {
     sampled_spectrum dipole::S1(const vector3f& omega_in, const vector3f& omega_out) const {
       // use specular Phong for single scattering part for now
       // FIXME
-      return 0.f;
       vector3f h = (omega_in + omega_out).normalized();
       Float n = math::lerp(beta_n, 0, 32);
       return INV_EIGHT_PI * (n + 8) * std::pow(std::abs(h.y), n);
@@ -74,7 +74,7 @@ namespace tracer {
       Float ft_out = fresnel(refr_out, normal, eta_t, eta_i);
       Float r = mf_normal.size();
 
-      return (Sd(ft_in, ft_out, Rd(r)) + S1(omega_in, omega_out)).clamp();
+      return Sd(ft_in, ft_out, Rd(r)) + S1(omega_in, omega_out);
     }
 
     material::light_transport dipole::sample(
@@ -94,7 +94,7 @@ namespace tracer {
       mf_normal->z = standard_normal.sample(u[1]);
 
       *omega_in = (*omega_in + *mf_normal).normalized();
-      *pdf = Rd(mf_normal->size()).average();
+      *pdf = Rd(mf_normal->size()).luminance();
       return { REFLECT, OUTSIDE };
     }
   }

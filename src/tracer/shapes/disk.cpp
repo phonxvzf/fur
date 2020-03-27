@@ -1,4 +1,5 @@
 #include "tracer/shapes/disk.hpp"
+#include "math/sampler.hpp"
 
 namespace tracer {
   namespace shapes {
@@ -37,6 +38,15 @@ namespace tracer {
       }
 
       return true;
+    }
+
+    point3f disk::sample(const point2f& u) const {
+      point2f samp = sampler::sample_disk(u);
+      return tf_shape_to_world(point3f(samp[0], 0, samp[1]));
+    }
+
+    Float disk::pdf() const {
+      return INV_PI / pow2(radius);
     }
   }
 }

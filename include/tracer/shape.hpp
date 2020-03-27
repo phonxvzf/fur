@@ -44,6 +44,9 @@ namespace tracer {
           intersect_result* result
           ) const;
 
+      virtual point3f sample(const point2f& u) const;
+      virtual Float pdf() const;
+
     protected:
       const tf::transform tf_shape_to_world;
       const tf::transform tf_world_to_shape;

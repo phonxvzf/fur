@@ -155,6 +155,38 @@ namespace tracer {
     return hit;
   }
 
+  bool bvh_tree::occluded(const ray& r, const shape::intersect_opts& options) const {
+    return occluded(root, r, options);
+  }
+
+  bool bvh_tree::occluded(
+      const std::shared_ptr<bvh_node>& node,
+      const ray& r, 
+      const shape::intersect_opts& options
+      ) const
+  {
+    if (!node->bounds.intersect(r)) return false;
+
+    shape::intersect_result inner_result;
+    for (size_t i = 0; i < node->shapes.size(); ++i) {
+      if (node->shapes[i]->intersect(r, options, &inner_result)) return true;
+    }
+
+    int left = 0, right = 1;
+    point3i negative_dir(r.dir.x < 0, r.dir.y < 0, r.dir.z < 0);
+    if (node->split_dim >= 0) {
+      if (negative_dir[node->split_dim]) std::swap(left, right);
+      if (node->children[left])
+        if (occluded(node->children[left], r, options))
+          return true;
+      if (node->children[right])
+        if (occluded(node->children[right], r, options))
+          return true;
+    }
+
+    return false;
+  }
+
   std::thread* bvh_tree::dispatch_construction(
       std::vector<std::shared_ptr<shape>>& shapes,
       int start,

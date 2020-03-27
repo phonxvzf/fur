@@ -20,6 +20,16 @@ namespace tracer {
     tf_world_to_shape(cpy.tf_world_to_shape),
     world_bounds_cached(cpy.world_bounds_cached) {}
 
+  point3f shape::sample(const point2f& u) const {
+    ASSERT(false, "shape sampling function not implemented");
+    return 0;
+  }
+
+  Float shape::pdf() const {
+    ASSERT(false, "shape PDF is not implemented");
+    return 0;
+  }
+
   bounds3f shape::world_bounds_explicit() const {
     return tf_shape_to_world(bounds());
   }

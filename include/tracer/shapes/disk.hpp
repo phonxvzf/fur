@@ -24,6 +24,9 @@ namespace tracer {
             const intersect_opts& options,
             intersect_result* result)
           const override;
+
+        point3f sample(const point2f& u) const override;
+        Float pdf() const override;
     };
   }
 }

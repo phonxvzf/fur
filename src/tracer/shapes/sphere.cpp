@@ -1,5 +1,6 @@
 #include "tracer/shapes/sphere.hpp"
 #include "math/util.hpp"
+#include "math/sampler.hpp"
 
 namespace tracer {
   namespace shapes {
@@ -38,6 +39,14 @@ namespace tracer {
       }
 
       return true;
+    }
+
+    point3f sphere::sample(const point2f& u) const {
+      return tf_shape_to_world(radius * sampler::sample_sphere(u));
+    }
+
+    Float sphere::pdf() const {
+      return 0.25f * INV_PI / pow2(radius);
     }
   }
 }

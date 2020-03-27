@@ -1,4 +1,7 @@
 #include "tracer/shapes/quad.hpp"
+#include "math/sampler.hpp"
+
+#warning quad sampling only supports rectangular geometry
 
 namespace tracer {
   namespace shapes {
@@ -50,6 +53,18 @@ namespace tracer {
       }
 
       return true;
+    }
+
+    point3f quad::sample(const point2f& u) const {
+      Float w = b.x - d.x;
+      Float h = b.z - d.z;
+      return tf_shape_to_world(point3f(c.x + u[0] * w, 0, c.z + u[1] * h));
+    }
+
+    Float quad::pdf() const {
+      Float w = b.x - d.x;
+      Float h = b.z - d.z;
+      return 1.f / (w * h);
     }
   }
 }
