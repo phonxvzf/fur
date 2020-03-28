@@ -569,6 +569,9 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     if (render_config["mis"].IsDefined()) {
       params->mis = parse_bool(render_config, "mis");
     }
+    if (render_config["legacy"].IsDefined()) {
+      params->legacy = parse_bool(render_config, "legacy");
+    }
   }
 
   // intersect options
@@ -594,6 +597,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
     YAML::Node scene_config = root["scene"];
 
     std::vector<std::shared_ptr<tracer::shape>> shapes;
+    std::vector<std::shared_ptr<tracer::shape>> hair_shapes;
     if (scene_config["objects"].IsDefined()) {
       YAML::Node object_node = scene_config["objects"];
       if (object_node.IsSequence()) {
@@ -606,8 +610,19 @@ std::shared_ptr<tracer::scene> parser::load_scene(
             parse_model(shapes, object);
           } else if (object["hair"].IsDefined()) {
             uintptr_t hair_id;
-            auto strand_bvh = parse_hair(shapes, object, &hair_id);
+            auto strand_bvh = parse_hair(hair_shapes, object, &hair_id);
             main_scene->strand_bvh[hair_id] = strand_bvh;
+
+            if (params->legacy) {
+              std::wcout << L"* Using legacy BVH" << std::endl;
+              shapes.insert(shapes.end(), hair_shapes.begin(), hair_shapes.end());
+            } else {
+              main_scene->embree_shapes.add_hair(hair_shapes);
+              std::wcout << L"* Building Embree acceleration structure containing "
+                << hair_shapes.size() << L" hair segments..." << std::flush;
+              main_scene->embree_shapes.commit();
+              std::wcout << L" done" << std::endl;
+            }
           } else {
             throw parsing_error(
                 object_node.Mark().line,
@@ -620,11 +635,12 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       }
     }
 
-    std::wcout << L"* Building BVH containing " << shapes.size() << L" shapes..." << std::flush;
+    std::wcout << L"* Building legacy BVH containing "
+      << shapes.size() << L" shapes..." << std::flush;
     bvh_tree scene_shapes(shapes);
     std::wcout << L" done" << std::endl;
 
-    main_scene->shapes = scene_shapes;
+    main_scene->legacy_shapes = scene_shapes;
 
     bool light_found = false;
     for (const std::shared_ptr<tracer::shape>& s : shapes) {

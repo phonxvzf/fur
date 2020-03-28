@@ -68,6 +68,7 @@ namespace tracer {
       // assume very near omega_in and omega_out
       // use same normal vector <0,1,0>
       normal3f normal(0, 1, 0);
+      // FIXME: refraction causes zero vector normalization
       vector3f refr_in = refract(omega_in, normal, eta_t / eta_i);
       vector3f refr_out = refract(omega_out, normal, eta_t / eta_i);
       Float ft_in = fresnel(refr_in, normal, eta_t, eta_i);

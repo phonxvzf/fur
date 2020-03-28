@@ -14,6 +14,7 @@
 #include "tracer/camera.hpp"
 #include "tracer/bvh_tree.hpp"
 #include "tracer/texture.hpp"
+#include "tracer/embree_accel.hpp"
 #include "job_master.hpp"
 
 namespace tracer {
@@ -32,6 +33,7 @@ namespace tracer {
     int       max_bounce    = 1;
     Float     max_rr        = 0.5;
     bool      mis           = true;
+    bool      legacy        = false;
     int       thread_id;
 
     shape::intersect_opts intersect_options = shape::intersect_opts();
@@ -87,6 +89,14 @@ namespace tracer {
           Float pdf_dl
           ) const;
 
+      bool intersect(
+          const ray& r,
+          const shape::intersect_opts& opts,
+          shape::intersect_result* result
+          ) const;
+
+      bool occluded(const ray& r, const shape::intersect_opts& opts) const;
+
       std::shared_ptr<std::vector<rgb_spectrum>> ird_rgb = nullptr;
       std::vector<light_source::emitter> light_emitters;
 
@@ -106,7 +116,9 @@ namespace tracer {
       std::chrono::system_clock::time_point render_start;
 
     public:
-      bvh_tree shapes;
+      bvh_tree legacy_shapes;
+      embree_accel embree_shapes;
+
       std::unordered_map<uintptr_t, bvh_tree*> strand_bvh;
       sampled_spectrum environment_color;
 

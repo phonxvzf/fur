@@ -10,6 +10,9 @@
 namespace tracer {
   class shape {
     public:
+      const tf::transform tf_shape_to_world;
+      const tf::transform tf_world_to_shape;
+
       struct intersect_opts {
         Float hit_epsilon     = 1e-4;
         Float bias_epsilon    = 1e-4;
@@ -21,7 +24,7 @@ namespace tracer {
         Float     t_hit = std::numeric_limits<Float>::max();
         point3f   hit_point;
         normal3f  normal;
-        vector3f  xbasis, ybasis;
+        vector3f  xbasis, zbasis;
         point2f   uv;
         const shape* object = nullptr;
       };
@@ -48,8 +51,6 @@ namespace tracer {
       virtual Float pdf() const;
 
     protected:
-      const tf::transform tf_shape_to_world;
-      const tf::transform tf_world_to_shape;
       bool world_bounds_cached;
       bounds3f world_bounds_cache;
 

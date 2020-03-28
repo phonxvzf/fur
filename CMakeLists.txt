@@ -11,6 +11,7 @@ file(GLOB VECTOR_TEST_SOURCES "test/vector/*.cpp")
 find_package(yaml-cpp REQUIRED)
 find_package(OpenEXR REQUIRED)
 find_package(ASSIMP REQUIRED)
+find_package(embree 3.0 REQUIRED)
 
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -march=native -std=c++17 -pipe")
@@ -28,10 +29,12 @@ target_include_directories(${BINARY} PRIVATE
   ${OPENEXR_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIRS}
   ${ASSIMP_INCLUDE_DIRS}
+  ${EMBREE_INCLUDE_DIRS}
   )
 
 target_link_libraries(${BINARY} PRIVATE
   ${OPENEXR_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
   ${ASSIMP_LIBRARIES}
+  ${EMBREE_LIBRARY}
   )

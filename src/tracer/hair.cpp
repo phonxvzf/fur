@@ -255,6 +255,7 @@ namespace tracer {
             bezier->strand_id = i;
             bezier->hair_id = (uintptr_t) this;
           }
+          bezier->curve_id = n_curves + n_total_curves;
           curves.push_back(std::shared_ptr<shape>(bezier));
           ++n_curves;
         }

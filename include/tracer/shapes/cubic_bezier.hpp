@@ -9,6 +9,7 @@ namespace tracer {
       public:
         const Float thickness0, thickness1;
         std::unique_ptr<normal3f[]> vertex_normal = nullptr;
+        point3f control_points[4];
 
         enum cps_position {
           HEAD, BODY, TAIL
@@ -59,10 +60,9 @@ namespace tracer {
 
         uintptr_t hair_id = 0;
         size_t strand_id = 0;
+        unsigned int curve_id = 0;
 
       private:
-        point3f control_points[4];
-
         bool intersect_recursive(
             const ray& r,
             intersect_result* result,

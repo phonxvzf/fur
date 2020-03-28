@@ -13,6 +13,27 @@
 
 namespace tracer {
 
+  bool scene::intersect(
+      const ray& r,
+      const shape::intersect_opts& opts,
+      shape::intersect_result* result
+      ) const
+  {
+    bool hit = legacy_shapes.intersect(r, opts, result);
+    if (embree_shapes.is_valid()) {
+      shape::intersect_result embree_result;
+      hit |= embree_shapes.intersect(r, &embree_result);
+      if (embree_result.t_hit < result->t_hit) *result = embree_result;
+    }
+    return hit;
+  }
+
+  bool scene::occluded(const ray& r, const shape::intersect_opts& opts) const {
+    bool hit = legacy_shapes.occluded(r, opts);
+    if (embree_shapes.is_valid()) hit |= embree_shapes.occluded(r);
+    return hit;
+  }
+
   material::light_transport scene::trace_bsdf(
       ray* r_next,
       vector3f* omega_in,
@@ -91,7 +112,7 @@ namespace tracer {
           (light_position - result.hit_point).normalized(),
           r.t_max
           );
-      if (shapes.occluded(r_dl, params.intersect_options)) {
+      if (occluded(r_dl, params.intersect_options)) {
         *pdf_dl = 0;
       } else {
         *pdf_dl = direct_light_shape->pdf();
@@ -145,7 +166,7 @@ namespace tracer {
     if (bounce > params.max_bounce) return sampled_spectrum(0.f);
 
     shape::intersect_result result;
-    shapes.intersect(r, params.intersect_options, &result);
+    intersect(r, params.intersect_options, &result);
 
     if (result.object == nullptr) {
       if (r.medium == OUTSIDE) {
@@ -193,7 +214,7 @@ namespace tracer {
       const auto volume = std::dynamic_pointer_cast<materials::sss>(result.object->surface);
       ASSERT(volume != nullptr);
 
-      bvh_tree* bvh = &shapes;
+      bvh_tree* bvh = &legacy_shapes;
 
       // if the shape is a part of hair segment, only search in the strand
       auto curve = dynamic_cast<const shapes::cubic_bezier*>(result.object);
@@ -247,7 +268,7 @@ namespace tracer {
       if (++bounce > params.max_bounce) return sampled_spectrum(0);
       sss_result = shape::intersect_result();
       r_sss.t_max = r_next.t_max;
-      hit = shapes.intersect(r_sss, params.intersect_options, &sss_result);
+      hit = intersect(r_sss, params.intersect_options, &sss_result);
       if (!hit) return sampled_spectrum(0);
       sampled_spectrum tr = volume->transmittance(sss_result.t_hit);
       sampled_spectrum density = volume->density(tr, false);

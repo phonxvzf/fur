@@ -7,16 +7,18 @@ _This project is currently in progress._
 
 ## Features
 - Path-traced global illumination (unbiased Monte Carlo)
-- GGX BSDF for both reflection and refraction
 - BSDF importance sampling
+- Microfacets BSDF
 - Stratified uniform samples
 - Russian roulette path termination
 - Bounding volume hierarchy (BVH) with surface area heuristic (SAH)
+- Hair geometry intersection acceleration using Intel® Embree
 - Anti-aliasing achieved via subpixels with average filter
 - Multi-threaded rendering (C++ STL threads)
 - Object loading via Assimp
-- Path-traced subsurface-scattering (experimental)
+- Path-traced subsurface-scattering via volumetric approach (experimental)
 - Path-traced hair/fur BSDF (experimental)
+- Multiple importance sampling for single light source
 - YAML scene file
 
 ## Prerequisites
@@ -26,6 +28,7 @@ _This project is currently in progress._
 - OpenEXR >= 2.4.0
 - yaml-cpp >= 0.6.3
 - Assimp >= 5.0.0
+- Intel® Embree >= 3.8.0
 
 ## Building
 ```
