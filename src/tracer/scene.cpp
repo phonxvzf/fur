@@ -125,7 +125,9 @@ namespace tracer {
     return next_lt;
   }
 
-  sampled_spectrum scene::estimate_radiance(
+  void scene::estimate_radiance(
+      sampled_spectrum* bxdf_estimator,
+      sampled_spectrum* direct_estimator,
       const render_params& params,
       const vector3f& omega_in,
       const vector3f& omega_out,
@@ -146,13 +148,12 @@ namespace tracer {
         );
     Float bxdf_weight = balance_heuristic(params.spp, pdf, params.spp, pdf_dl);
     Float direct_weight = balance_heuristic(params.spp, pdf_dl, params.spp, pdf);
-    sampled_spectrum bxdf_estimator = COMPARE_EQ(pdf, 0) ?
+    *bxdf_estimator = COMPARE_EQ(pdf, 0) ?
       sampled_spectrum(0.f)
       : (bxdf_weight * std::abs(omega_in.y)) * bxdf_radiance / pdf;
-    sampled_spectrum direct_estimator = COMPARE_EQ(pdf_dl, 0) ?
+    *direct_estimator = COMPARE_EQ(pdf_dl, 0) ?
       sampled_spectrum(0.f)
       : (direct_weight * std::abs(omega_in_dl.y)) * direct_radiance * direct_light / pdf_dl;
-    return bxdf_estimator + direct_estimator;
   }
 
   nspectrum scene::trace_path(
@@ -190,8 +191,8 @@ namespace tracer {
         break;
     }
 
-    // evaluate bsdf
-    sampled_spectrum weight0(1.), weight1(1.); // bsdf weights
+    // evaluate estimator
+    sampled_spectrum bxdf_radiance[2] = { 1.f, 1.f }, direct_radiance[2] = { 1.f, 1.f };
     sampled_spectrum direct_light(1.f);
     ray r_next;
     vector3f omega_in, omega_out;
@@ -205,8 +206,8 @@ namespace tracer {
         );
 
     // incoming bsdf
-    weight0 = estimate_radiance(params, omega_in, omega_out, mf_normal, omega_in_dl,
-        next_lt, result, direct_light, pdf, pdf_dl);
+    estimate_radiance(&bxdf_radiance[0], &direct_radiance[0], params, omega_in, omega_out,
+        mf_normal, omega_in_dl, next_lt, result, direct_light, pdf, pdf_dl);
 
     // do volumetric path tracing
     sampled_spectrum volume_weight(1.f);
@@ -283,8 +284,8 @@ namespace tracer {
           );
 
       // outgoing btdf
-      weight1 = estimate_radiance(params, omega_in, omega_out, mf_normal, omega_in_dl,
-          next_lt, result, direct_light, pdf, pdf_dl);
+      estimate_radiance(&bxdf_radiance[1], &direct_radiance[1], params, omega_in, omega_out,
+          mf_normal, omega_in_dl, next_lt, result, direct_light, pdf, pdf_dl);
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
@@ -303,9 +304,11 @@ namespace tracer {
     }
 
     // recursively trace next incident light
-    return volume_weight * (result.object->surface->emittance
-        + weight0 * weight1 * trace_path(params, r_next, next_lt, sample, rng, bounce + 1))
-        / (1 - rr_prob);
+    return (volume_weight / (1 - rr_prob)) * (result.object->surface->emittance
+        + (bxdf_radiance[0] * bxdf_radiance[1])
+        * trace_path(params, r_next, next_lt, sample, rng, bounce + 1)
+        + (direct_radiance[0] * direct_radiance[1])
+        );
   } /* trace_path() */
 
   void scene::render_routine(

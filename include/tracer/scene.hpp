@@ -76,7 +76,10 @@ namespace tracer {
           int bounce
           );
 
-      sampled_spectrum estimate_radiance(
+      // Calculate differential irrdiance
+      void estimate_radiance(
+          sampled_spectrum* bxdf_estimator,
+          sampled_spectrum* direct_estimator,
           const render_params& params,
           const vector3f& omega_in,
           const vector3f& omega_out,

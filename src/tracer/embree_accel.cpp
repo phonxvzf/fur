@@ -97,14 +97,15 @@ namespace tracer {
     }
 
     if (rtc_io.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
+      using namespace shapes;
       RTCGeometry geom = rtcGetGeometry(embree_scene, rtc_io.hit.geomID);
-      const shapes::cubic_bezier* bezier =
-        (const shapes::cubic_bezier*) rtcGetGeometryUserData(geom);
+      const cubic_bezier* bezier =
+        (const cubic_bezier*) rtcGetGeometryUserData(geom);
       result->object = bezier;
       result->t_hit = rtc_io.ray.tfar;
       result->hit_point = r(result->t_hit);
       result->uv = { rtc_io.hit.u, 0.5f * (rtc_io.hit.v + 1.f) };
-      result->xbasis = shapes::cubic_bezier::evaluate_differential(
+      result->xbasis = cubic_bezier::evaluate_differential(
           result->uv[0], bezier->control_points
           ).normalized();
       const tf::transform rotate90 = tf::rotate(result->xbasis, PI_OVER_TWO);
