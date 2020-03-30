@@ -168,7 +168,7 @@ namespace tracer {
           );
       Float cos_gamma_o = cos_from_sin(sin_gamma_o);
       sampled_spectrum A[4];
-      Float f = fresnel_cosine(cos_theta_out * cos_gamma_o, eta_t, eta_i);
+      Float f = fresnel_cosine(cos_theta_out * cos_gamma_o, eta_i, eta_t);
       attenuation(A, f, T);
 
       Float D[4];
@@ -179,9 +179,8 @@ namespace tracer {
         D[i] = gaussian_detector(i, phi, gamma_o, gamma_t, logistic_s);
       }
 
-      //sampled_spectrum bcsdf(M[3] * A[3] * INV_TWO_PI);
-      sampled_spectrum bcsdf(0.f);
-      for (int i = 0; i < 4; ++i) {
+      sampled_spectrum bcsdf(M[3] * A[3] * INV_TWO_PI);
+      for (int i = 0; i < 3; ++i) {
         bcsdf += M[i] * A[i] * D[i];
       }
 
@@ -215,7 +214,7 @@ namespace tracer {
       Float cos_gamma_o = cos_from_sin(sin_gamma_o);
       sampled_spectrum A[4];
 
-      Float f = fresnel_cosine(cos_theta_out * cos_gamma_o, eta_t, eta_i);
+      Float f = fresnel_cosine(cos_theta_out * cos_gamma_o, eta_i, eta_t);
       attenuation(A, f, T);
       Float A_prob[4];
       attenuation_prob(A_prob, A);
@@ -265,8 +264,8 @@ namespace tracer {
         D[i] = gaussian_detector(i, phi_in - phi_out, gamma_o, gamma_t, logistic_s);
       }
 
-      *pdf = 0;
-      for (int i = 0; i < 4; ++i) {
+      *pdf = M[3] * A_prob[3] * INV_TWO_PI;
+      for (int i = 0; i < 3; ++i) {
         *pdf += M[i] * A_prob[i] * D[i];
       }
 
