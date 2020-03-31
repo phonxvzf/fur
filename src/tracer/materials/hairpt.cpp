@@ -35,7 +35,6 @@ namespace tracer {
           / (5.969f - 0.215f * beta_n + 2.532f * pow2(beta_n)
               - 10.73f * pow3(beta_n) + 5.574f * pow4(beta_n) + 0.245f * pow5(beta_n)));
       }
-      sigma_a = sigma_a.clamp(1e-5f, std::numeric_limits<Float>::infinity());
 
       // map azimuthal roughness to logistic scale factor s
       logistic_s = 0.265f * beta_n + 1.194f * pow2(beta_n) + 5.372f * pow20(beta_n) * pow2(beta_n);
@@ -139,7 +138,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
-      if (COMPARE_EQ(omega_in.y, 0)) return 0.f;
+      if (COMPARE_EQ(omega_in.y, 0)) return 1.f;
       const Float sin_theta_out = omega_out.x;
       const Float cos_theta_out = cos_from_sin(sin_theta_out);
       const Float phi_out = std::atan2(omega_out.y, omega_out.z);

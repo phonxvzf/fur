@@ -207,6 +207,10 @@ namespace math {
 
   // Compute Fresnel term (exact version from Cook-Torrance paper), cosine signature
   inline Float fresnel_cosine(Float c, Float eta_i, Float eta_t) {
+    if (c < 0) {
+      std::swap(eta_i, eta_t);
+      c = std::abs(c);
+    }
     const Float g2 = pow2(eta_t / eta_i) - 1 + pow2(c);
 
     if (g2 < 0) return 1; // total internal reflection

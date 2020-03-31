@@ -112,7 +112,7 @@ namespace tracer {
       result->normal = bezier->tf_shape_to_world(rotate90(
             bezier->tf_world_to_shape(result->hit_point).cross(result->xbasis).normalized()
             ));
-      result->xbasis = bezier->tf_shape_to_world(result->xbasis);
+      result->xbasis = bezier->tf_shape_to_world(result->xbasis).normalized();
       if (r.medium == INSIDE) result->normal = -result->normal;
       return true;
     }

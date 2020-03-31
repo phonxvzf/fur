@@ -317,7 +317,8 @@ namespace tracer {
   {
     job j;
     const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.n_subpixels;
-    size_t sqrt_spp = std::sqrt(params.spp);
+    const size_t sqrt_spp = std::sqrt(params.spp);
+    const size_t sqrt_n_subpixels = std::sqrt(params.n_subpixels);
 
     while (master.get_job(&j)) {
       const vector2i start = j.bounds.p_min;
@@ -333,7 +334,7 @@ namespace tracer {
           sampler::sample_stratified_2d(
               img_point_offsets,
               n_subpixels,
-              std::max(1ul, (size_t) std::sqrt(params.n_subpixels)),
+              std::max(1ul, sqrt_n_subpixels),
               j.rng
               );
 
