@@ -288,6 +288,27 @@ namespace math {
     return 1.f / 6 * f;
   }
 
+  inline Float mitchell_filter(Float B, Float C, Float x) {
+    // scale x from range [-1,1] to [-2,2]
+    return mitchell(B, C, 2.f * x);
+  }
+
+  inline Float triangle_filter(Float x) {
+    return std::max(x >= 0.f ? 1.f - x : x + 1.f, 0.f);
+  }
+
+  inline Float blackman_harris_filter(Float x) {
+    // x is scaled from range [-1,1] to [-2,2] and canceled with z = 2 
+    x = x * 0.5f + 1.f;
+    return 0.35875f - 0.48829f * std::cos(PI * x)
+      + 0.14128f * std::cos(TWO_PI * x)
+      - 0.01168f * std::cos(3.f * PI * x);
+  }
+
+  inline Float gaussian_filter(Float x) {
+    return std::exp(-0.5f * pow2(2.f * x));
+  }
+
   inline int log2_nearest(Float x) {
     if (x < 1) return 0;
     return 32 - __builtin_clz(static_cast<uint32_t>(x));

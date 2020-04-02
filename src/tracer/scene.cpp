@@ -369,7 +369,12 @@ namespace tracer {
             point2f pixel_ndc(img_point_offsets[subpixel] * 2 - point2f(1, 1));
 
             // Use Catmull-Rom parameters for Mitchell filter
-            Float weight = mitchell(0.f, 0.5f, pixel_ndc.x) * mitchell(0.f, 0.5f, pixel_ndc.y);
+            //Float weight = mitchell_filter(0.f, 0.5f, pixel_ndc.x)
+            //  * mitchell_filter(0.f, 0.5f, pixel_ndc.y);
+            Float weight = blackman_harris_filter(pixel_ndc.x)
+              * blackman_harris_filter(pixel_ndc.y);
+            //Float weight = triangle_filter(pixel_ndc.x) * triangle_filter(pixel_ndc.y);
+            //Float weight = sinc(pixel_ndc.x) * sinc(pixel_ndc.y);
             pixel_color += weight * inv_spp * color;
             total_weight += weight;
           }

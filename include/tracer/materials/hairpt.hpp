@@ -15,6 +15,8 @@ namespace tracer {
         const Float beta_m;
         const Float beta_n;
         const Float alpha;
+        const Float eumelanin;
+        const Float pheomelanin;
         Float v[4];
         Float logistic_s;
         sampled_spectrum sigma_a;
@@ -61,7 +63,9 @@ namespace tracer {
             Float eta_t,
             Float beta_m,
             Float beta_n,
-            Float alpha
+            Float alpha,
+            Float eumelanin = -1,
+            Float pheomelanin = -1
             );
 
         sampled_spectrum bxdf(

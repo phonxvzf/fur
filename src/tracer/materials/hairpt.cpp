@@ -14,13 +14,17 @@ namespace tracer {
         Float eta_t,
         Float beta_m,
         Float beta_n,
-        Float alpha)
+        Float alpha,
+        Float eumelanin,
+        Float pheomelanin)
       : material(
           sampled_spectrum(1.f), // hair color is only dictated by sigma_a
           sampled_spectrum(1.f),
           emittance,
           HAIR
-          ), eta_i(eta_i), eta_t(eta_t), beta_m(beta_m), beta_n(beta_n), alpha(alpha)
+          ),
+      eta_i(eta_i), eta_t(eta_t), beta_m(beta_m), beta_n(beta_n), alpha(alpha),
+      eumelanin(eumelanin), pheomelanin(pheomelanin)
     {
       // calculate longitudinal scattering variance
       const Float v0 = pow2(0.726f * beta_m + 0.812f * pow2(beta_m) + 3.7f * pow20(beta_m));
@@ -34,6 +38,16 @@ namespace tracer {
         sigma_a[i] = pow2(std::log(std::max(refl[i], FLOAT_TOLERANT))
           / (5.969f - 0.215f * beta_n + 2.532f * pow2(beta_n)
               - 10.73f * pow3(beta_n) + 5.574f * pow4(beta_n) + 0.245f * pow5(beta_n)));
+      }
+
+      // if available, use melanin concentrations instead
+      if (COMPARE_GEQ(eumelanin, 0) && COMPARE_GEQ(pheomelanin, 0)) {
+        sigma_a = sampled_spectrum(rgb_spectrum(
+              eumelanin * 0.419f + pheomelanin * 0.187f,
+              eumelanin * 0.697f + pheomelanin * 0.4f,
+              eumelanin * 1.37f + pheomelanin * 1.05f
+              )
+            );
       }
 
       // map azimuthal roughness to logistic scale factor s
@@ -156,7 +170,8 @@ namespace tracer {
       }
 
       // attenuation for each lobe
-      Float h = 2.f * uvw[1] - 1; // offset from surface to central medulla in range [-1,1]
+      // offset from surface to central medulla in range [-1,1]
+      Float h = 2.f * clamp(uvw[1], 0.1f, 0.9f) - 1;
       Float sin_gamma_o, sin_gamma_t;
       sampled_spectrum T = transmittance(
           sin_theta_out,
@@ -228,6 +243,7 @@ namespace tracer {
       }
 
       // pbrt version
+      u_demux[0][1] = std::max(u_demux[0][1], 1e-5f);
       Float cos_theta = 1 + v[lobe] * std::log(
           u_demux[0][1] + (1 - u_demux[0][1]) * std::exp(-2.f / v[lobe])
           );
@@ -260,7 +276,7 @@ namespace tracer {
 
       Float D[4];
       for (int i = 0; i < 4; ++i) {
-        D[i] = gaussian_detector(i, phi_in - phi_out, gamma_o, gamma_t, logistic_s);
+        D[i] = gaussian_detector(i, dphi, gamma_o, gamma_t, logistic_s);
       }
 
       *pdf = M[3] * A_prob[3] * INV_TWO_PI;

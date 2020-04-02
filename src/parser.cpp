@@ -287,7 +287,9 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
             parse_float(hairpt_node, "eta_t"),
             parse_float(hairpt_node, "beta_m"),
             parse_float(hairpt_node, "beta_n"),
-            parse_float(hairpt_node, "alpha")
+            parse_float(hairpt_node, "alpha"),
+            hairpt_node["eumelanin"].IsDefined() ? parse_float(hairpt_node, "eumelanin") : -1.f,
+            hairpt_node["pheomelanin"].IsDefined() ? parse_float(hairpt_node, "pheomelanin") : -1.f
             )
           );
     } else {
