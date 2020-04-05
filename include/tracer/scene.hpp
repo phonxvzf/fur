@@ -87,7 +87,6 @@ namespace tracer {
           const normal3f& omega_in_dl,
           const material::light_transport& next_lt,
           const shape::intersect_result& result,
-          const sampled_spectrum& direct_light,
           Float pdf,
           Float pdf_dl
           ) const;

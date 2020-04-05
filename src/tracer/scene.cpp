@@ -135,7 +135,6 @@ namespace tracer {
       const normal3f& omega_in_dl,
       const material::light_transport& next_lt,
       const shape::intersect_result& result,
-      const sampled_spectrum& direct_light,
       Float pdf,
       Float pdf_dl
       ) const
@@ -153,7 +152,7 @@ namespace tracer {
       : (bxdf_weight * std::abs(omega_in.y)) * bxdf_radiance / pdf;
     *direct_estimator = COMPARE_EQ(pdf_dl, 0) ?
       sampled_spectrum(0.f)
-      : (direct_weight * std::abs(omega_in_dl.y)) * direct_radiance * direct_light / pdf_dl;
+      : (direct_weight * std::abs(omega_in_dl.y)) * direct_radiance / pdf_dl;
   }
 
   nspectrum scene::trace_path(
@@ -207,7 +206,7 @@ namespace tracer {
 
     // incoming bsdf
     estimate_radiance(&bxdf_radiance[0], &direct_radiance[0], params, omega_in, omega_out,
-        mf_normal, omega_in_dl, next_lt, result, direct_light, pdf, pdf_dl);
+        mf_normal, omega_in_dl, next_lt, result, pdf, pdf_dl);
 
     // do volumetric path tracing
     sampled_spectrum volume_weight(1.f);
@@ -285,7 +284,7 @@ namespace tracer {
 
       // outgoing btdf
       estimate_radiance(&bxdf_radiance[1], &direct_radiance[1], params, omega_in, omega_out,
-          mf_normal, omega_in_dl, next_lt, result, direct_light, pdf, pdf_dl);
+          mf_normal, omega_in_dl, next_lt, result, pdf, pdf_dl);
 
       Float old_t_max = r_next.t_max;
       r_next = r_sss;
@@ -307,7 +306,7 @@ namespace tracer {
     return (volume_weight / (1 - rr_prob)) * (result.object->surface->emittance
         + (bxdf_radiance[0] * bxdf_radiance[1])
         * trace_path(params, r_next, next_lt, sample, rng, bounce + 1)
-        + (direct_radiance[0] * direct_radiance[1])
+        + (direct_radiance[0] * direct_radiance[1]) * direct_light
         );
   } /* trace_path() */
 

@@ -32,12 +32,15 @@ namespace tracer {
       size_t get_n_samples() const { return n_samples; }
 
       bool is_black() const;
+      bool has_nan() const;
+      bool has_inf() const;
       nspectrum sqrt() const;
       nspectrum pow(Float x) const;
       nspectrum exp() const;
       nspectrum clamp(Float min = 0.f, Float max = std::numeric_limits<Float>::infinity()) const;
       nspectrum inverse() const;
       Float average() const;
+      Float min() const;
       Float max() const;
 
       nspectrum operator-() const;

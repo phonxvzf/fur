@@ -91,9 +91,10 @@ namespace tracer {
         cos_term + 0.5f * (-std::log(TWO_PI) + std::log(1 / cos_term) + 1 / (8 * cos_term))
         : std::log(I0);
       static constexpr Float ln2 = 0.6931471805f;
-      return v <= 0.1f ?
+      Float ret = v <= 0.1f ?
         std::exp(logI0 - sin_term - inv_v + ln2 + std::log(0.5f * inv_v))
         : (0.5f * inv_v / std::sinh(inv_v)) * std::exp(-sin_term) * I0;
+      return ret;
     }
 
     Float hairpt::gaussian_detector(
@@ -129,6 +130,7 @@ namespace tracer {
         sum += prob[i];
       }
       for (int i = 0; i < 4; ++i) {
+        if (COMPARE_EQ(sum, 0.f)) prob[i] = 0;
         prob[i] = prob[i] / sum;
       }
     }
@@ -152,7 +154,7 @@ namespace tracer {
         const light_transport& lt
         ) const
     {
-      if (COMPARE_EQ(omega_in.y, 0)) return 1.f;
+      if (COMPARE_EQ(omega_in.y, 0)) return 0.f;
       const Float sin_theta_out = omega_out.x;
       const Float cos_theta_out = cos_from_sin(sin_theta_out);
       const Float phi_out = std::atan2(omega_out.y, omega_out.z);
@@ -171,7 +173,7 @@ namespace tracer {
 
       // attenuation for each lobe
       // offset from surface to central medulla in range [-1,1]
-      Float h = 2.f * clamp(uvw[1], 0.1f, 0.9f) - 1;
+      Float h = 2.f * uvw[1] - 1.f;
       Float sin_gamma_o, sin_gamma_t;
       sampled_spectrum T = transmittance(
           sin_theta_out,
@@ -198,6 +200,17 @@ namespace tracer {
         bcsdf += M[i] * A[i] * D[i];
       }
 
+      /*
+      sampled_spectrum ret = bcsdf;
+      if (ret.min() < 0.f) {
+        std::cerr << omega_in << omega_out << std::endl;
+        std::cerr << ret.min() << " " << ret.average() << " " << ret.max() << std::endl;
+        for (int i = 0; i < 4; ++i) {
+          std::cerr << M[i] << " " << A[i].rgb() << " " << D[i] << std::endl;
+        }
+        std::abort();
+      }
+      */
       return bcsdf / std::abs(omega_in.y);
     } /* weight() */
 
@@ -211,12 +224,12 @@ namespace tracer {
         ) const
     {
       const vector3f uvw = *mf_normal;
-      Float h = 2.f * uvw[1] - 1; // offset from surface to central medulla in range [-1,1]
+      Float h = 2.f * uvw[1] - 1.f; // offset from surface to central medulla in range [-1,1]
 
       point2f u_demux[2] = { demux_float(u[0]), demux_float(u[1]) };
-      Float sin_theta_out = omega_out.x;
-      Float cos_theta_out = cos_from_sin(sin_theta_out);
-      Float phi_out = std::atan2(omega_out.y, omega_out.z);
+      const Float sin_theta_out = omega_out.x;
+      const Float cos_theta_out = cos_from_sin(sin_theta_out);
+      const Float phi_out = std::atan2(omega_out.y, omega_out.z);
       Float sin_gamma_o, sin_gamma_t;
       sampled_spectrum T = transmittance(
           sin_theta_out,
@@ -276,7 +289,7 @@ namespace tracer {
 
       Float D[4];
       for (int i = 0; i < 4; ++i) {
-        D[i] = gaussian_detector(i, dphi, gamma_o, gamma_t, logistic_s);
+        D[i] = gaussian_detector(i, phi_in - phi_out, gamma_o, gamma_t, logistic_s);
       }
 
       *pdf = M[3] * A_prob[3] * INV_TWO_PI;

@@ -115,6 +115,7 @@ namespace math {
     Float sample_finite_norm_logistic(Float s, Float u, Float a, Float b) {
       Float integral = logistic_cdf(s, b) - logistic_cdf(s, a);
       Float raw = -s * std::log(1.f / (u * integral + logistic_cdf(s, a)) - 1.f);
+      if (std::isnan(raw)) return 0;
       return math::clamp(raw, a, b);
     }
   } /* namespace sampler */
