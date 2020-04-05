@@ -1,7 +1,7 @@
 # ftracer
 ![Example scene (1024 spp, 4 subpixels)](https://raw.githubusercontent.com/phonxvzf/fur/master/example.jpg)
 
-A physically-based image synthesizer using ray tracing methods.
+A physically-based image synthesizer based on ray tracing methods.
 
 _This project is currently in progress._
 
@@ -13,7 +13,7 @@ _This project is currently in progress._
 - Russian roulette path termination
 - Bounding volume hierarchy (BVH) with surface area heuristic (SAH)
 - Hair geometry intersection acceleration using Intel® Embree
-- Anti-aliasing achieved via subpixels with average filter
+- Anti-aliasing achieved via subpixel supersampling with Blackman-Harris filter
 - Multi-threaded rendering (C++ STL threads)
 - Object loading via Assimp
 - Path-traced subsurface-scattering via volumetric approach (experimental)
@@ -47,7 +47,7 @@ The program automatically detects the number of your processor concurrency (typi
 You can override this by supplying `-j N` option, where `N` is the number of render workers to spawn.
 
 Please also note that the program assumes that your terminal supports Unicode characters.
-If you have problems displaying the progress bar, please consider use `--quiet` option :-P.
+If you have problems displaying the progress bar, please consider using `--quiet` option :-P.
 
 ### Command line options
 - `-h or --help` print help message and exit gracefully
@@ -80,5 +80,4 @@ $ display output.exr
 Please see `example_scene.yaml` for references.
 
 ## TODOs
-- Dual scattering for hair
-- Bipole BSSRDF
+- Dipole BSSRDF
