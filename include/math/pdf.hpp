@@ -48,7 +48,7 @@ namespace math {
 
   inline Float logistic_pdf(Float s, Float x) {
     Float inv_s = 1.f / s;
-    Float ex = std::exp(x * inv_s);
+    Float ex = std::exp(-x * inv_s);
     return ex / (pow2(1 + ex)) * inv_s;
   }
 
