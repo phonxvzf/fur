@@ -232,7 +232,7 @@ namespace tracer {
       bool hit = false;
       Float dist = volume->sample_distance(rng);
       r_sss.t_max = dist;
-      while (!hit) {
+      while (true) {
         // reset intersect result
         sss_result = shape::intersect_result();
 
@@ -246,6 +246,8 @@ namespace tracer {
 
         if (COMPARE_EQ(p, 0)) return sampled_spectrum(0);
         volume_weight *= volume->beta(tr, true) / p;
+
+        if (hit) break; // break after last volume weight is contributed
 
         Float next_dist = volume->sample_distance(rng);
 
@@ -314,6 +316,9 @@ namespace tracer {
       const render_params& params,
       void (*update_callback)(Float, size_t, size_t))
   {
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+
     job j;
     const size_t n_subpixels = (params.show_depth || params.show_normal) ? 1 : params.n_subpixels;
     const size_t sqrt_spp = std::sqrt(params.spp);

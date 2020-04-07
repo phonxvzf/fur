@@ -155,7 +155,7 @@ namespace tracer {
 
     std::wstringstream wss;
     wss << file_path.c_str();
-    std::wcout << L"  * Processing hair file " << wss.str() << std::endl;
+    std::wcout << L"  * Processing hair file " << wss.str() << L"..." << std::flush;
 
     size_t n_total_curves = 0;
     for (size_t i = 0; i < n_strands; ++i) {
@@ -276,6 +276,8 @@ namespace tracer {
       *hair_id = (uintptr_t) this;
       std::wcout << std::endl;
     }
+
+    std::wcout << L" done" << std::endl;
     return strand_bvh;
   } /* to_beziers() */
 

@@ -4,6 +4,8 @@ namespace tracer {
   embree_accel::embree_accel() {
     embree_device = rtcNewDevice(nullptr);
     embree_scene = rtcNewScene(embree_device);
+
+    rtcSetSceneBuildQuality(embree_scene, RTC_BUILD_QUALITY_HIGH);
   }
 
   embree_accel::~embree_accel() {
@@ -43,15 +45,9 @@ namespace tracer {
         u += 1.f / 3;
       }
 
-      // initialize curve normals
-      // TODO
-      //vector4f* curve_normals = (vector4f*) 
-
-      // initialize curve tangents
-      // TODO
-
       // build geometry
       rtcSetGeometryUserData(geom, beziers[i].get());
+      rtcSetGeometryBuildQuality(geom, RTC_BUILD_QUALITY_HIGH);
       rtcCommitGeometry(geom);
       if (rtcGetDeviceError(embree_device) != RTC_ERROR_NONE) {
         throw std::runtime_error("curve geometry malformed");
@@ -88,6 +84,7 @@ namespace tracer {
     rtc_io.ray.org_z = r.origin.z;
     rtc_io.ray.tnear = 0.f;
     rtc_io.ray.tfar = r.t_max;
+    rtc_io.ray.flags = 0;
 
     rtcInitIntersectContext(&intersect_ctx);
     rtcIntersect1(embree_scene, &intersect_ctx, &rtc_io);
@@ -131,8 +128,10 @@ namespace tracer {
     rtc_ray.org_z = r.origin.z;
     rtc_ray.tnear = 0.f;
     rtc_ray.tfar = r.t_max;
+    rtc_ray.flags = 0;
 
     rtcInitIntersectContext(&intersect_ctx);
+    intersect_ctx.flags = RTC_INTERSECT_CONTEXT_FLAG_COHERENT;
     rtcOccluded1(embree_scene, &intersect_ctx, &rtc_ray);
 
     return rtc_ray.tfar < 0.f;

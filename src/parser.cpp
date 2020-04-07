@@ -620,7 +620,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
               shapes.insert(shapes.end(), hair_shapes.begin(), hair_shapes.end());
             } else {
               main_scene->embree_shapes.add_hair(hair_shapes);
-              std::wcout << L"* Building Embree acceleration structure containing "
+              std::wcout << L"  * Building Embree acceleration structure containing "
                 << hair_shapes.size() << L" hair segments..." << std::flush;
               main_scene->embree_shapes.commit();
               std::wcout << L" done" << std::endl;
@@ -637,7 +637,7 @@ std::shared_ptr<tracer::scene> parser::load_scene(
       }
     }
 
-    std::wcout << L"* Building legacy BVH containing "
+    std::wcout << L"  * Building legacy BVH containing "
       << shapes.size() << L" shapes..." << std::flush;
     bvh_tree scene_shapes(shapes);
     std::wcout << L" done" << std::endl;
