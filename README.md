@@ -34,6 +34,7 @@ Although other renderers like to use right-handed coordinate system, ftracer use
 - yaml-cpp >= 0.6.3
 - Assimp >= 5.0.0
 - Intel® Embree >= 3.8.0
+- tcmalloc from gperftools
 
 ## Building
 ```

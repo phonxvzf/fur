@@ -54,7 +54,7 @@ namespace tracer {
       // FIXME
       vector3f h = (omega_in + omega_out).normalized();
       Float n = math::lerp(beta_n, 0, 32);
-      return INV_EIGHT_PI * (n + 8) * std::pow(std::abs(h.y), n);
+      return INV_EIGHT_PI * std::pow(std::abs(h.y), n);
     }
 
     sampled_spectrum dipole::bxdf(
@@ -67,15 +67,16 @@ namespace tracer {
       // TODO
       // assume very near omega_in and omega_out
       // use same normal vector <0,1,0>
+      if (COMPARE_EQ(omega_in.y, 0)) return 0.f;
       normal3f normal(0, 1, 0);
-      // FIXME: refraction causes zero vector normalization
-      vector3f refr_in = refract(omega_in, normal, eta_t / eta_i);
-      vector3f refr_out = refract(omega_out, normal, eta_t / eta_i);
-      Float ft_in = fresnel(refr_in, normal, eta_t, eta_i);
-      Float ft_out = fresnel(refr_out, normal, eta_t, eta_i);
+      vector3f refl_in = reflect(omega_in, normal);
+      vector3f refl_out = reflect(omega_out, normal);
+      Float ft_in = 1.f - fresnel(refl_in, normal, eta_i, eta_t);
+      Float ft_out = 1.f - fresnel(refl_out, normal, eta_i, eta_t);
       Float r = mf_normal.size();
 
-      return Sd(ft_in, ft_out, Rd(r)) + S1(omega_in, omega_out);
+      // TODO: S1
+      return Sd(ft_in, ft_out, Rd(r)) +  (1.f - ft_in) * S1(omega_in, omega_out);
     }
 
     material::light_transport dipole::sample(

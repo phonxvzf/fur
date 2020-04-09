@@ -16,7 +16,7 @@ find_package(embree 3.0 REQUIRED)
 if (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "-g -rdynamic -march=native -std=c++17 -pipe")
   set(CMAKE_CXX_FLAGS_RELEASE
-    "-std=c++17 -pipe -flto -O3 -DNDEBUG -march=native -funroll-loops -rdynamic"
+    "-std=c++17 -pipe -flto -O3 -DNDEBUG -march=native -funroll-loops -rdynamic -ltcmalloc"
     )
 else()
   message(FATAL_ERROR "Unsupported platform (GNU/Linux only)")
