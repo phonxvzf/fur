@@ -10,10 +10,11 @@ namespace tracer {
         Float beta_n,
         Float beta_m,
         Float eta_i,
-        Float eta_t
+        Float eta_t,
+        Float k
         )
       : material(refl, refl, emittance, HAIR),
-      sigma_s(sigma_s), beta_n(beta_n), beta_m(beta_m), eta_i(eta_i), eta_t(eta_t)
+      sigma_s(sigma_s), beta_n(beta_n), beta_m(beta_m), eta_i(eta_i), eta_t(eta_t), k(k)
     {
       // map reflectance to sigma_a
       // use the same mapping in path traced version
@@ -75,8 +76,8 @@ namespace tracer {
       Float ft_out = 1.f - fresnel(refl_out, normal, eta_i, eta_t);
       Float r = mf_normal.size();
 
-      // TODO: S1
-      return Sd(ft_in, ft_out, Rd(r)) +  (1.f - ft_in) * S1(omega_in, omega_out);
+      return (k * Sd(ft_in, ft_out, Rd(r)) + (1.f - ft_in) * S1(omega_in, omega_out))
+        / std::abs(omega_in.y);
     }
 
     material::light_transport dipole::sample(

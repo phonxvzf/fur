@@ -309,7 +309,8 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
             parse_float(dipole_node, "beta_n"),
             1.f,
             parse_float(dipole_node, "eta_i"),
-            parse_float(dipole_node, "eta_t")
+            parse_float(dipole_node, "eta_t"),
+            dipole_node["k"].IsDefined() ? parse_float(dipole_node, "k") : 1.f
             )
           );
     } else {

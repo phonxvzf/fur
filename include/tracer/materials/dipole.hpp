@@ -15,6 +15,7 @@ namespace tracer {
         Float beta_m;
         Float eta_i;
         Float eta_t;
+        Float k;
 
         sampler::normal1d standard_normal;
 
@@ -30,7 +31,8 @@ namespace tracer {
             Float beta_n,
             Float beta_m,
             Float eta_i,
-            Float eta_t
+            Float eta_t,
+            Float k = 1
             );
 
         sampled_spectrum bxdf(
