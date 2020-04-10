@@ -445,13 +445,15 @@ namespace tracer {
     }
 
     // render finished
-    using namespace std::chrono;
-    size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
-    update_callback(1., 0, elapsed);
-    if (profile) {
-      profile->time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-          (std::chrono::system_clock::now() - render_start)
-          ).count();
+    if (update_callback != nullptr) {
+      using namespace std::chrono;
+      size_t elapsed = duration_cast<seconds>(system_clock::now() - render_start).count();
+      update_callback(1., 0, elapsed);
+      if (profile) {
+        profile->time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+            (std::chrono::system_clock::now() - render_start)
+            ).count();
+      }
     }
 
     return ird_rgb;
