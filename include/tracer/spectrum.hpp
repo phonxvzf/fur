@@ -34,6 +34,7 @@ namespace tracer {
       bool is_black() const;
       bool has_nan() const;
       bool has_inf() const;
+      bool has_zero() const;
       nspectrum sqrt() const;
       nspectrum pow(Float x) const;
       nspectrum exp() const;

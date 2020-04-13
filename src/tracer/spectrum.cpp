@@ -13,14 +13,21 @@ namespace tracer {
     for (size_t i = 0; i < n_samples; ++i) {
       if (std::isnan(spd[i])) return true;
     }
-    return true;
+    return false;
   }
 
   bool nspectrum::has_inf() const {
     for (size_t i = 0; i < n_samples; ++i) {
       if (std::isinf(spd[i])) return true;
     }
-    return true;
+    return false;
+  }
+
+  bool nspectrum::has_zero() const {
+    for (size_t i = 0; i < n_samples; ++i) {
+      if (COMPARE_EQ(spd[i], 0)) return true;
+    }
+    return false;
   }
 
   nspectrum nspectrum::sqrt() const {
