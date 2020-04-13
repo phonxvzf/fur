@@ -76,7 +76,7 @@ namespace tracer {
       Float ft_out = 1.f - fresnel(refl_out, normal, eta_i, eta_t);
       Float r = mf_normal.size();
 
-      return (k * Sd(ft_in, ft_out, Rd(r)) + (1.f - ft_in) * S1(omega_in, omega_out))
+      return k * (Sd(ft_in, ft_out, Rd(r) + (1.f - ft_in) * S1(omega_in, omega_out)))
         / std::abs(omega_in.y);
     }
 
