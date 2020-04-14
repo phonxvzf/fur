@@ -54,8 +54,9 @@ namespace tracer {
     }
 
     sampled_spectrum dipole::S1(const vector3f& omega_in, const vector3f& omega_out) const {
+      // FIXME
       vector3f h = (omega_in + omega_out).normalized();
-      Float n = math::lerp(beta_n, 0, 32);
+      Float n = math::lerp(1.f - beta_n, 0, 16);
       return INV_EIGHT_PI * std::pow(std::abs(h.y), n);
     }
 
@@ -76,8 +77,7 @@ namespace tracer {
       Float ft_out = 1.f - fresnel(refl_out, normal, eta_i, eta_t);
       Float r = mf_normal.size();
 
-      return k * (Sd(ft_in, ft_out, Rd(r)) + (1.f - ft_in) * S1(omega_in, omega_out))
-        / std::abs(omega_in.y);
+      return k / std::abs(omega_in.y) * Sd(ft_in, ft_out, Rd(r));
     }
 
     material::light_transport dipole::sample(
@@ -91,18 +91,12 @@ namespace tracer {
     {
       *omega_in = sampler::sample_cosine_hemisphere(point2f(u));
 
-      // FIXME: importance sample Rd
       mf_normal->x = standard_normal.sample(u[0]);
       mf_normal->y = 0.f;
       mf_normal->z = standard_normal.sample(u[1]);
 
-      normal3f normal(0, 1, 0);
-      vector3f refl_in = reflect(*omega_in, normal);
-      Float ft_in = 1.f - fresnel(refl_in, normal, eta_i, eta_t);
-
       *omega_in = (*omega_in + *mf_normal).normalized();
-      *pdf = Rd(mf_normal->size()).luminance()
-        + (1.f - ft_in) * S1(*omega_in, omega_out).luminance();
+      *pdf = Rd(mf_normal->size()).luminance();
       return { REFLECT, OUTSIDE };
     }
   }

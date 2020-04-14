@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
         || render_bounds_override.p_min.y > params.img_res.y
         || render_bounds_override.invalid())
     {
-      std::cerr << "error: invalid overridden render bounds" << std::endl;
+      std::cerr << "error: invalid render bounds" << std::endl;
       return 1;
     }
     params.render_bounds.p_min = render_bounds_override.p_min;
@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
         || render_bounds_override.p_max.y > params.img_res.y
         || render_bounds_override.invalid())
     {
-      std::cerr << "error: invalid overridden render bounds" << std::endl;
+      std::cerr << "error: invalid render bounds" << std::endl;
       return 1;
     }
     params.render_bounds.p_max = render_bounds_override.p_max;
