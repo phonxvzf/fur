@@ -7,14 +7,14 @@ namespace tracer {
         const sampled_spectrum& refl,
         const sampled_spectrum& emittance,
         const sampled_spectrum& sigma_s,
+        const sampled_spectrum& k,
         Float beta_n,
         Float beta_m,
         Float eta_i,
-        Float eta_t,
-        Float k
+        Float eta_t
         )
       : material(refl, refl, emittance, HAIR),
-      sigma_s(sigma_s), beta_n(beta_n), beta_m(beta_m), eta_i(eta_i), eta_t(eta_t), k(k)
+      sigma_s(sigma_s), k(k), beta_n(beta_n), beta_m(beta_m), eta_i(eta_i), eta_t(eta_t)
     {
       // map reflectance to sigma_a
       // use the same mapping in path traced version

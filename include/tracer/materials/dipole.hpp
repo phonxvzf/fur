@@ -10,12 +10,12 @@ namespace tracer {
         sampled_spectrum sigma_t;
         sampled_spectrum sigma_tr;
         sampled_spectrum albedo;
+        sampled_spectrum k;
 
         Float beta_n;
         Float beta_m;
         Float eta_i;
         Float eta_t;
-        Float k;
 
         sampler::normal1d standard_normal;
 
@@ -28,11 +28,11 @@ namespace tracer {
             const sampled_spectrum& refl,
             const sampled_spectrum& emittance,
             const sampled_spectrum& sigma_s,
+            const sampled_spectrum& k,
             Float beta_n,
             Float beta_m,
             Float eta_i,
-            Float eta_t,
-            Float k = 1
+            Float eta_t
             );
 
         sampled_spectrum bxdf(

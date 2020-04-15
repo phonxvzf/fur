@@ -306,11 +306,11 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
             parse_rgb_spectrum(dipole_node, "rgb_refl"),
             parse_rgb_spectrum(dipole_node, "emittance"),
             parse_rgb_spectrum(dipole_node, "sigma_s"),
+            dipole_node["k"].IsDefined() ? parse_rgb_spectrum(dipole_node, "k") : 1.f,
             parse_float(dipole_node, "beta_n"),
             1.f,
             parse_float(dipole_node, "eta_i"),
-            parse_float(dipole_node, "eta_t"),
-            dipole_node["k"].IsDefined() ? parse_float(dipole_node, "k") : 1.f
+            parse_float(dipole_node, "eta_t")
             )
           );
     } else {
