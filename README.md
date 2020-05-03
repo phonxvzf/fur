@@ -5,8 +5,6 @@ A physically-based image synthesizer based on ray tracing methods.
 
 _f_ in _ftracer_ stands for _fur_, not grade F.
 
-_This project is currently in progress._
-
 ## Features
 - Path-traced global illumination (unbiased Monte Carlo)
 - Microfacets BSDF

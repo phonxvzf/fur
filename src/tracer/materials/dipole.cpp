@@ -6,26 +6,31 @@ namespace tracer {
     dipole::dipole(
         const sampled_spectrum& refl,
         const sampled_spectrum& emittance,
+        const sampled_spectrum& sigma_a,
         const sampled_spectrum& sigma_s,
         const sampled_spectrum& k,
         Float beta_n,
         Float beta_m,
         Float eta_i,
-        Float eta_t
+        Float eta_t,
+        bool convert_sigma_a
         )
       : material(refl, refl, emittance, HAIR),
-      sigma_s(sigma_s), k(k), beta_n(beta_n), beta_m(beta_m), eta_i(eta_i), eta_t(eta_t)
+      sigma_a(sigma_a), sigma_s(sigma_s), k(k), beta_n(beta_n),
+      beta_m(beta_m), eta_i(eta_i), eta_t(eta_t)
     {
-      // map reflectance to sigma_a
-      // use the same mapping in path traced version
-      for (size_t i = 0; i < sigma_a.get_n_samples(); ++i) {
-        sigma_a[i] = pow2(std::log(std::max(refl[i], FLOAT_TOLERANT))
-          / (5.969f - 0.215f * beta_n + 2.532f * pow2(beta_n)
-              - 10.73f * pow3(beta_n) + 5.574f * pow4(beta_n) + 0.245f * pow5(beta_n)));
+      if (convert_sigma_a) {
+        // map reflectance to sigma_a
+        // use the same mapping in path traced version
+        for (size_t i = 0; i < this->sigma_a.get_n_samples(); ++i) {
+          this->sigma_a[i] = pow2(std::log(std::max(refl[i], FLOAT_TOLERANT))
+              / (5.969f - 0.215f * beta_n + 2.532f * pow2(beta_n)
+                - 10.73f * pow3(beta_n) + 5.574f * pow4(beta_n) + 0.245f * pow5(beta_n)));
+        }
       }
-      sigma_t = sigma_a + sigma_s;
+      sigma_t = this->sigma_a + sigma_s;
       albedo = sigma_s / sigma_t;
-      sigma_tr = (3.f * sigma_a * sigma_t).sqrt();
+      sigma_tr = (3.f * this->sigma_a * sigma_t).sqrt();
     }
 
     sampled_spectrum dipole::Rd(Float r) const {

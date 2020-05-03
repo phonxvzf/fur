@@ -299,18 +299,22 @@ std::shared_ptr<tracer::material> parser::parse_material(const YAML::Node& mat_n
     }
   } else if (mat_node["dipole"].IsDefined()) {
     YAML::Node dipole_node = mat_node["dipole"];
-    if (dipole_node["rgb_refl"].IsDefined()   && dipole_node["emittance"].IsDefined()
-        && dipole_node["eta_i"].IsDefined()   && dipole_node["eta_t"].IsDefined()
-        && dipole_node["sigma_s"].IsDefined() && dipole_node["beta_n"].IsDefined()) {
+    if ((dipole_node["rgb_refl"].IsDefined() || dipole_node["sigma_a"].IsDefined())
+        && dipole_node["emittance"].IsDefined() && dipole_node["eta_i"].IsDefined()
+        && dipole_node["eta_t"].IsDefined() && dipole_node["sigma_s"].IsDefined()
+        && dipole_node["beta_n"].IsDefined())
+    {
       return std::shared_ptr<tracer::material>(new tracer::materials::dipole(
-            parse_rgb_spectrum(dipole_node, "rgb_refl"),
+            dipole_node["sigma_a"].IsDefined() ? 0.f : parse_rgb_spectrum(dipole_node, "rgb_refl"),
             parse_rgb_spectrum(dipole_node, "emittance"),
+            dipole_node["sigma_a"].IsDefined() ? parse_rgb_spectrum(dipole_node, "sigma_a") : 0.f,
             parse_rgb_spectrum(dipole_node, "sigma_s"),
             dipole_node["k"].IsDefined() ? parse_rgb_spectrum(dipole_node, "k") : 1.f,
             parse_float(dipole_node, "beta_n"),
             1.f,
             parse_float(dipole_node, "eta_i"),
-            parse_float(dipole_node, "eta_t")
+            parse_float(dipole_node, "eta_t"),
+            !dipole_node["sigma_a"].IsDefined()
             )
           );
     } else {

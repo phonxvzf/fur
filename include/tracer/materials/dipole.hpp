@@ -27,12 +27,14 @@ namespace tracer {
         dipole(
             const sampled_spectrum& refl,
             const sampled_spectrum& emittance,
+            const sampled_spectrum& sigma_a,
             const sampled_spectrum& sigma_s,
             const sampled_spectrum& k,
             Float beta_n,
             Float beta_m,
             Float eta_i,
-            Float eta_t
+            Float eta_t,
+            bool convert_sigma_a = false
             );
 
         sampled_spectrum bxdf(
